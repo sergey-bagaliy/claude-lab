@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ремонт под контролем — приложение для ремонтной компании</title>
+  <meta name="description" content="Смета по этапам, график работ, фотоотчёты, акты и оплаты по этапам — в одном приложении для владельца ремонтной компании, прораба и заказчика.">
+  <meta name="theme-color" content="#1d3557">
+  <meta property="og:title" content="Ремонт под контролем — приложение для ремонтной компании">
+  <meta property="og:description" content="Смета, график, фотоотчёты, акты и оплаты по этапам — в одном месте для вас, прораба и заказчика.">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/landing.css">
+</head>
+<body>
+  <a class="visually-hidden" href="#main">Перейти к содержимому</a>
+
+  <div class="draft-bar draft-only" role="note">
+    <div class="container">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+      <span>Черновик сайта: название, список функций и цены — черновик, утвердить владельцем.</span>
+    </div>
+  </div>
+
+  <header class="site-header">
+    <div class="container">
+      <a class="logo" href="#top" aria-label="Ремонт под контролем — на главную">
+        <svg class="logo-mark" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="10" fill="#1d3557"/><path d="M9 20.5 20 11l11 9.5V30a1 1 0 0 1-1 1H10a1 1 0 0 1-1-1v-9.5Z" fill="none" stroke="#fff" stroke-width="2.4" stroke-linejoin="round"/><path d="m15 23.5 3.6 3.5L26 19.5" fill="none" stroke="#ff9a62" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>Ремонт под контролем<small>приложение для ремонтной компании</small></span>
+      </a>
+      <button class="burger" type="button" aria-label="Открыть меню" aria-expanded="false" aria-controls="nav"><span></span></button>
+      <nav class="nav" id="nav" aria-label="Основное меню">
+        <a href="#problems">Проблемы</a>
+        <a href="#solution">Решение</a>
+        <a href="#features">Функции</a>
+        <a href="#pricing">Тарифы</a>
+        <a href="demo/">Демо</a>
+        <a class="btn btn-primary btn-sm header-cta" href="#request">Заявка на демо</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- Первый экран -->
+    <section class="hero" id="top">
+      <div class="container">
+        <div>
+          <h1>Ремонт под контролем, <em>даже когда вы не на объекте</em></h1>
+          <p class="lead">Смета по этапам, график, фотоотчёты, акты и оплаты — в одном приложении для вас, прораба и заказчика. Без потерянных чеков, споров «а договаривались иначе» и звонков «ну что там у нас?».</p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="demo/">Открыть демо-кабинет</a>
+            <a class="btn btn-ghost" href="#request">Заявка на показ</a>
+          </div>
+          <ul class="hero-points">
+            <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2b7a3b" stroke-width="2.4" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg>Работает в браузере телефона — прорабу не нужен компьютер</li>
+            <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2b7a3b" stroke-width="2.4" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg>Заказчик видит прогресс, фото и акты в своём кабинете</li>
+            <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2b7a3b" stroke-width="2.4" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg>Демо открывается без регистрации, на тестовых данных</li>
+          </ul>
+        </div>
+
+        <div class="hero-visual" aria-label="Пример экрана приложения на тестовых данных">
+          <div class="phone">
+            <span class="demo-tag">ДЕМО-ДАННЫЕ</span>
+            <div class="phone-screen">
+              <div class="phone-top">
+                <div class="t1">Объект · тестовый</div>
+                <div class="t2">Квартира 64 м², ул. Примерная</div>
+                <div class="phone-progress" aria-hidden="true"><span style="width:48%"></span></div>
+                <div class="t1" style="margin-top:6px">Этап 4 из 8 · готово 48%</div>
+              </div>
+              <div class="phone-body">
+                <div class="mini">
+                  <div class="row"><b>Стяжка и штукатурка</b><span class="chip chip-warn">+2 дня</span></div>
+                  <div class="muted">Прораб: «Ждали смесь, догоняем»</div>
+                </div>
+                <div class="mini">
+                  <div class="row"><b>Акт №3 · Сантехника</b><span class="chip chip-info">на подписи</span></div>
+                  <div class="muted">После подписи откроется оплата этапа</div>
+                </div>
+                <div class="mini">
+                  <div class="row"><b>Фотоотчёт</b><span class="muted">сегодня</span></div>
+                  <div class="mini-photos" aria-hidden="true">
+                    <svg viewBox="0 0 120 90"><rect width="120" height="90" fill="#cfc9bf"/><rect x="26" y="18" width="68" height="46" fill="#bdb6ab"/><path d="M0 90 26 64h68l26 26Z" fill="#8f8a82"/><path d="M36 18v46M50 18v46M64 18v46M78 18v46" stroke="#9aa3ad" stroke-width="2"/><rect x="26" y="18" width="30" height="46" fill="#e7e2d8"/></svg>
+                    <svg viewBox="0 0 120 90"><rect width="120" height="90" fill="#cfc9bf"/><rect x="26" y="18" width="68" height="46" fill="#bdb6ab"/><path d="M0 90 26 64h68l26 26Z" fill="#c9c3b8"/><path d="M14 80h92M30 72h60" stroke="#9aa3ad" stroke-width="2"/></svg>
+                    <svg viewBox="0 0 120 90"><rect width="120" height="90" fill="#cfc9bf"/><rect x="26" y="18" width="68" height="46" fill="#bdb6ab"/><path d="M0 90 26 64h68l26 26Z" fill="#8f8a82"/><path d="M40 30v34M40 30h40" stroke="#d64545" stroke-width="3"/><path d="M48 36v28M48 36h32" stroke="#3a7bd5" stroke-width="3"/></svg>
+                  </div>
+                </div>
+                <div class="mini">
+                  <div class="row"><span class="muted">Оплачено заказчиком</span><b>2 из 8 этапов</b></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Проблемы -->
+    <section id="problems">
+      <div class="container">
+        <div class="section-head">
+          <span class="eyebrow">Знакомо?</span>
+          <h2>Что мешает владельцу ремонтной компании спать спокойно</h2>
+          <p>Пока объектов два-три, всё держится на телефоне и памяти. Дальше начинаются потери.</p>
+        </div>
+        <div class="grid-3">
+          <article class="card problem">
+            <div class="ico" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+            <div class="q">«Что там на объекте?»</div>
+            <p>О проблемах узнаёте последним. Чтобы понять, что сделано, приходится звонить прорабу или ехать самому.</p>
+          </article>
+          <article class="card problem">
+            <div class="ico" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M4 10h16M10 4v16"/></svg></div>
+            <div class="q">Смета живёт в Excel, факт — в голове</div>
+            <p>Допработы договорили устно, в смету не внесли — в конце спор, кто за что платит, и деньги теряются.</p>
+          </article>
+          <article class="card problem">
+            <div class="ico" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+            <div class="q">Заказчик нервничает и звонит</div>
+            <p>Он не видит, что происходит, и каждый вопрос превращается в звонок вам. Доверие падает, сарафанное радио молчит.</p>
+          </article>
+          <article class="card problem">
+            <div class="ico" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M9 14h6M9 18h4"/></svg></div>
+            <div class="q">Акты и оплаты по этапам буксуют</div>
+            <p>Бумажный акт не подписали — оплату этапа задержали, а бригаде и поставщикам платить нужно сейчас.</p>
+          </article>
+          <article class="card problem">
+            <div class="ico" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg></div>
+            <div class="q">Сроки съезжают незаметно</div>
+            <p>График есть только у прораба в голове. Отставание видно, когда заказчик уже недоволен.</p>
+          </article>
+          <article class="card problem">
+            <div class="ico" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M17 11a3 3 0 1 0 0-6M21.5 20a5.5 5.5 0 0 0-4-5.3"/></svg></div>
+            <div class="q">Всё держится на вас</div>
+            <p>Нет единого порядка: каждый прораб ведёт объект по-своему, а новых сотрудников приходится учить с нуля.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Решение -->
+    <section id="solution" class="bg-soft">
+      <div class="container">
+        <div class="section-head">
+          <span class="eyebrow">Решение</span>
+          <h2>Один объект — одна карточка, где видно всё</h2>
+          <p>Ремонт идёт по понятной цепочке. Каждый шаг фиксируется, и все участники видят одно и то же.</p>
+        </div>
+        <div class="flow">
+          <div class="flow-step"><b>Смета по этапам</b><span>Работы и материалы разбиты на этапы. Заказчик согласует смету в кабинете.</span></div>
+          <div class="flow-step"><b>График</b><span>У каждого этапа есть сроки. Отставание видно сразу, а не в конце.</span></div>
+          <div class="flow-step"><b>Фотоотчёт</b><span>Прораб снимает работу на телефон, фото привязаны к этапу и дате.</span></div>
+          <div class="flow-step"><b>Акт</b><span>Акт собирается из сметы этапа. Заказчик подтверждает приёмку.</span></div>
+          <div class="flow-step"><b>Оплата этапа</b><span>После приёмки заказчик видит сумму к оплате. Вы видите, кто сколько должен.</span></div>
+        </div>
+
+        <div class="roles">
+          <article class="card role">
+            <h3><span class="avatar" style="background:#1d3557">В</span>Владелец</h3>
+            <ul>
+              <li>Все объекты на одном экране: где отставание, где ждут акт, где долг</li>
+              <li>Деньги по каждому объекту: получено, к оплате, допработы</li>
+              <li>Единый порядок работы для всех прорабов</li>
+            </ul>
+          </article>
+          <article class="card role">
+            <h3><span class="avatar" style="background:#c2410c">П</span>Прораб</h3>
+            <ul>
+              <li>Фото и отметки о готовности прямо с объекта, с телефона</li>
+              <li>Допработы оформляются сразу и уходят заказчику на согласование</li>
+              <li>Меньше звонков: заказчик сам видит прогресс</li>
+            </ul>
+          </article>
+          <article class="card role">
+            <h3><span class="avatar" style="background:#2b7a3b">З</span>Заказчик</h3>
+            <ul>
+              <li>Личный кабинет: прогресс, фото, график и смета</li>
+              <li>Подписание актов и оплата этапов без встреч</li>
+              <li>Чат по объекту: вся история в одном месте</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Функции -->
+    <section id="features">
+      <div class="container">
+        <div class="section-head">
+          <span class="eyebrow">Функции</span>
+          <h2>Всё для ведения ремонта — от сметы до последней оплаты</h2>
+          <span class="draft-badge draft-only">Список функций — черновик, утвердить владельцем</span>
+        </div>
+        <div class="features">
+          <article class="card feature">
+            <div class="ico" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM4 9h16M4 14h16M9 9v11"/></svg></div>
+            <h3>Смета по этапам</h3>
+            <p>Работы и материалы по этапам, шаблоны типовых смет, допработы с согласованием заказчика.</p>
+          </article>
+          <article class="card feature">
+            <div class="ico" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 11h2M12 11h2M16 11h0M8 15h2M12 15h2M8 18h2M12 18h2M16 15v3"/></svg></div>
+            <h3>Калькулятор сметы</h3>
+            <p>Предварительная смета по площадям помещений за несколько минут — для первого разговора с клиентом.</p>
+          </article>
+          <article class="card feature">
+            <div class="ico" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 3 7v10l9 5 9-5V7z"/><path d="m3 7 9 5 9-5M12 12v10"/></svg></div>
+            <h3>3D-планировщик квартиры</h3>
+            <p>Планировка и объёмная модель квартиры, чтобы клиент увидел результат до начала работ.</p>
+          </article>
+          <article class="card feature">
+            <div class="ico" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h10M3 12h14M3 18h7"/><rect x="13" y="4" width="8" height="4" rx="1"/><rect x="17" y="10" width="4" height="4" rx="1"/></svg></div>
+            <h3>График работ</h3>
+            <p>Этапы со сроками на диаграмме. Отставания подсвечиваются, прогноз окончания пересчитывается.</p>
+          </article>
+          <article class="card feature">
+            <div class="ico" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></div>
+            <h3>Фотоотчёты</h3>
+            <p>Фото с телефона с привязкой к этапу и дате. Скрытые работы остаются задокументированы.</p>
+          </article>
+          <article class="card feature">
+            <div class="ico" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 15l2 2 4-4"/></svg></div>
+            <h3>Акты выполненных работ</h3>
+            <p>Акт формируется из сметы этапа. Заказчик подтверждает приёмку в кабинете, акт можно распечатать.</p>
+          </article>
+          <article class="card feature">
+            <div class="ico" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/></svg></div>
+            <h3>Оплаты по этапам</h3>
+            <p>График платежей, напоминания заказчику, отметки о поступлении. Видно, кто и сколько должен.</p>
+          </article>
+          <article class="card feature">
+            <div class="ico" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8M8 13h5"/></svg></div>
+            <h3>Чат по объекту</h3>
+            <p>Переписка с заказчиком и прорабом внутри объекта, а не в десятке мессенджеров.</p>
+          </article>
+          <article class="card feature">
+            <div class="ico" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>
+            <h3>Роли и доступы</h3>
+            <p>Заказчик видит только свой объект, прораб — свои объекты, владелец — всё, включая деньги.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Демо -->
+    <section id="demo" class="bg-soft">
+      <div class="container">
+        <div class="demo-cta">
+          <div>
+            <h2>Посмотрите, как это выглядит, прямо сейчас</h2>
+            <p>Демо-кабинет открывается без регистрации. Внутри — вымышленный объект на тестовых данных:</p>
+            <ul>
+              <li>смета по этапам и допработы на согласовании;</li>
+              <li>график с отставанием, фотоотчёт, акт на подписи;</li>
+              <li>оплаты по этапам и чат по объекту.</li>
+            </ul>
+            <a class="btn btn-light" href="demo/">Открыть демо-кабинет</a>
+            <p class="note">Переключайтесь между ролями «Владелец», «Прораб» и «Заказчик», чтобы увидеть объект глазами каждого. Изменения сохраняются только в вашем браузере.</p>
+          </div>
+          <div class="demo-cta-visual" aria-hidden="true">
+            <div class="tab-pills"><span>Обзор</span><span>Смета</span><span>График</span><span>Фото</span><span>Акты</span><span>Оплаты</span><span>Чат</span></div>
+            <div class="tab-pills"><span>Владелец</span><span>Прораб</span><span>Заказчик</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Тарифы -->
+    <section id="pricing">
+      <div class="container">
+        <div class="section-head">
+          <span class="eyebrow">Тарифы</span>
+          <h2>Платите за масштаб, а не за каждого заказчика</h2>
+          <p>Заказчики подключаются к своим объектам бесплатно во всех тарифах.</p>
+          <span class="draft-badge draft-only">Тарифы и цены — черновик, утвердить владельцем</span>
+        </div>
+        <div class="pricing">
+          <article class="card plan">
+            <h3>Прораб</h3>
+            <div class="for">Частному прорабу или бригадиру, который ведёт объекты сам</div>
+            <div class="price" data-price>1 490 ₽ <small>/ мес</small></div>
+            <div class="price-note">Цена — черновик</div>
+            <ul>
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg>До 3 активных объектов</li>
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg>1 сотрудник + заказчики</li>
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg>Смета, график, фото, акты, оплаты, чат</li>
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg>Калькулятор сметы</li>
+            </ul>
+            <a class="btn btn-ghost btn-block" href="#request" data-plan="Прораб">Оставить заявку</a>
+          </article>
+          <article class="card plan featured">
+            <span class="ribbon">Основной</span>
+            <h3>Команда</h3>
+            <div class="for">Ремонтной компании с несколькими прорабами и бригадами</div>
+            <div class="price" data-price>4 900 ₽ <small>/ мес</small></div>
+            <div class="price-note">Цена — черновик</div>
+            <ul>
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg>До 15 активных объектов</li>
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg>До 7 сотрудников + заказчики</li>
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg>Всё из тарифа «Прораб»</li>
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg>Шаблоны смет и этапов компании</li>
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg>Сводка владельца по всем объектам</li>
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg>Роли и права доступа</li>
+            </ul>
+            <a class="btn btn-primary btn-block" href="#request" data-plan="Команда">Оставить заявку</a>
+          </article>
+          <article class="card plan">
+            <h3>Компания</h3>
+            <div class="for">Компании, которая ведёт много объектов и дорожит брендом</div>
+            <div class="price" data-price>9 900 ₽ <small>/ мес</small></div>
+            <div class="price-note">Цена — черновик</div>
+            <ul>
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg>Объекты без ограничений</li>
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg>До 20 сотрудников + заказчики</li>
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg>Всё из тарифа «Команда»</li>
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg>3D-планировщик квартиры</li>
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg>Логотип компании в кабинете заказчика</li>
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg>Помощь с переносом объектов</li>
+            </ul>
+            <a class="btn btn-ghost btn-block" href="#request" data-plan="Компания">Оставить заявку</a>
+          </article>
+        </div>
+        <p class="pricing-foot">Состав тарифов, лимиты и цены — черновик для обсуждения, утвердить владельцем. Условия пробного периода, скидки за оплату на год и порядок оплаты по счёту будут указаны в оферте.</p>
+      </div>
+    </section>
+
+    <!-- Как начать -->
+    <section id="start" class="bg-soft">
+      <div class="container">
+        <div class="section-head">
+          <span class="eyebrow">Как начать</span>
+          <h2>Три шага до первого объекта в приложении</h2>
+        </div>
+        <div class="steps">
+          <article class="card step"><h3>Оставьте заявку</h3><p>Расскажите, сколько у вас объектов и как вы сейчас ведёте сметы и оплаты.</p></article>
+          <article class="card step"><h3>Посмотрите показ</h3><p>Покажем приложение на вашем примере по видеосвязи и ответим на вопросы.</p></article>
+          <article class="card step"><h3>Заведите объект</h3><p>Перенесём смету одного текущего объекта и подключим прораба и заказчика.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Вопросы -->
+    <section id="faq">
+      <div class="container">
+        <div class="section-head">
+          <span class="eyebrow">Вопросы</span>
+          <h2>Частые вопросы</h2>
+          <span class="draft-badge draft-only">Ответы описывают продукт — черновик, утвердить владельцем</span>
+        </div>
+        <div class="faq">
+          <details>
+            <summary>Нужно ли заказчику устанавливать приложение?</summary>
+            <p>Нет. Заказчик открывает свой кабинет по ссылке в браузере телефона или компьютера.</p>
+          </details>
+          <details>
+            <summary>Где хранятся данные?</summary>
+            <p>Персональные данные заказчиков хранятся на серверах в России, как требует закон о персональных данных (152-ФЗ). Подробности — в политике обработки персональных данных.</p>
+          </details>
+          <details>
+            <summary>Имеет ли акт, подтверждённый в кабинете, юридическую силу?</summary>
+            <p>Подтверждение акта в кабинете — это простая электронная подпись. Чтобы она приравнивалась к собственноручной, это должно быть прописано в договоре с заказчиком. Формулировку для договора стоит согласовать с юристом.</p>
+          </details>
+          <details>
+            <summary>Можно ли перенести сметы из Excel?</summary>
+            <p>Да, поможем перенести сметы текущих объектов при подключении.</p>
+          </details>
+          <details>
+            <summary>Что будет с данными, если мы перестанем платить?</summary>
+            <p>Доступ к данным сохранится в режиме просмотра на срок, указанный в оферте, — вы сможете выгрузить сметы и акты.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- Заявка -->
+    <section id="request" class="bg-soft">
+      <div class="container">
+        <div class="request">
+          <div class="request-info">
+            <div class="section-head" style="margin-bottom:20px">
+              <span class="eyebrow">Заявка на демо</span>
+              <h2>Покажем приложение на вашем объекте</h2>
+              <p>Оставьте контакты — свяжемся, договоримся о времени показа и ответим на вопросы.</p>
+            </div>
+            <ul>
+              <li>Показ по видеосвязи или у вас в офисе (Краснодар)</li>
+              <li>Разберём ваш текущий процесс: сметы, акты, оплаты</li>
+              <li>Без обязательств и навязчивых звонков</li>
+            </ul>
+            <p class="hint">Не хотите ждать? <a href="demo/">Откройте демо-кабинет</a> — он работает без регистрации.</p>
+          </div>
+
+          <form class="card request-form" id="request-form" novalidate>
+            <div class="form-grid">
+              <div class="field">
+                <label for="f-name">Имя *</label>
+                <input class="input" id="f-name" name="name" autocomplete="name" required maxlength="80">
+                <div class="error-text" id="e-name"></div>
+              </div>
+              <div class="field">
+                <label for="f-phone">Телефон *</label>
+                <input class="input" id="f-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+7 900 000-00-00" required maxlength="20">
+                <div class="error-text" id="e-phone"></div>
+              </div>
+              <div class="field">
+                <label for="f-company">Компания</label>
+                <input class="input" id="f-company" name="company" autocomplete="organization" maxlength="120">
+              </div>
+              <div class="field">
+                <label for="f-city">Город</label>
+                <input class="input" id="f-city" name="city" autocomplete="address-level2" maxlength="60">
+              </div>
+              <div class="field">
+                <label for="f-objects">Объектов одновременно</label>
+                <select class="select" id="f-objects" name="objects">
+                  <option value="">Выберите</option>
+                  <option>1–3</option>
+                  <option>4–10</option>
+                  <option>11–30</option>
+                  <option>Больше 30</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="f-plan">Интересует тариф</label>
+                <select class="select" id="f-plan" name="plan">
+                  <option value="">Пока не знаю</option>
+                  <option>Прораб</option>
+                  <option>Команда</option>
+                  <option>Компания</option>
+                </select>
+              </div>
+              <div class="field full">
+                <label for="f-comment">Комментарий</label>
+                <textarea class="textarea" id="f-comment" name="comment" maxlength="1000" placeholder="Как сейчас ведёте объекты, что хотите улучшить"></textarea>
+              </div>
+              <div class="full">
+                <label class="check">
+                  <input type="checkbox" id="f-consent" name="consent" required>
+                  <span>Даю <a href="consent.html" target="_blank" rel="noopener">согласие на обработку персональных данных</a> *</span>
+                </label>
+                <div class="error-text" id="e-consent"></div>
+                <p class="hint" style="margin:6px 0 0">Как мы обрабатываем данные — в <a href="privacy.html" target="_blank" rel="noopener">политике обработки персональных данных</a>.</p>
+              </div>
+              <div class="full">
+                <button class="btn btn-primary btn-block" type="submit">Отправить заявку</button>
+              </div>
+            </div>
+            <div class="form-status" id="form-status" role="status" aria-live="polite"></div>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div>
+        <strong style="color:#fff">Ремонт под контролем</strong><br>
+        Приложение для ремонтной компании. Рабочее название.<br>
+        <span class="draft-only">Реквизиты владельца сайта: <span data-config="owner">заполнить</span></span>
+      </div>
+      <div class="links">
+        <a href="demo/">Демо-кабинет</a>
+        <a href="privacy.html">Политика обработки персональных данных</a>
+        <a href="consent.html">Согласие на обработку данных</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/landing.js"></script>
+</body>
+</html>

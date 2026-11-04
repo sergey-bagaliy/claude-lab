@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Демо-кабинет — Ремонт под контролем</title>
+  <meta name="description" content="Интерактивный демо-кабинет приложения для ремонтной компании на тестовых данных: смета по этапам, график, фотоотчёт, акты и оплаты.">
+  <meta name="theme-color" content="#1d3557">
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../assets/css/base.css">
+  <link rel="stylesheet" href="../assets/css/demo.css">
+</head>
+<body>
+  <div class="demo-banner" role="note">
+    <div class="inner">
+      <span><b>Демо на тестовых данных.</b> Объект, люди и суммы вымышлены. Изменения сохраняются только в вашем браузере.</span>
+      <span style="display:flex;gap:10px;align-items:center">
+        <button type="button" data-action="reset">Сбросить демо</button>
+        <a href="../">← На сайт</a>
+      </span>
+    </div>
+  </div>
+
+  <div class="app">
+    <aside class="side" aria-label="Навигация по кабинету">
+      <a class="logo-row" href="../">
+        <svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="10" fill="#1d3557"/><path d="M9 20.5 20 11l11 9.5V30a1 1 0 0 1-1 1H10a1 1 0 0 1-1-1v-9.5Z" fill="none" stroke="#fff" stroke-width="2.4" stroke-linejoin="round"/><path d="m15 23.5 3.6 3.5L26 19.5" fill="none" stroke="#ff9a62" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Ремонт под контролем
+      </a>
+      <div class="side-label">Объекты</div>
+      <div class="obj-list" id="obj-list"></div>
+      <div class="side-label">Разделы</div>
+      <nav class="side-nav" id="side-nav"></nav>
+    </aside>
+
+    <main class="main" id="main">
+      <div class="topbar">
+        <div>
+          <h1 id="obj-title">Квартира 64 м²</h1>
+          <div class="sub" id="obj-sub"></div>
+        </div>
+        <div class="role-switch" role="group" aria-label="Смотреть кабинет как" id="role-switch">
+          <button type="button" data-action="role" data-role="owner">Владелец</button>
+          <button type="button" data-action="role" data-role="foreman">Прораб</button>
+          <button type="button" data-action="role" data-role="client">Заказчик</button>
+        </div>
+      </div>
+      <nav class="tabs-mobile" id="tabs-mobile" aria-label="Разделы"></nav>
+      <div class="view" id="view" tabindex="-1"></div>
+    </main>
+  </div>
+
+  <dialog class="modal" id="modal" aria-labelledby="modal-title"></dialog>
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+
+  <noscript><p style="padding:16px">Для работы демо-кабинета включите JavaScript.</p></noscript>
+  <script src="../assets/js/demo-art.js"></script>
+  <script src="../assets/js/demo.js"></script>
+</body>
+</html>
