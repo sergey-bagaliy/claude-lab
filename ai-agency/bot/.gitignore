@@ -1,0 +1,16 @@
+# Секреты — никогда не коммитить
+.env
+*.env
+!.env.example
+
+# База данных с записями и персональными данными клиентов
+data/
+*.db
+*.db-journal
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
