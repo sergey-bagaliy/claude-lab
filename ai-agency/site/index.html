@@ -30,7 +30,7 @@
         <a href="#process">Как работаем</a>
         <a href="#faq">Вопросы</a>
       </nav>
-      <a class="btn btn-primary btn-small header-cta" href="#lead">Оставить заявку</a>
+      <a class="btn btn-primary btn-small header-cta" href="#lead"><span class="cta-long">Оставить заявку</span><span class="cta-short">Заявка</span></a>
     </div>
   </header>
 
@@ -189,7 +189,67 @@
           <h2>Понятные пакеты: настройка + сопровождение</h2>
           <p class="lead">Цены — ориентир. Точную стоимость назовём после бесплатного разбора: она зависит от числа услуг, интеграций и каналов.</p>
         </div>
-        <!-- PACKAGES:START -->
+        <!-- PACKAGES:START — цены из исследования ai-agency/research (раздел 3), пересматривайте перед публикацией -->
+        <div class="packages">
+          <article class="package">
+            <h3>Старт</h3>
+            <p class="for">Чтобы заявки с сайта не терялись</p>
+            <div class="price">30&nbsp;000&nbsp;₽</div>
+            <div class="price-sub">разово<br>+ 1&nbsp;900&nbsp;₽ в месяц</div>
+            <ul>
+              <li>Лендинг с услугами, ценами и формой заявки</li>
+              <li>Бот заявок в Telegram (без ИИ)</li>
+              <li>Каждая заявка — сразу владельцу</li>
+              <li>Политика и согласие на обработку данных</li>
+              <li>Хостинг, мелкие правки, мониторинг</li>
+            </ul>
+            <a class="btn btn-ghost" href="#lead" data-package="Старт">Выбрать</a>
+          </article>
+          <article class="package featured">
+            <span class="badge">Рекомендуем клиникам</span>
+            <h3>ИИ-администратор</h3>
+            <p class="for">Отвечает и записывает 24/7</p>
+            <div class="price">от 30&nbsp;000&nbsp;₽</div>
+            <div class="price-sub">разово, до 50&nbsp;000&nbsp;₽<br>+ 5&nbsp;000–10&nbsp;000&nbsp;₽ в месяц</div>
+            <ul>
+              <li>ИИ-ответы по вашей базе знаний</li>
+              <li>Запись на свободное время, «Мои записи», отмена</li>
+              <li>Перевод на живого администратора</li>
+              <li>До 1&nbsp;000 диалогов в месяц, сверх — 6&nbsp;₽ за диалог</li>
+              <li>Отчёт раз в месяц</li>
+            </ul>
+            <a class="btn btn-primary" href="#lead" data-package="ИИ-администратор">Выбрать</a>
+          </article>
+          <article class="package">
+            <h3>Голосовой робот</h3>
+            <p class="for">Когда все заняты, а телефон звонит</p>
+            <div class="price">от 30&nbsp;000&nbsp;₽</div>
+            <div class="price-sub">разово, до 48&nbsp;000&nbsp;₽<br>+ 10&nbsp;000&nbsp;₽ в месяц</div>
+            <ul>
+              <li>Входящие вечером, в выходные и в часы пик</li>
+              <li>Ответы на типовые вопросы и запись</li>
+              <li>Перевод на человека</li>
+              <li>До 1&nbsp;000 минут входящих, сверх — 5&nbsp;₽/мин</li>
+              <li>Напоминания о визите — 7&nbsp;₽/мин</li>
+            </ul>
+            <a class="btn btn-ghost" href="#lead" data-package="Голосовой робот">Выбрать</a>
+          </article>
+          <article class="package">
+            <h3>Под ключ</h3>
+            <p class="for">Сайт, чат и телефон — одной системой</p>
+            <div class="price">100&nbsp;000&nbsp;₽</div>
+            <div class="price-sub">разово<br>+ 20&nbsp;000&nbsp;₽ в месяц</div>
+            <ul>
+              <li>Лендинг + ИИ-администратор + голосовой робот</li>
+              <li>Единый отчёт по всем каналам</li>
+              <li>Обновление базы знаний</li>
+              <li>Черновики документов по персональным данным вместе с партнёром-юристом</li>
+            </ul>
+            <a class="btn btn-ghost" href="#lead" data-package="Под ключ">Выбрать</a>
+          </article>
+        </div>
+        <p class="disclaimer" style="margin-top:24px"><strong>Пилот для первых клиентов.</strong> 2–4 недели работы на ваших реальных обращениях: платите только за сервисы (нейросеть, минуты связи, хостинг). Метрики — время ответа, сколько обращений закрыто без человека, сколько записей — согласуем до старта.</p>
+        <p class="small muted">Запись в вашу систему (YCLIENTS, IDENT, 1С и др.) возможна при наличии у неё API — оцениваем на разборе. Второй канал (MAX, чат на сайте) — по запросу.</p>
         <!-- PACKAGES:END -->
       </div>
     </section>
@@ -300,8 +360,10 @@
             <label for="f-package">Интересует</label>
             <select id="f-package" name="package">
               <option value="">Пока не знаю</option>
-              <!-- PACKAGE-OPTIONS:START -->
-              <!-- PACKAGE-OPTIONS:END -->
+              <option>Старт</option>
+              <option>ИИ-администратор</option>
+              <option>Голосовой робот</option>
+              <option>Под ключ</option>
             </select>
           </div>
           <div class="field">
