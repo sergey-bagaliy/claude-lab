@@ -158,7 +158,12 @@ async def test_my_bookings_and_cancel(env, state):
 
 async def test_call_admin_notifies_owner(env, state):
     msg = FakeMessage(kb.MENU_ADMIN)
-    await h.call_admin(msg, state, env.booking)
+    await h.call_admin(msg, state, env.db, env.business, env.booking)
+    assert env.notifier.messages == [] and "согласие" in msg.answer.texts[0]  # сначала согласие
+
+    env.db.give_consent(111, env.business.privacy_policy_url, NOW)
+    msg = FakeMessage(kb.MENU_ADMIN)
+    await h.call_admin(msg, state, env.db, env.business, env.booking)
     assert "нужен администратор" in env.notifier.messages[0]
     assert env.business.phone in msg.answer.texts[0]
 

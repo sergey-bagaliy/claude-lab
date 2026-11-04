@@ -118,8 +118,14 @@ async def show_contacts(message: Message, state: FSMContext, business: Business)
     await message.answer(business.contacts_text, reply_markup=kb.main_menu())
 
 
-async def call_admin(message: Message, state: FSMContext, booking: BookingService) -> None:
+async def call_admin(
+    message: Message, state: FSMContext, db: Storage, business: Business, booking: BookingService
+) -> None:
     await state.clear()
+    # Передача владельцу имени и Telegram клиента — тоже обработка ПДн, поэтому нужно согласие.
+    # Без согласия клиент всё равно может позвонить: телефон есть в «📍 Контакты».
+    if await _ask_consent_if_needed(message, message.from_user.id, db, business):
+        return
     await booking.handoff(client_of(message.from_user), "клиент нажал «Позвать администратора»")
     await message.answer(
         f"Передал ваш запрос администратору — с вами свяжутся. Если срочно, звоните: {booking.business.phone}",
