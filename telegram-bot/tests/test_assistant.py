@@ -1,118 +1,272 @@
-"""Логика общения с Claude. API подменён заглушкой FakeClaude."""
+"""Логика общения с Claude: параметры запроса, инструменты, поиск, ошибки. API подменён."""
 
 import asyncio
 
 import anthropic
 import pytest
 
-from family_bot.assistant import EFFORT, MAX_TOKENS, TRUNCATED_NOTE, AssistantError
+from family_bot.assistant import FALLBACK_BETA, MAX_TOKENS, TRUNCATED_NOTE, AssistantError, FamilyAssistant
 
-from .conftest import api_connection_error, api_status_error, claude_response
+from .conftest import (
+    RECIPE_INPUT,
+    SERGEY,
+    VIKA,
+    api_connection_error,
+    api_status_error,
+    citation,
+    claude_message,
+    claude_text,
+    recipe_turn,
+    server_search,
+    text,
+    thinking,
+    tool_use,
+)
+
+
+def user_text(call, index=-1):
+    return call["messages"][index]["content"]
 
 
 async def test_request_parameters(assistant, fake_claude):
-    await assistant.ask(1, "Привет!")
+    await assistant.ask(100, SERGEY, "Привет!")
 
     [call] = fake_claude.messages.calls
-    assert call["model"] == "claude-haiku-5-5"
+    assert call["model"] == "claude-sonnet-5-5"
     assert call["max_tokens"] == MAX_TOKENS
-    assert call["output_config"] == {"effort": EFFORT}
-    assert call["messages"] == [{"role": "user", "content": "Привет!"}]
+    assert call["output_config"] == {"effort": "low"}
+    assert call["cache_control"] == {"type": "ephemeral"}
+    # Защита от ложных отказов: сервер сам повторит запрос на другой модели.
+    assert call["betas"] == [FALLBACK_BETA]
+    assert call["fallbacks"] == "default"
     assert "Никита" in call["system"] and "Краснодар" in call["system"]
-    # Эти параметры новые модели не принимают — их быть не должно.
-    for forbidden in ("temperature", "top_p", "top_k"):
+    for forbidden in ("temperature", "top_p", "top_k", "tool_choice", "thinking"):
         assert forbidden not in call
 
+    names = [t["name"] for t in call["tools"]]
+    assert names == [
+        "web_search",
+        "add_shopping_items",
+        "get_shopping_list",
+        "create_reminder",
+        "list_reminders",
+        "show_recipe",
+    ]
+    assert call["tools"][0]["type"] == "web_search_20260318"
 
-async def test_returns_only_text_without_thinking(assistant, fake_claude):
-    fake_claude.messages.queue.append(claude_response("Добрый день!", with_thinking=True))
-    assert await assistant.ask(1, "Привет") == "Добрый день!"
+
+async def test_context_line_with_time_and_author(assistant, fake_claude):
+    await assistant.ask(100, SERGEY, "Привет!")
+    content = user_text(fake_claude.messages.calls[0])
+    assert content.startswith("[Сейчас 4 ноября 2026, среда, 15:00 (Краснодар)")
+    assert "Пишет: Сергей" in content
+    assert content.endswith("\nПривет!")
 
 
-async def test_dialog_remembers_previous_messages(assistant, fake_claude):
+async def test_haiku_has_no_fallbacks(storage, fake_claude, clock):
+    assistant = FamilyAssistant(fake_claude, storage, "claude-haiku-5-5", clock=clock)
+    await assistant.ask(1, SERGEY, "Привет")
+    call = fake_claude.messages.calls[0]
+    assert "fallbacks" not in call and "betas" not in call
+
+
+async def test_effort_depends_on_task(assistant, fake_claude):
+    await assistant.ask(1, SERGEY, "сказка", kind="story")
+    await assistant.ask(1, SERGEY, "рецепт", kind="recipe")
+    await assistant.ask(1, SERGEY, "выходные", kind="weekend")
+    assert [c["output_config"]["effort"] for c in fake_claude.messages.calls] == ["low", "medium", "medium"]
+
+
+async def test_returns_only_text(assistant, fake_claude):
+    fake_claude.messages.queue.append(claude_message(thinking(), text("Добрый "), text("день!")))
+    reply = await assistant.ask(1, SERGEY, "Привет")
+    assert reply.text == "Добрый день!" and reply.recipe is None
+
+
+async def test_dialog_memory_persists(assistant, fake_claude, storage):
+    fake_claude.messages.queue += [claude_text("Приятно познакомиться!"), claude_text("Сергей")]
+    await assistant.ask(1, SERGEY, "Меня зовут Сергей")
+    await assistant.ask(1, SERGEY, "Как меня зовут?")
+
+    messages = fake_claude.messages.calls[1]["messages"]
+    assert [m["role"] for m in messages] == ["user", "assistant", "user"]
+    assert messages[0]["content"].endswith("Меня зовут Сергей")
+    assert messages[1]["content"] == "Приятно познакомиться!"
+    assert len(storage.history(1, 20)) == 4
+
+
+async def test_tool_loop_adds_to_shopping_list(assistant, fake_claude, storage):
+    call_tool = tool_use("add_shopping_items", {"items": ["молоко", "хлеб"]})
     fake_claude.messages.queue += [
-        claude_response("Приятно познакомиться, Сергей!"),
-        claude_response("Сергей"),
+        claude_message(thinking(), call_tool, stop_reason="tool_use"),
+        claude_text("Добавил в список: молоко, хлеб"),
     ]
-    await assistant.ask(1, "Меня зовут Сергей")
-    await assistant.ask(1, "Как меня зовут?")
+    reply = await assistant.ask(1, SERGEY, "Добавь молоко и хлеб")
 
-    second_call = fake_claude.messages.calls[1]
-    assert second_call["messages"] == [
-        {"role": "user", "content": "Меня зовут Сергей"},
-        {"role": "assistant", "content": "Приятно познакомиться, Сергей!"},
-        {"role": "user", "content": "Как меня зовут?"},
+    assert reply.text == "Добавил в список: молоко, хлеб"
+    assert [i.text for i in storage.shopping()] == ["молоко", "хлеб"]
+
+    second = fake_claude.messages.calls[1]["messages"]
+    # ответ Claude вернули целиком, а результат инструмента — с тем же id
+    assert second[-2]["role"] == "assistant"
+    [result] = second[-1]["content"]
+    assert result["type"] == "tool_result" and result["tool_use_id"] == call_tool["id"]
+    assert result["is_error"] is False and "молоко, хлеб" in result["content"]
+    # в историю попадает только итоговый текст
+    assert storage.history(1, 20)[-1]["content"] == "Добавил в список: молоко, хлеб"
+
+
+async def test_reminder_for_another_family_member(assistant, fake_claude, storage):
+    storage.touch_user(VIKA.user_id, VIKA.name, VIKA.user_id, 0)
+    fake_claude.messages.queue += [
+        claude_message(
+            tool_use(
+                "create_reminder", {"text": "забрать Катю", "when": "2026-11-04 17:30", "for_whom": "Вике"}
+            ),
+            stop_reason="tool_use",
+        ),
+        claude_text("Напомню Вике сегодня в 17:30."),
     ]
+    await assistant.ask(100, SERGEY, "Напомни Вике в 17:30 забрать Катю")
+
+    [reminder] = storage.pending_reminders_for(VIKA.user_id)
+    assert reminder.text == "забрать Катю" and reminder.created_by == "Сергей"
+    assert "Сергей, Вика" in user_text(fake_claude.messages.calls[0])
 
 
-async def test_memory_limit_is_applied(assistant, fake_claude):
-    assistant.memory.max_messages = 4
-    for i in range(5):
-        await assistant.ask(1, f"вопрос {i}")
-
-    last_call = fake_claude.messages.calls[-1]
-    # 4 сообщения из памяти + новый вопрос
-    assert len(last_call["messages"]) == 5
-    assert last_call["messages"][0] == {"role": "user", "content": "вопрос 2"}
-
-
-async def test_chats_do_not_mix(assistant, fake_claude):
-    await assistant.ask(1, "секрет первого чата")
-    await assistant.ask(2, "вопрос второго чата")
-    assert fake_claude.messages.calls[1]["messages"] == [{"role": "user", "content": "вопрос второго чата"}]
-
-
-async def test_reset_forgets_history(assistant, fake_claude):
-    await assistant.ask(1, "запомни")
-    assistant.reset(1)
-    await assistant.ask(1, "что я просил?")
-    assert len(fake_claude.messages.calls[1]["messages"]) == 1
-
-
-async def test_parallel_messages_in_one_chat_are_processed_in_order(assistant, fake_claude):
-    fake_claude.messages.queue += [claude_response("ответ 1"), claude_response("ответ 2")]
-    await asyncio.gather(assistant.ask(1, "вопрос 1"), assistant.ask(1, "вопрос 2"))
-
-    second_call = fake_claude.messages.calls[1]
-    assert second_call["messages"] == [
-        {"role": "user", "content": "вопрос 1"},
-        {"role": "assistant", "content": "ответ 1"},
-        {"role": "user", "content": "вопрос 2"},
+async def test_tool_error_goes_back_to_claude(assistant, fake_claude):
+    fake_claude.messages.queue += [
+        claude_message(
+            tool_use("create_reminder", {"text": "x", "when": "вечером", "for_whom": ""}),
+            stop_reason="tool_use",
+        ),
+        claude_text("Во сколько именно напомнить?"),
     ]
+    reply = await assistant.ask(1, SERGEY, "Напомни вечером")
+    [result] = fake_claude.messages.calls[1]["messages"][-1]["content"]
+    assert result["is_error"] is True
+    assert reply.text == "Во сколько именно напомнить?"
 
 
-async def test_weekend_ideas_go_through_claude_and_memory(assistant, fake_claude):
-    fake_claude.messages.queue.append(claude_response("1. Парк Галицкого…"))
-    reply = await assistant.weekend_ideas(1)
+async def test_recipe_card_after_search(assistant, fake_claude, storage):
+    fake_claude.messages.queue.append(recipe_turn())
+    reply = await assistant.ask(1, SERGEY, "Нужен рецепт: курица", kind="recipe", recipe_query="курица")
 
-    assert reply == "1. Парк Галицкого…"
-    request = fake_claude.messages.calls[0]["messages"][-1]["content"]
-    assert "выходные" in request and "8 и 3 года" in request and "осень" in request
-    assert len(assistant.memory.get(1)) == 2  # можно задавать уточняющие вопросы
+    assert len(fake_claude.messages.calls) == 1  # после карточки Claude больше не вызываем
+    assert reply.recipe.title == "Курица с рисом"
+    assert reply.recipe.url == RECIPE_INPUT["source_url"]
+    saved = storage.recipe(reply.recipe_id)
+    assert saved.query == "курица" and "рис — 1 стакан" in saved.ingredients
+    assert "Курица с рисом" in storage.history(1, 20)[-1]["content"]
+
+
+async def test_recipe_without_search_has_no_link(assistant, fake_claude):
+    fake_claude.messages.queue.append(
+        claude_message(tool_use("show_recipe", RECIPE_INPUT), stop_reason="tool_use", searches=0)
+    )
+    reply = await assistant.ask(1, SERGEY, "рецепт", kind="recipe")
+    assert reply.recipe is not None and reply.recipe.url is None  # ссылку не выдумываем
+
+
+async def test_bad_recipe_is_returned_to_claude(assistant, fake_claude):
+    fake_claude.messages.queue += [
+        claude_message(tool_use("show_recipe", {"title": "Суп"}), stop_reason="tool_use"),
+        claude_text("Не нашёл подходящий рецепт, уточните, пожалуйста."),
+    ]
+    reply = await assistant.ask(1, SERGEY, "рецепт", kind="recipe")
+    assert reply.recipe is None
+    assert fake_claude.messages.calls[1]["messages"][-1]["content"][0]["is_error"] is True
+
+
+async def test_sources_from_web_search(assistant, fake_claude):
+    fake_claude.messages.queue.append(
+        claude_message(
+            server_search("погода"),
+            text(
+                "В субботу +14 и солнечно.",
+                citations=[citation("https://pogoda.example/krd", "Погода Краснодар")],
+            ),
+            searches=1,
+        )
+    )
+    reply = await assistant.ask(1, SERGEY, "Какая погода в субботу?")
+    assert reply.sources == [("Погода Краснодар", "https://pogoda.example/krd")]
+    assert reply.display_text().endswith("Источники:\n• Погода Краснодар — https://pogoda.example/krd")
+
+
+async def test_pause_turn_is_continued(assistant, fake_claude):
+    paused = claude_message(server_search(), stop_reason="pause_turn", searches=1)
+    fake_claude.messages.queue += [paused, claude_text("Нашёл!")]
+    reply = await assistant.ask(1, SERGEY, "Найди афишу")
+    assert reply.text == "Нашёл!"
+    second = fake_claude.messages.calls[1]["messages"]
+    assert second[-1]["role"] == "assistant"  # «Продолжи» не добавляем — сервер продолжит сам
+
+
+async def test_web_search_disabled_in_console(assistant, fake_claude):
+    fake_claude.messages.queue += [
+        api_status_error(anthropic.BadRequestError, 400, "web search is not enabled for this organization"),
+        claude_text("Ответ без поиска"),
+    ]
+    reply = await assistant.ask(1, SERGEY, "Привет")
+    assert reply.text == "Ответ без поиска"
+    assert "web_search" not in [t["name"] for t in fake_claude.messages.calls[1]["tools"]]
+    assert assistant.web_search is False
+
+
+async def test_usage_and_cost_are_recorded(assistant, fake_claude, storage):
+    fake_claude.messages.queue.append(claude_message(text("ok"), searches=2))
+    await assistant.ask(1, SERGEY, "Привет")
+    spent = storage.spent("2026-11-04")
+    # 1000 входящих × $2 + 200 исходящих × $10 за миллион + 2 поиска × $0.01
+    assert spent.requests == 1
+    assert spent.cost_usd == pytest.approx(0.002 + 0.002 + 0.02)
+
+
+async def test_daily_budget_stops_paid_requests(assistant, fake_claude, storage):
+    assistant.daily_budget_usd = 0.01
+    fake_claude.messages.queue.append(claude_message(text("ok"), searches=2))  # ≈ $0.024
+    await assistant.ask(1, SERGEY, "Привет")
+    with pytest.raises(AssistantError, match="лимит"):
+        await assistant.ask(1, SERGEY, "Ещё вопрос")
+    assert len(fake_claude.messages.calls) == 1
+
+
+async def test_too_many_tool_steps(assistant, fake_claude):
+    loop = [claude_message(tool_use("get_shopping_list", {}), stop_reason="tool_use") for _ in range(10)]
+    fake_claude.messages.queue += loop
+    with pytest.raises(AssistantError, match="слишком сложным"):
+        await assistant.ask(1, SERGEY, "?")
+
+
+async def test_parallel_messages_are_processed_in_order(assistant, fake_claude):
+    fake_claude.messages.queue += [claude_text("ответ 1"), claude_text("ответ 2")]
+    await asyncio.gather(assistant.ask(1, SERGEY, "вопрос 1"), assistant.ask(1, SERGEY, "вопрос 2"))
+    second = fake_claude.messages.calls[1]["messages"]
+    assert second[1]["content"] == "ответ 1" and second[2]["content"].endswith("вопрос 2")
 
 
 async def test_truncated_answer_gets_note(assistant, fake_claude):
-    fake_claude.messages.queue.append(claude_response("Длинный ответ", stop_reason="max_tokens"))
-    assert await assistant.ask(1, "Расскажи всё") == "Длинный ответ" + TRUNCATED_NOTE
+    fake_claude.messages.queue.append(claude_text("Длинный ответ", stop_reason="max_tokens"))
+    assert (await assistant.ask(1, SERGEY, "Расскажи всё")).text == "Длинный ответ" + TRUNCATED_NOTE
 
 
-async def test_refusal(assistant, fake_claude):
+async def test_refusal(assistant, fake_claude, storage):
     fake_claude.messages.queue.append(
-        claude_response(
-            None,
+        claude_message(
             stop_reason="refusal",
             stop_details={"type": "refusal", "category": "general_harms", "explanation": None},
         )
     )
     with pytest.raises(AssistantError, match="не могу"):
-        await assistant.ask(1, "плохой вопрос")
-    assert assistant.memory.get(1) == []
+        await assistant.ask(1, SERGEY, "плохой вопрос")
+    assert storage.history(1, 20) == []
 
 
 async def test_empty_answer(assistant, fake_claude):
-    fake_claude.messages.queue.append(claude_response(None))
+    fake_claude.messages.queue.append(claude_message(thinking()))
     with pytest.raises(AssistantError, match="пустой"):
-        await assistant.ask(1, "?")
+        await assistant.ask(1, SERGEY, "?")
 
 
 @pytest.mark.parametrize(
@@ -128,20 +282,14 @@ async def test_empty_answer(assistant, fake_claude):
             ),
             "баланс",
         ),
-        (api_status_error(anthropic.BadRequestError, 400, "invalid request"), "/sbros"),
+        (api_status_error(anthropic.BadRequestError, 400, "invalid request"), "Новый разговор"),
         (api_status_error(anthropic.InternalServerError, 529, "Overloaded"), "перегружен"),
         (api_connection_error(), "интернет"),
     ],
 )
-async def test_api_errors_become_clear_messages(assistant, fake_claude, error, expected):
-    await assistant.ask(1, "первый вопрос")
+async def test_api_errors_become_clear_messages(assistant, fake_claude, storage, error, expected):
+    await assistant.ask(1, SERGEY, "первый вопрос")
     fake_claude.messages.queue.append(error)
-
     with pytest.raises(AssistantError, match=expected):
-        await assistant.ask(1, "второй вопрос")
-
-    # Неудачный вопрос не попадает в историю — диалог не ломается.
-    assert assistant.memory.get(1) == [
-        {"role": "user", "content": "первый вопрос"},
-        {"role": "assistant", "content": "Ответ Claude"},
-    ]
+        await assistant.ask(1, SERGEY, "второй вопрос")
+    assert len(storage.history(1, 20)) == 2  # неудачный вопрос не попал в историю

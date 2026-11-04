@@ -9,14 +9,20 @@ import os
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 
-# Экономная модель: Claude Haiku 5.5 — самая дешёвая из актуальных.
-# Можно поменять без правки кода через переменную CLAUDE_MODEL,
-# например на "claude-sonnet-5-5" (умнее, но дороже).
-DEFAULT_MODEL = "claude-haiku-5-5"
+# Claude Sonnet 5.5 — умнее Haiku и хорошо работает с поиском и инструментами.
+# Можно поменять без правки кода через CLAUDE_MODEL, например на
+# "claude-haiku-5-5" (примерно в 20 раз дешевле, но проще).
+DEFAULT_MODEL = "claude-sonnet-5-5"
 
 # Сколько последних сообщений бот помнит в каждом чате
 # (20 = 10 ваших вопросов + 10 ответов бота).
 DEFAULT_MEMORY_SIZE = 20
+
+# Дневной лимит расходов на Claude в долларах. 0 — без лимита.
+DEFAULT_DAILY_BUDGET_USD = 1.0
+
+# Файл базы данных (покупки, напоминания, история, расходы).
+DEFAULT_DB_PATH = "family_bot.db"
 
 
 class ConfigError(Exception):
@@ -30,6 +36,9 @@ class Settings:
     model: str = DEFAULT_MODEL
     memory_size: int = DEFAULT_MEMORY_SIZE
     allowed_user_ids: frozenset[int] = frozenset()
+    daily_budget_usd: float = DEFAULT_DAILY_BUDGET_USD
+    db_path: str = DEFAULT_DB_PATH
+    web_search: bool = True
 
 
 def _parse_positive_int(name: str, raw: str) -> int:
@@ -40,6 +49,25 @@ def _parse_positive_int(name: str, raw: str) -> int:
     if value < 2:
         raise ConfigError(f"{name} должно быть не меньше 2, а сейчас: {value}")
     return value
+
+
+def _parse_budget(raw: str) -> float:
+    try:
+        value = float(raw.replace(",", "."))
+    except ValueError:
+        raise ConfigError(f"DAILY_BUDGET_USD — это число долларов, например 1.5. Сейчас: {raw!r}") from None
+    if value < 0:
+        raise ConfigError("DAILY_BUDGET_USD не может быть отрицательным (0 — без лимита).")
+    return value
+
+
+def _parse_bool(name: str, raw: str) -> bool:
+    value = raw.strip().lower()
+    if value in ("1", "true", "yes", "on", "да"):
+        return True
+    if value in ("0", "false", "no", "off", "нет"):
+        return False
+    raise ConfigError(f"{name} должно быть 1 (включено) или 0 (выключено), а сейчас: {raw!r}")
 
 
 def _parse_user_ids(raw: str) -> frozenset[int]:
@@ -81,17 +109,17 @@ def load_settings(env: Mapping[str, str] | None = None) -> Settings:
             + ".\nКак их задать — см. README.md, раздел «Запуск на Windows»."
         )
 
-    model = env.get("CLAUDE_MODEL", "").strip() or DEFAULT_MODEL
-
     raw_memory = env.get("MEMORY_SIZE", "").strip()
-    memory_size = _parse_positive_int("MEMORY_SIZE", raw_memory) if raw_memory else DEFAULT_MEMORY_SIZE
-
-    allowed_user_ids = _parse_user_ids(env.get("ALLOWED_USER_IDS", ""))
+    raw_budget = env.get("DAILY_BUDGET_USD", "").strip()
+    raw_search = env.get("WEB_SEARCH", "").strip()
 
     return Settings(
         telegram_token=telegram_token,
         anthropic_api_key=anthropic_api_key,
-        model=model,
-        memory_size=memory_size,
-        allowed_user_ids=allowed_user_ids,
+        model=env.get("CLAUDE_MODEL", "").strip() or DEFAULT_MODEL,
+        memory_size=_parse_positive_int("MEMORY_SIZE", raw_memory) if raw_memory else DEFAULT_MEMORY_SIZE,
+        allowed_user_ids=_parse_user_ids(env.get("ALLOWED_USER_IDS", "")),
+        daily_budget_usd=_parse_budget(raw_budget) if raw_budget else DEFAULT_DAILY_BUDGET_USD,
+        db_path=env.get("DB_PATH", "").strip() or DEFAULT_DB_PATH,
+        web_search=_parse_bool("WEB_SEARCH", raw_search) if raw_search else True,
     )
