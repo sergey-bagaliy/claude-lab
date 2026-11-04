@@ -128,6 +128,25 @@
     };
   }
 
+  /**
+   * Цена пакета по прайсу с учётом площади.
+   * pkg.areaPricing = { baseArea, overPerM2 }: до baseArea м² — priceFrom,
+   * больше — площадь × overPerM2 (если overPerM2 = null — цена по смете, возвращается priceFrom
+   * и флаг overBase, чтобы интерфейс подсказал «уточняется после осмотра»).
+   */
+  function packageListPrice(pkg, area) {
+    if (!pkg || typeof pkg.priceFrom !== "number" || !isFinite(pkg.priceFrom)) {
+      return { price: null, overBase: false };
+    }
+    var ap = pkg.areaPricing;
+    var a = typeof area === "number" && isFinite(area) ? area : null;
+    if (!ap || a === null || !(a > ap.baseArea)) return { price: pkg.priceFrom, overBase: false };
+    if (typeof ap.overPerM2 === "number" && isFinite(ap.overPerM2)) {
+      return { price: Math.max(pkg.priceFrom, Math.round(a * ap.overPerM2)), overBase: true };
+    }
+    return { price: pkg.priceFrom, overBase: true };
+  }
+
   /** Сумма ежемесячных расходов на владение: { mortgage, utilities, rent, other } → ₽/мес. */
   function holdingPerMonth(parts) {
     var sum = 0;
@@ -332,6 +351,7 @@
     lineTotal: lineTotal,
     estimate: estimate,
     packageLine: packageLine,
+    packageListPrice: packageListPrice,
     holdingPerMonth: holdingPerMonth,
     scenario: scenario,
     normalize: normalize,

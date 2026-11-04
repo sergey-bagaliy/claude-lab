@@ -36,7 +36,7 @@
   var ASSUMPTION_KEYS = ["TA", "TB", "up", "dA", "dB", "com", "hM", "hU", "hR", "hO", "rate"];
   var RENT_EXTRA_ID = "rent_extend";
 
-  var touched = { pkg: false, qty: {} };
+  var touched = { pkg: false, qty: {}, pkgPrice: false };
 
   /* ---------- утилиты ---------- */
   function $(id) { return doc.getElementById(id); }
@@ -63,10 +63,10 @@
     var p = PKGS.filter(function (x) { return (x.suggestFor || []).indexOf(cond) !== -1; })[0];
     return p ? p.id : "";
   }
-  function configPrice(pkgId) {
-    var p = pkgById(pkgId);
-    return p && isNum(p.priceFrom) ? p.priceFrom : null;
+  function configPrice(pkgId, area) {
+    return K.packageListPrice(pkgById(pkgId), isNum(area) ? area : null).price;
   }
+  function currentArea() { return K.parseNumber($("c-area").value); }
 
   /* ---------- состояние по умолчанию: «подготовка ничего не меняет» ---------- */
   function defaultExtra(x, area) {
@@ -111,9 +111,9 @@
         '</div>' +
         '<div class="xrow__ctl">' +
           '<label class="visually-hidden" for="x-' + esc(x.id) + '-price">' + esc(x.name) + ': цена за ' + esc(unitLabel) + ', ₽</label>' +
-          '<div class="input-wrap" style="--sfx:' + (unitLabel.length + 2) + '">' +
+          '<div class="input-wrap input-wrap--price" style="--sfx:' + (unitLabel.length + 2) + '">' +
             '<input class="input" id="x-' + esc(x.id) + '-price" inputmode="decimal" data-x="price" data-kind="money" data-money placeholder="введите цену">' +
-            '<span class="suffix">₽/' + esc(unitLabel) + '</span>' +
+            '<span class="suffix"><span class="sfx-long">₽/' + esc(unitLabel) + '</span><span class="sfx-short">₽</span></span>' +
           '</div>' +
         '</div>' +
         '<output class="xrow__total" id="x-' + esc(x.id) + '-total" for="x-' + esc(x.id) + '-qty x-' + esc(x.id) + '-price">—</output>';
@@ -193,9 +193,15 @@
     $("c-pkg-unit").textContent = perM2 ? "за м²" : "за объект";
     $("c-pkg-price-suffix").textContent = perM2 ? "₽/м²" : "₽";
     desc.textContent = (pkg.forWhom ? pkg.forWhom + ". " : "") + (pkg.includes && pkg.includes.length ? "Входит: " + pkg.includes.join("; ") + "." : "");
-    $("c-pkg-price-hint").textContent = isNum(pkg.priceFrom)
+    var lp = K.packageListPrice(pkg, currentArea());
+    var hint = isNum(pkg.priceFrom)
       ? "Подставлено из прайса («от»), можно изменить."
       : "Цена пакета уточняется — введите свою оценку или запросите смету.";
+    if (pkg.priceNote) hint += " " + pkg.priceNote.charAt(0).toUpperCase() + pkg.priceNote.slice(1) + ".";
+    if (lp.overBase && pkg.areaPricing && !isNum(pkg.areaPricing.overPerM2)) {
+      hint += " Для вашей площади цена уточняется после осмотра.";
+    }
+    $("c-pkg-price-hint").textContent = hint;
   }
 
   /* ---------- расчёт ---------- */
@@ -560,7 +566,14 @@
         rent.on.checked = isNum(m) && m > 0;
       }
     }
-    if (t.id === "c-area") syncAreaQty();
+    if (t.id === "c-pkg-price") touched.pkgPrice = true;
+    if (t.id === "c-area") {
+      syncAreaQty();
+      if (!touched.pkgPrice && $("c-pkg").value) {
+        $("c-pkg-price").value = fmtInput(configPrice($("c-pkg").value, currentArea()));
+      }
+      updatePackageUI();
+    }
     var k = t.getAttribute("data-kind");
     if (k) showFieldError(t, k, false);
     update();
@@ -570,12 +583,14 @@
     var t = e.target;
     if (t.id === "c-cond" && !touched.pkg) {
       $("c-pkg").value = suggestPackage(t.value);
-      $("c-pkg-price").value = fmtInput(configPrice($("c-pkg").value));
+      touched.pkgPrice = false;
+      $("c-pkg-price").value = fmtInput(configPrice($("c-pkg").value, currentArea()));
       updatePackageUI();
     }
     if (t.id === "c-pkg") {
       touched.pkg = true;
-      $("c-pkg-price").value = fmtInput(configPrice(t.value));
+      touched.pkgPrice = false;
+      $("c-pkg-price").value = fmtInput(configPrice(t.value, currentArea()));
       showFieldError($("c-pkg-price"), "money", true);
       updatePackageUI();
     }
@@ -594,7 +609,7 @@
   }
 
   function reset() {
-    touched = { pkg: false, qty: {} };
+    touched = { pkg: false, qty: {}, pkgPrice: false };
     applyState(defaults());
     if (history.replaceState) history.replaceState(null, "", location.href.split("#")[0]);
     $("share-box").hidden = true;
@@ -633,6 +648,7 @@
       st = deserialize(m[1]);
       if (st) {
         touched.pkg = true;
+        touched.pkgPrice = true;
         EXTRAS.forEach(function (x) { touched.qty[x.id] = true; });
       }
     }

@@ -221,3 +221,20 @@ test("parseNumber и formatMoney: русские форматы", () => {
   assert.equal(C.formatMoney(55200, { sign: true }), "+55 200 ₽");
   assert.equal(C.formatPct(0.98622), "0,99 %");
 });
+
+test("packageListPrice: до базовой площади — цена «от», больше — по ставке за м²", () => {
+  const express = { id: "express", priceFrom: 15000, areaPricing: { baseArea: 45, overPerM2: 350 } };
+  assert.deepEqual(C.packageListPrice(express, 40), { price: 15000, overBase: false });
+  assert.deepEqual(C.packageListPrice(express, 45), { price: 15000, overBase: false });
+  // 60 м² × 350 ₽ = 21 000 ₽
+  assert.deepEqual(C.packageListPrice(express, 60), { price: 21000, overBase: true });
+  // площадь не введена — цена «от»
+  assert.deepEqual(C.packageListPrice(express, null), { price: 15000, overBase: false });
+});
+
+test("packageListPrice: ставка за м² не задана — цена «от» и флаг «по смете»", () => {
+  const empty = { id: "empty", priceFrom: 70000, areaPricing: { baseArea: 45, overPerM2: null } };
+  assert.deepEqual(C.packageListPrice(empty, 70), { price: 70000, overBase: true });
+  assert.deepEqual(C.packageListPrice({ id: "x", priceFrom: null }, 40), { price: null, overBase: false });
+  assert.deepEqual(C.packageListPrice({ id: "s", priceFrom: 35000 }, 120), { price: 35000, overBase: false });
+});

@@ -109,6 +109,12 @@
   min-width: 0;
 }
 .xrow__ctl .input-wrap .suffix { right: 10px; font-size: .8125rem; }
+.sfx-short { display: none; }
+@media (max-width: 419px) {
+  .xrow__ctl .input-wrap--price .input { padding-right: 28px; }
+  .sfx-long { display: none; }
+  .sfx-short { display: inline; }
+}
 .xrow__total {
   grid-column: 1 / -1;
   text-align: right;

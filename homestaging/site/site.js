@@ -224,6 +224,7 @@
       } else {
         price = el("p", { class: "package__price package__price--tbd", text: "Цена уточняется" });
       }
+      var priceNote = str(p.priceNote) ? el("p", { class: "package__pricenote", text: p.priceNote }) : null;
       var meta = null;
       if (isNum(p.durationDays) && p.durationDays > 0) {
         meta = el("p", { class: "package__meta" }, [
@@ -245,7 +246,7 @@
           return el("li", null, [icon("i-check", "icon-sm"), el("span", { text: item })]);
         })),
         str(p.notes) ? el("p", { class: "package__notes", text: p.notes }) : null,
-        el("div", { class: "package__bottom" }, [price, meta, btn])
+        el("div", { class: "package__bottom" }, [price, priceNote, meta, btn])
       ]);
       box.appendChild(card);
     });

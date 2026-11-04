@@ -37,6 +37,7 @@ jobs:
           if [ -d homestaging/checklist ]; then cp -R homestaging/checklist _site/; fi
           # служебные файлы на сайт не публикуем
           find _site -name "README.md" -delete
+          rm -rf _site/checklist/build.js _site/checklist/package.json _site/checklist/package-lock.json _site/checklist/node_modules
           touch _site/.nojekyll
           # защита: исследования и тесты не должны попасть в публикацию
           test ! -e _site/research
