@@ -406,8 +406,8 @@ test('комната: отделка и сопутствующие матери�
     prep: { walls: { putty: true, primer: true }, ceiling: { putty: true, primer: true, plinth: true }, floor: {} }
   }));
   near(a.laminate, 12);
-  near(a.underlay, 12, 'подложка под ламинат');
-  near(a.floorPlinth, 13.1, 'плинтус: периметр 14 − дверь 0,9');
+  near(a.underlayXPS, 12, 'подложка под ламинат по умолчанию — XPS');
+  near(a.plinthPVC, 13.1, 'плинтус ПВХ: периметр 14 − дверь 0,9');
   near(a.wallpaper, 33.9);
   near(a.wallpaperGlue, 33.9);
   near(a.paintCeiling, 12);
@@ -432,8 +432,8 @@ test('комната: санузел — плитка, клей, затирка,
   near(bath.grout, 21.49);
   near(bath.stretchCeiling, 3.4);
   near(bath.waterproofing, 4.7);   // 3,4 + (7,4 − 0,9) × 0,2
-  assert.equal(bath.floorPlinth, undefined, 'под плиткой напольный плинтус не считаем');
-  assert.equal(bath.underlay, undefined);
+  assert.equal(bath.plinthPVC, undefined, 'под плиткой напольный плинтус не считаем');
+  assert.equal(bath.underlayXPS, undefined);
 });
 
 test('комната: гипсокартон и каркас', () => {
@@ -459,9 +459,30 @@ test('комната: окна, подоконники, откосы, двери
   near(a.windowAlu, 3.6);          // 3 × 1,2
   near(a.windowSill, 3.2);         // (1,5 + 0,1) × 2
   near(a.windowSlopes, 8.6);       // (2 × 1,4 + 1,5) × 2
-  near(a.doorInterior, 1);
+  near(a.doorEco, 1, '«межкомнатная» из первой версии считается как экошпон');
   assert.equal(a.windowWood, undefined);
   assert.equal(a.doorEntrance, undefined);
+
+  const b = F.roomMaterialAreas(sampleRoom({
+    openings: [
+      { type: 'window', width: 2, height: 1.5, count: 1, replace: 'aluWarm' },
+      { type: 'window', width: 3, height: 2.5, count: 1, replace: 'frameless' },
+      { type: 'window', width: 1, height: 1, count: 1, replace: 'wood' },
+      { type: 'door', width: 0.8, height: 2, count: 2, replace: 'veneer' },
+      { type: 'door', width: 0.8, height: 2, count: 1, replace: 'enamel' },
+      { type: 'door', width: 0.8, height: 2, count: 1, replace: 'solid' },
+      { type: 'door', width: 0.8, height: 2, count: 1, replace: 'hidden' },
+      { type: 'door', width: 0.9, height: 2, count: 1, replace: 'entrance' }
+    ]
+  }));
+  near(b.windowAluWarm, 3);
+  near(b.windowFrameless, 7.5);
+  near(b.windowWood, 1);
+  assert.equal(b.doorVeneer, 2);
+  assert.equal(b.doorEnamel, 1);
+  assert.equal(b.doorSolid, 1);
+  assert.equal(b.doorHidden, 1);
+  assert.equal(b.doorEntrance, 1);
 });
 
 test('комната: электрика', () => {
@@ -478,10 +499,17 @@ test('комната: электрика', () => {
 
 test('комната: отопление', () => {
   const a = F.roomNeeds(sampleRoom({ heating: { radiators: true, floor: true } }));
-  near(a.needs.radiator, 1200);    // 12 м² × 100 Вт
-  assert.deepEqual(a.radiator, { name: 'Спальня', watts: 1200, radiators: 1 });
-  near(a.needs.floorHeating, 8.5); // 12 × 0,7 = 8,4 → 8,5 м²
+  near(a.needs.radiatorBimetal, 1200, 'по умолчанию — биметалл'); // 12 м² × 100 Вт
+  assert.deepEqual(a.radiator, { key: 'radiatorBimetal', name: 'Спальня', watts: 1200, radiators: 1 });
+  near(a.needs.floorHeating, 8.5); // мат: 12 × 0,7 = 8,4 → 8,5 м²
   assert.equal(a.needs.thermostat, 1);
+
+  const b = F.roomNeeds(sampleRoom({ heating: { radiators: true, radiatorType: 'castIron', floor: true, floorType: 'film' } }));
+  near(b.needs.radiatorCastIron, 1200);
+  assert.equal(b.needs.radiatorBimetal, undefined);
+  near(b.needs.floorFilm, 8.5);
+  const c = F.roomNeeds(sampleRoom({ heating: { floor: true, floorType: 'cable' } }));
+  near(c.needs.floorCable, 8.4, 'кабель — без округления до размеров матов');
 });
 
 /* ------------------------------------------------------------------ */
@@ -498,7 +526,7 @@ test('расчёт объекта: площади складываются, уп
   assert.equal(lam.category, 'floor');
   near(lam.area, 6);
   assert.equal(lam.packs, 3);
-  assert.deepEqual(res.materials.map((m) => m.key), ['laminate', 'underlay', 'floorPlinth']);
+  assert.deepEqual(res.materials.map((m) => m.key), ['laminate', 'underlayXPS', 'plinthPVC']);
   assert.equal(res.missingPrices, 3, 'цены не введены');
   near(res.totalCost, 0);
 });
@@ -519,7 +547,7 @@ test('расчёт объекта: цены пользователя и обща
   };
   const res = F.calculateProject(project);
   const byKey = Object.fromEntries(res.materials.map((m) => [m.key, m]));
-  assert.deepEqual(Object.keys(byKey), ['laminate', 'underlay', 'floorPlinth', 'paintWall', 'paintCeiling', 'putty', 'primer']);
+  assert.deepEqual(Object.keys(byKey), ['laminate', 'underlayXPS', 'plinthPVC', 'paintWall', 'paintCeiling', 'putty', 'primer']);
 
   // ламинат: 12 × 1,07 = 12,84 / 2,397 = 5,36 → 6 уп × 2,397 = 14,382 м² × 800
   assert.equal(byKey.laminate.packs, 6);
@@ -558,7 +586,7 @@ test('расчёт объекта: клей и затирка берут раз�
     rooms: [{
       id: 'b', name: 'Санузел', length: 2, width: 1.7, height: 2.7,
       openings: [{ type: 'door', width: 0.9, height: 2.1, count: 1 }],
-      floor: 'tile', walls: 'tile', ceiling: 'none', prep: {}
+      floor: 'porcelain', walls: 'tile', ceiling: 'none', prep: {}
     }],
     materials: {}
   });
@@ -576,12 +604,12 @@ test('расчёт объекта: линолеум и радиаторы счи
       sampleRoom({ id: 'a', floor: 'linoleum', heating: { radiators: true } }),
       sampleRoom({ id: 'b', length: 6, width: 5, floor: 'linoleum', openings: [], heating: { radiators: true } })
     ],
-    materials: { linoleum: { price: 500 }, radiator: { price: 1000 } }
+    materials: { linoleum: { price: 500 }, radiatorBimetal: { price: 1000 } }
   });
   const lin = res.materials.find((m) => m.key === 'linoleum');
   near(lin.amount, 42.8);          // 12,3 + 30,5
   near(lin.cost, 21400);
-  const rad = res.materials.find((m) => m.key === 'radiator');
+  const rad = res.materials.find((m) => m.key === 'radiatorBimetal');
   // комната a: 1200 Вт → 8 секций; комната b: 30 м² → 3000 Вт × 1,1 / 180 = 18,3 → 19 секций, окон нет → 1 радиатор
   assert.equal(rad.packs, 27);
   near(rad.cost, 27000);
@@ -590,10 +618,10 @@ test('расчёт объекта: линолеум и радиаторы счи
 test('расчёт объекта: выключенный материал не считается', () => {
   const res = F.calculateProject({
     rooms: [sampleRoom({ floor: 'laminate' })],
-    disabled: { underlay: true }
+    disabled: { underlayXPS: true }
   });
-  assert.ok(!res.materials.some((m) => m.key === 'underlay'));
-  assert.deepEqual(res.skipped, ['underlay']);
+  assert.ok(!res.materials.some((m) => m.key === 'underlayXPS'));
+  assert.deepEqual(res.skipped, ['underlayXPS']);
 });
 
 test('свои позиции: штучные и от площади', () => {
@@ -636,13 +664,29 @@ test('полный объект: все расчёты дают числа, бе
         ]
       }),
       sampleRoom({ id: 'b', floor: 'carpet', walls: 'paint', ceiling: 'stretch' }),
-      sampleRoom({ id: 'c', floor: 'vinyl', walls: 'tile', ceiling: 'paint' })
+      sampleRoom({ id: 'c', floor: 'vinyl', walls: 'tile', ceiling: 'paint' }),
+      sampleRoom({ id: 'd', floor: 'parquetBlock', plinth: 'polymer', walls: 'liquid', ceiling: 'stretchFabric',
+        electric: { power: 2 }, heating: { radiators: true, radiatorType: 'panel', floor: true, floorType: 'cable' } }),
+      sampleRoom({ id: 'e', floor: 'vinylGlue', walls: 'decor', ceiling: 'rack', heating: { radiators: true, radiatorType: 'castIron', floor: true, floorType: 'film' } }),
+      sampleRoom({ id: 'f', floor: 'porcelain', walls: 'mosaic', ceiling: 'none', heating: { radiators: true, radiatorType: 'alu' } }),
+      sampleRoom({ id: 'g', floor: 'engineered', underlay: 'cork', plinth: 'wood', walls: 'wallpaperPaper', ceiling: 'paint' }),
+      sampleRoom({ id: 'h', floor: 'solidWood', walls: 'wallpaperVinyl', ceiling: 'none' }),
+      sampleRoom({ id: 'i', floor: 'laminate', underlay: 'pe', plinth: 'mdf', walls: 'porcelain', ceiling: 'none' }),
+      sampleRoom({ id: 'j', floor: 'cork', underlay: 'conifer', walls: 'panelsMDF', ceiling: 'none' }),
+      sampleRoom({ id: 'k', floor: 'tile', walls: 'none', ceiling: 'none' }),
+      sampleRoom({
+        id: 'l', floor: 'linoleum', walls: 'wallpaper', ceiling: 'none', prep: { floor: { waterproofing: true } },
+        openings: ['pvc', 'aluWarm', 'alu', 'frameless'].map((r) => ({ type: 'window', width: 1, height: 1, count: 1, replace: r }))
+          .concat(['eco', 'veneer', 'enamel', 'solid', 'hidden'].map((r) => ({ type: 'door', width: 0.8, height: 2, count: 1, replace: r })))
+      }),
+      sampleRoom({ id: 'm', floor: 'laminate', walls: 'none', ceiling: 'none' })
     ],
     materials: Object.fromEntries(F.MATERIAL_ORDER.map((k) => [k, { price: 100 }])),
     custom: [{ id: 'x', name: 'Пена', basis: 'count', quantity: 3, price: 500 }]
   };
   const res = F.calculateProject(all);
-  assert.ok(res.materials.length >= 35, 'должно набраться больше 35 позиций, получено ' + res.materials.length);
+  const missing = F.MATERIAL_ORDER.filter((k) => !res.materials.some((m) => m.key === k));
+  assert.deepEqual(missing, [], 'в полном объекте должны быть все материалы каталога');
   res.materials.forEach((m) => {
     assert.ok(Number.isFinite(m.cost) && m.cost >= 0, `${m.key}: стоимость ${m.cost}`);
     assert.ok(Number.isFinite(m.amount), `${m.key}: количество ${m.amount}`);
@@ -650,6 +694,126 @@ test('полный объект: все расчёты дают числа, бе
   });
   assert.ok(Number.isFinite(res.totalCost));
   assert.equal(res.missingPrices, 0);
+});
+
+test('виды подложки, плинтуса и сопутствующие материалы пола', () => {
+  const lam = F.roomMaterialAreas(sampleRoom({ floor: 'laminate', underlay: 'cork', plinth: 'mdf' }));
+  near(lam.underlayCork, 12);
+  near(lam.plinthMDF, 13.1);
+  assert.equal(lam.underlayXPS, undefined);
+  assert.equal(lam.plinthPVC, undefined);
+
+  const noUnder = F.roomMaterialAreas(sampleRoom({ floor: 'laminate', underlay: 'none', plinth: 'none' }));
+  assert.equal(Object.keys(noUnder).filter((k) => k.startsWith('underlay') || k.startsWith('plinth')).length, 0);
+
+  // штучный паркет: по умолчанию фанера, клей, лак, плинтус МДФ
+  const block = F.roomMaterialAreas(sampleRoom({ floor: 'parquetBlock' }));
+  ['parquetBlock', 'plywood', 'parquetGlue', 'parquetLacquer'].forEach((k) => near(block[k], 12, k));
+  near(block.plinthMDF, 13.1);
+  // клеевой кварцвинил — клей; замковый — без подложки и клея
+  near(F.roomMaterialAreas(sampleRoom({ floor: 'vinylGlue' })).vinylAdhesive, 12);
+  const spc = F.roomMaterialAreas(sampleRoom({ floor: 'vinyl' }));
+  assert.equal(spc.vinylAdhesive, undefined);
+  assert.equal(Object.keys(spc).filter((k) => k.startsWith('underlay')).length, 0);
+  // керамогранит — без плинтуса и подложки, но с клеем и затиркой
+  const pg = F.roomMaterialAreas(sampleRoom({ floor: 'porcelain' }));
+  near(pg.porcelainFloor, 12);
+  near(pg.tileAdhesive, 12);
+  assert.equal(Object.keys(pg).filter((k) => k.startsWith('plinth')).length, 0);
+});
+
+test('подложки, фанера, клей и лак для паркета', () => {
+  // фанера 1,525 × 1,525 = 2,325625 м²: 12 × 1,1 = 13,2 / 2,3256 = 5,68 → 6 листов
+  const ply = params('plywood');
+  assert.equal(F.calcByArea(12, ply, F.unitAreaOf('plywood', ply)).packs, 6);
+  // хвойная 6,99 м²: 12 × 1,05 = 12,6 / 6,99 → 2 упаковки
+  const con = params('underlayConifer');
+  assert.equal(F.calcByArea(12, con, F.unitAreaOf('underlayConifer', con)).packs, 2);
+  // клей для кварцвинила: 12 × 0,3 × 1,1 = 3,96 кг → 1 ведро 10 кг
+  const res = F.calculateProject({ rooms: [sampleRoom({ floor: 'vinylGlue' }), sampleRoom({ id: 'p', floor: 'parquetBlock' })] });
+  const byKey = Object.fromEntries(res.materials.map((m) => [m.key, m]));
+  near(byKey.vinylAdhesive.amount, 3.96);
+  assert.equal(byKey.vinylAdhesive.packs, 1);
+  // клей для паркета: 12 × 1,0 × 1,1 = 13,2 кг → 2 ведра по 10 кг
+  near(byKey.parquetGlue.amount, 13.2);
+  assert.equal(byKey.parquetGlue.packs, 2);
+  // лак: 12 × 0,1 × 3 слоя × 1,1 = 3,96 л → 1 банка 5 л
+  near(byKey.parquetLacquer.amount, 3.96);
+  assert.equal(byKey.parquetLacquer.packs, 1);
+  assert.equal(byKey.parquetLacquer.amountUnit, 'л');
+});
+
+test('стены: виды обоев считаются отдельно, жидкие обои, декоративная штукатурка, мозаика', () => {
+  const res = F.calculateProject({
+    rooms: [
+      sampleRoom({ id: 'a', walls: 'wallpaper' }),
+      sampleRoom({ id: 'b', walls: 'wallpaperPaper' }),
+      sampleRoom({ id: 'c', walls: 'liquid' }),
+      sampleRoom({ id: 'd', walls: 'decor' })
+    ]
+  });
+  const byKey = Object.fromEntries(res.materials.map((m) => [m.key, m]));
+  // флизелиновые 1,06 м: 14 полос × 1,05 → 15 / 3 → 5 рулонов
+  assert.equal(byKey.wallpaper.packs, 5);
+  // бумажные 0,53 м: 14 / 0,53 = 26,4 → 27 полос × 1,05 = 28,35 → 29 / 3 → 10 рулонов
+  assert.equal(byKey.wallpaperPaper.strips, 27);
+  assert.equal(byKey.wallpaperPaper.packs, 10);
+  // клей — на оба вида обоев: 67,8 м² × 1,1 = 74,58 / 30 → 3 пачки
+  near(byKey.wallpaperGlue.area, 67.8);
+  assert.equal(byKey.wallpaperGlue.packs, 3);
+  // жидкие обои: 33,9 × 1,1 = 37,29 / 4 м² → 10 упаковок
+  assert.equal(byKey.liquidWallpaper.packs, 10);
+  // декоративная штукатурка: 33,9 × 3 кг × 1,1 = 111,87 кг → 5 мешков по 25 кг
+  near(byKey.decorPlaster.amount, 111.87);
+  assert.equal(byKey.decorPlaster.packs, 5);
+
+  // мозаика: затирка по чипу 2 см и глубине 4 мм: (20 + 20) / 400 × 2 × 4 × 1,6 = 1,28 кг/м²
+  const mos = F.calculateProject({ rooms: [sampleRoom({ walls: 'mosaic' })] });
+  const grout = mos.materials.find((m) => m.key === 'grout');
+  near(grout.rates[0].rate, 1.28);
+  near(grout.amount, 33.9 * 1.28 * 1.1);
+  // мозаика листами 30×30: 33,9 × 1,1 = 37,29 / 0,09 = 414,3 → 415 листов
+  assert.equal(mos.materials.find((m) => m.key === 'mosaic').packs, 415);
+});
+
+test('потолки: натяжные, реечный, панели', () => {
+  const res = F.calculateProject({
+    rooms: [
+      sampleRoom({ id: 'a', ceiling: 'stretchFabric' }),
+      sampleRoom({ id: 'b', ceiling: 'rack' }),
+      sampleRoom({ id: 'c', ceiling: 'panels', walls: 'panels' })
+    ],
+    materials: { stretchFabric: { price: 1500 }, rackCeiling: { price: 2000 } }
+  });
+  const byKey = Object.fromEntries(res.materials.map((m) => [m.key, m]));
+  near(byKey.stretchFabric.cost, 18000);   // 12 м² × 1500
+  near(byKey.rackCeiling.amount, 12.6);    // 12 × 1,05
+  near(byKey.rackCeiling.cost, 25200);
+  near(byKey.panels.area, 45.9);           // стены 33,9 + потолок 12
+});
+
+test('радиаторы разных видов и тёплый пол кабелем', () => {
+  // чугун 160 Вт: 1200 × 1,1 / 160 = 8,25 → 9 секций
+  assert.equal(F.calcRadiators([{ watts: 1200, radiators: 1 }], params('radiatorCastIron')).packs, 9);
+  // алюминий 175 Вт: 1320 / 175 = 7,54 → 8 секций
+  assert.equal(F.calcRadiators([{ watts: 1200, radiators: 1 }], params('radiatorAlu')).packs, 8);
+  // стальной панельный 1200 Вт: 1320 / 1200 = 1,1 → 2 радиатора
+  assert.equal(F.calcRadiators([{ watts: 1200, radiators: 1 }], params('radiatorPanel')).packs, 2);
+
+  // кабель: 3,4 м² × 70 % = 2,38 м² × 150 Вт = 357 Вт / 18 Вт/м = 19,8 → 20 м
+  const cable = F.calcHeatingCable(F.matArea(3.4, params('floorCable')), params('floorCable', { price: 100 }));
+  near(cable.watts, 357);
+  assert.equal(cable.meters, 20);
+  near(cable.cost, 2000);
+  // плёнка: 12 × 70 % = 8,4 → 8,5 м² × 220 = 1870 Вт
+  near(F.calcHeatingMat(F.matArea(12, params('floorFilm')), params('floorFilm')).watts, 1870);
+});
+
+test('электрика: силовые приборы', () => {
+  const a = F.roomMaterialAreas(sampleRoom({ electric: { power: '2' } }));
+  assert.equal(a.elPowerSocket, 2);
+  assert.equal(a.elBox, 2);
+  near(a.cablePower, 33.4);        // 2 × (7 + 4 + 3 + 2,7)
 });
 
 test('пустой объект не ломает расчёт', () => {

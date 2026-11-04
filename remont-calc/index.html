@@ -67,7 +67,7 @@
 
       <div class="card">
         <h2 class="card-title">Сохранённые расчёты</h2>
-        <p class="small muted">Хранятся в этом браузере на этом телефоне. Чтобы перенести на другое устройство — скачайте файл.</p>
+        <p class="small muted" id="saved-hint">Хранятся в этом браузере на этом телефоне. Чтобы перенести на другое устройство — скачайте файл.</p>
         <div id="saved-list"></div>
         <div class="actions">
           <button type="button" class="btn" data-action="new-project">Новый расчёт</button>
@@ -95,6 +95,15 @@
 
   <!-- Версия для печати / PDF. Заполняется перед печатью. -->
   <div id="print" aria-hidden="true"></div>
+
+  <!-- Окно подтверждения и списка покупок -->
+  <div id="sheet" class="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+    <div class="sheet-box">
+      <h2 id="sheet-title"></h2>
+      <div id="sheet-body"></div>
+      <div class="actions" id="sheet-actions"></div>
+    </div>
+  </div>
 
   <div id="toast" role="status" aria-live="polite"></div>
 

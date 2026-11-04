@@ -56,58 +56,104 @@
    * baseUnit — в чём считается потребность по комнатам.
    */
   var MATERIALS = {
-    laminate:       { title: 'Ламинат', category: 'floor', kind: 'area', baseUnit: 'м²' },
-    vinyl:          { title: 'Кварцвинил (SPC)', category: 'floor', kind: 'area', baseUnit: 'м²' },
-    parquet:        { title: 'Паркетная доска', category: 'floor', kind: 'area', baseUnit: 'м²' },
-    tileFloor:      { title: 'Плитка на пол', category: 'floor', kind: 'tile', baseUnit: 'м²' },
-    linoleum:       { title: 'Линолеум', category: 'floor', kind: 'roll', baseUnit: 'м²' },
-    carpet:         { title: 'Ковролин', category: 'floor', kind: 'roll', baseUnit: 'м²' },
-    underlay:       { title: 'Подложка под ламинат', category: 'floor', kind: 'area', baseUnit: 'м²' },
-    floorPlinth:    { title: 'Плинтус напольный', category: 'floor', kind: 'pieces', baseUnit: 'м' },
+    // --- Напольные покрытия ---
+    laminate:        { title: 'Ламинат', category: 'floor', kind: 'area', baseUnit: 'м²' },
+    vinyl:           { title: 'Кварцвинил замковый (SPC)', category: 'floor', kind: 'area', baseUnit: 'м²' },
+    vinylGlue:       { title: 'Кварцвинил клеевой', category: 'floor', kind: 'area', baseUnit: 'м²' },
+    parquet:         { title: 'Паркетная доска', category: 'floor', kind: 'area', baseUnit: 'м²' },
+    parquetBlock:    { title: 'Штучный паркет', category: 'floor', kind: 'area', baseUnit: 'м²' },
+    engineered:      { title: 'Инженерная доска', category: 'floor', kind: 'area', baseUnit: 'м²' },
+    solidWood:       { title: 'Массивная доска', category: 'floor', kind: 'area', baseUnit: 'м²' },
+    corkFloor:       { title: 'Пробковое покрытие', category: 'floor', kind: 'area', baseUnit: 'м²' },
+    tileFloor:       { title: 'Плитка керамическая на пол', category: 'floor', kind: 'tile', baseUnit: 'м²' },
+    porcelainFloor:  { title: 'Керамогранит на пол', category: 'floor', kind: 'tile', baseUnit: 'м²' },
+    linoleum:        { title: 'Линолеум', category: 'floor', kind: 'roll', baseUnit: 'м²' },
+    carpet:          { title: 'Ковролин', category: 'floor', kind: 'roll', baseUnit: 'м²' },
+    underlayPE:      { title: 'Подложка: вспененный полиэтилен', category: 'floor', kind: 'area', baseUnit: 'м²' },
+    underlayXPS:     { title: 'Подложка: пенополистирол XPS', category: 'floor', kind: 'area', baseUnit: 'м²' },
+    underlayConifer: { title: 'Подложка хвойная', category: 'floor', kind: 'area', baseUnit: 'м²' },
+    underlayCork:    { title: 'Подложка пробковая', category: 'floor', kind: 'area', baseUnit: 'м²' },
+    plywood:         { title: 'Фанера под паркет', category: 'floor', kind: 'area', baseUnit: 'м²' },
+    vinylAdhesive:   { title: 'Клей для кварцвинила', category: 'floor', kind: 'perArea', baseUnit: 'м²' },
+    parquetGlue:     { title: 'Клей для паркета', category: 'floor', kind: 'perArea', baseUnit: 'м²' },
+    parquetLacquer:  { title: 'Лак для паркета', category: 'floor', kind: 'layered', baseUnit: 'м²' },
+    plinthPVC:       { title: 'Плинтус ПВХ', category: 'floor', kind: 'pieces', baseUnit: 'м' },
+    plinthMDF:       { title: 'Плинтус МДФ', category: 'floor', kind: 'pieces', baseUnit: 'м' },
+    plinthWood:      { title: 'Плинтус деревянный', category: 'floor', kind: 'pieces', baseUnit: 'м' },
+    plinthPolymer:   { title: 'Плинтус дюрополимерный', category: 'floor', kind: 'pieces', baseUnit: 'м' },
 
-    paintWall:      { title: 'Краска для стен', category: 'walls', kind: 'paint', baseUnit: 'м²' },
-    wallpaper:      { title: 'Обои', category: 'walls', kind: 'wallpaper', baseUnit: 'м²' },
-    wallpaperGlue:  { title: 'Клей для обоев', category: 'walls', kind: 'glue', baseUnit: 'м²' },
-    tileWall:       { title: 'Плитка на стены', category: 'walls', kind: 'tile', baseUnit: 'м²' },
-    panels:         { title: 'Панели ПВХ / МДФ', category: 'walls', kind: 'area', baseUnit: 'м²' },
-    fiberglass:     { title: 'Стеклохолст (паутинка)', category: 'walls', kind: 'area', baseUnit: 'м²' },
+    // --- Стены ---
+    paintWall:       { title: 'Краска для стен', category: 'walls', kind: 'paint', baseUnit: 'м²' },
+    wallpaper:       { title: 'Обои флизелиновые', category: 'walls', kind: 'wallpaper', baseUnit: 'м²' },
+    wallpaperVinyl:  { title: 'Обои виниловые', category: 'walls', kind: 'wallpaper', baseUnit: 'м²' },
+    wallpaperPaper:  { title: 'Обои бумажные', category: 'walls', kind: 'wallpaper', baseUnit: 'м²' },
+    wallpaperGlue:   { title: 'Клей для обоев', category: 'walls', kind: 'glue', baseUnit: 'м²' },
+    liquidWallpaper: { title: 'Жидкие обои', category: 'walls', kind: 'glue', baseUnit: 'м²' },
+    decorPlaster:    { title: 'Декоративная штукатурка', category: 'walls', kind: 'perArea', baseUnit: 'м²' },
+    tileWall:        { title: 'Плитка керамическая на стены', category: 'walls', kind: 'tile', baseUnit: 'м²' },
+    porcelainWall:   { title: 'Керамогранит на стены', category: 'walls', kind: 'tile', baseUnit: 'м²' },
+    mosaic:          { title: 'Мозаика', category: 'walls', kind: 'tile', baseUnit: 'м²' },
+    panels:          { title: 'Панели ПВХ', category: 'walls', kind: 'area', baseUnit: 'м²' },
+    panelsMDF:       { title: 'Панели МДФ', category: 'walls', kind: 'area', baseUnit: 'м²' },
+    fiberglass:      { title: 'Стеклохолст (паутинка)', category: 'walls', kind: 'area', baseUnit: 'м²' },
 
-    paintCeiling:   { title: 'Краска для потолка', category: 'ceiling', kind: 'paint', baseUnit: 'м²' },
-    stretchCeiling: { title: 'Натяжной потолок', category: 'ceiling', kind: 'measured', baseUnit: 'м²' },
-    ceilingPlinth:  { title: 'Потолочный плинтус', category: 'ceiling', kind: 'pieces', baseUnit: 'м' },
+    // --- Потолок ---
+    paintCeiling:    { title: 'Краска для потолка', category: 'ceiling', kind: 'paint', baseUnit: 'м²' },
+    stretchCeiling:  { title: 'Натяжной потолок ПВХ', category: 'ceiling', kind: 'measured', baseUnit: 'м²' },
+    stretchFabric:   { title: 'Натяжной потолок тканевый', category: 'ceiling', kind: 'measured', baseUnit: 'м²' },
+    rackCeiling:     { title: 'Реечный потолок', category: 'ceiling', kind: 'measured', baseUnit: 'м²' },
+    ceilingPlinth:   { title: 'Потолочный плинтус', category: 'ceiling', kind: 'pieces', baseUnit: 'м' },
 
-    tileAdhesive:   { title: 'Клей для плитки', category: 'tile', kind: 'adhesive', baseUnit: 'м²' },
-    grout:          { title: 'Затирка для швов', category: 'tile', kind: 'grout', baseUnit: 'м²' },
-    waterproofing:  { title: 'Гидроизоляция', category: 'tile', kind: 'layered', baseUnit: 'м²' },
+    // --- Плиточные работы ---
+    tileAdhesive:    { title: 'Клей для плитки', category: 'tile', kind: 'adhesive', baseUnit: 'м²' },
+    grout:           { title: 'Затирка для швов', category: 'tile', kind: 'grout', baseUnit: 'м²' },
+    waterproofing:   { title: 'Гидроизоляция', category: 'tile', kind: 'layered', baseUnit: 'м²' },
 
-    screed:         { title: 'Стяжка пола', category: 'rough', kind: 'drymix', baseUnit: 'м²' },
-    leveler:        { title: 'Наливной пол', category: 'rough', kind: 'drymix', baseUnit: 'м²' },
-    plaster:        { title: 'Штукатурка', category: 'rough', kind: 'drymix', baseUnit: 'м²' },
-    puttyStart:     { title: 'Шпаклёвка стартовая', category: 'rough', kind: 'drymix', baseUnit: 'м²' },
-    putty:          { title: 'Шпаклёвка финишная', category: 'rough', kind: 'drymix', baseUnit: 'м²' },
-    primer:         { title: 'Грунт', category: 'rough', kind: 'layered', baseUnit: 'м²' },
-    drywall:        { title: 'Гипсокартон (ГКЛ)', category: 'rough', kind: 'area', baseUnit: 'м²' },
-    profileCD:      { title: 'Профиль стоечный/потолочный (ПП 60×27)', category: 'rough', kind: 'pieces', baseUnit: 'м' },
-    profileUD:      { title: 'Профиль направляющий (ПН 28×27)', category: 'rough', kind: 'pieces', baseUnit: 'м' },
+    // --- Черновые работы ---
+    screed:          { title: 'Стяжка пола', category: 'rough', kind: 'drymix', baseUnit: 'м²' },
+    leveler:         { title: 'Наливной пол', category: 'rough', kind: 'drymix', baseUnit: 'м²' },
+    plaster:         { title: 'Штукатурка', category: 'rough', kind: 'drymix', baseUnit: 'м²' },
+    puttyStart:      { title: 'Шпаклёвка стартовая', category: 'rough', kind: 'drymix', baseUnit: 'м²' },
+    putty:           { title: 'Шпаклёвка финишная', category: 'rough', kind: 'drymix', baseUnit: 'м²' },
+    primer:          { title: 'Грунт', category: 'rough', kind: 'layered', baseUnit: 'м²' },
+    drywall:         { title: 'Гипсокартон (ГКЛ)', category: 'rough', kind: 'area', baseUnit: 'м²' },
+    profileCD:       { title: 'Профиль стоечный/потолочный (ПП 60×27)', category: 'rough', kind: 'pieces', baseUnit: 'м' },
+    profileUD:       { title: 'Профиль направляющий (ПН 28×27)', category: 'rough', kind: 'pieces', baseUnit: 'м' },
 
-    windowPVC:      { title: 'Окна ПВХ', category: 'openings', kind: 'measured', baseUnit: 'м²' },
-    windowAlu:      { title: 'Остекление алюминиевое (холодное)', category: 'openings', kind: 'measured', baseUnit: 'м²' },
-    windowWood:     { title: 'Окна деревянные', category: 'openings', kind: 'measured', baseUnit: 'м²' },
-    windowSill:     { title: 'Подоконники', category: 'openings', kind: 'measured', baseUnit: 'м' },
-    windowSlopes:   { title: 'Откосы', category: 'openings', kind: 'measured', baseUnit: 'м' },
-    doorInterior:   { title: 'Двери межкомнатные', category: 'openings', kind: 'count', baseUnit: 'шт.' },
-    doorEntrance:   { title: 'Дверь входная', category: 'openings', kind: 'count', baseUnit: 'шт.' },
+    // --- Окна и двери ---
+    windowPVC:       { title: 'Окна ПВХ', category: 'openings', kind: 'measured', baseUnit: 'м²' },
+    windowAluWarm:   { title: 'Остекление алюминиевое тёплое', category: 'openings', kind: 'measured', baseUnit: 'м²' },
+    windowAlu:       { title: 'Остекление алюминиевое холодное', category: 'openings', kind: 'measured', baseUnit: 'м²' },
+    windowWood:      { title: 'Окна деревянные', category: 'openings', kind: 'measured', baseUnit: 'м²' },
+    windowFrameless: { title: 'Безрамное остекление', category: 'openings', kind: 'measured', baseUnit: 'м²' },
+    windowSill:      { title: 'Подоконники', category: 'openings', kind: 'measured', baseUnit: 'м' },
+    windowSlopes:    { title: 'Откосы', category: 'openings', kind: 'measured', baseUnit: 'м' },
+    doorEco:         { title: 'Двери межкомнатные: экошпон', category: 'openings', kind: 'count', baseUnit: 'шт.' },
+    doorVeneer:      { title: 'Двери межкомнатные: шпон', category: 'openings', kind: 'count', baseUnit: 'шт.' },
+    doorEnamel:      { title: 'Двери межкомнатные: эмаль', category: 'openings', kind: 'count', baseUnit: 'шт.' },
+    doorSolid:       { title: 'Двери межкомнатные: массив', category: 'openings', kind: 'count', baseUnit: 'шт.' },
+    doorHidden:      { title: 'Двери скрытого монтажа', category: 'openings', kind: 'count', baseUnit: 'шт.' },
+    doorEntrance:    { title: 'Дверь входная', category: 'openings', kind: 'count', baseUnit: 'шт.' },
 
-    cableSocket:    { title: 'Кабель 3×2,5 (розетки)', category: 'electric', kind: 'cable', baseUnit: 'м' },
-    cableLight:     { title: 'Кабель 3×1,5 (освещение)', category: 'electric', kind: 'cable', baseUnit: 'м' },
-    elSocket:       { title: 'Розетки', category: 'electric', kind: 'count', baseUnit: 'шт.' },
-    elSwitch:       { title: 'Выключатели', category: 'electric', kind: 'count', baseUnit: 'шт.' },
-    elBox:          { title: 'Подрозетники', category: 'electric', kind: 'count', baseUnit: 'шт.' },
-    elLight:        { title: 'Светильники', category: 'electric', kind: 'count', baseUnit: 'шт.' },
+    // --- Электрика ---
+    cableSocket:     { title: 'Кабель 3×2,5 (розетки)', category: 'electric', kind: 'cable', baseUnit: 'м' },
+    cableLight:      { title: 'Кабель 3×1,5 (освещение)', category: 'electric', kind: 'cable', baseUnit: 'м' },
+    cablePower:      { title: 'Кабель 3×6 (плита, бойлер)', category: 'electric', kind: 'cable', baseUnit: 'м' },
+    elSocket:        { title: 'Розетки', category: 'electric', kind: 'count', baseUnit: 'шт.' },
+    elPowerSocket:   { title: 'Силовые розетки', category: 'electric', kind: 'count', baseUnit: 'шт.' },
+    elSwitch:        { title: 'Выключатели', category: 'electric', kind: 'count', baseUnit: 'шт.' },
+    elBox:           { title: 'Подрозетники', category: 'electric', kind: 'count', baseUnit: 'шт.' },
+    elLight:         { title: 'Светильники', category: 'electric', kind: 'count', baseUnit: 'шт.' },
 
-    radiator:       { title: 'Радиаторы (секции)', category: 'heating', kind: 'radiator', baseUnit: 'Вт' },
-    floorHeating:   { title: 'Тёплый пол (нагревательный мат)', category: 'heating', kind: 'heatingMat', baseUnit: 'м²' },
-    thermostat:     { title: 'Терморегуляторы', category: 'heating', kind: 'count', baseUnit: 'шт.' }
+    // --- Отопление ---
+    radiatorBimetal: { title: 'Радиаторы биметаллические', category: 'heating', kind: 'radiator', baseUnit: 'Вт' },
+    radiatorAlu:     { title: 'Радиаторы алюминиевые', category: 'heating', kind: 'radiator', baseUnit: 'Вт' },
+    radiatorCastIron:{ title: 'Радиаторы чугунные', category: 'heating', kind: 'radiator', baseUnit: 'Вт' },
+    radiatorPanel:   { title: 'Радиаторы стальные панельные', category: 'heating', kind: 'radiator', baseUnit: 'Вт' },
+    floorHeating:    { title: 'Тёплый пол: нагревательный мат', category: 'heating', kind: 'heatingMat', baseUnit: 'м²' },
+    floorFilm:       { title: 'Тёплый пол: инфракрасная плёнка', category: 'heating', kind: 'heatingMat', baseUnit: 'м²' },
+    floorCable:      { title: 'Тёплый пол: кабель в стяжку', category: 'heating', kind: 'heatingCable', baseUnit: 'м²' },
+    thermostat:      { title: 'Терморегуляторы', category: 'heating', kind: 'count', baseUnit: 'шт.' }
   };
 
   var MATERIAL_ORDER = Object.keys(MATERIALS);
@@ -121,42 +167,84 @@
    * ================================================================== */
 
   var DEFAULT_MATERIALS = {
-    // --- Напольные покрытия ---
-    // Ламинат: в упаковке 2,397 м² (например, 9 досок 1380×193 мм). Запас 7 % — прямая укладка.
+    // --- Напольные покрытия --- (запас: прямая укладка; по диагонали и «ёлочкой» берут больше)
+    // Ламинат: 2,397 м² в упаковке (например, 9 досок 1380×193 мм). Запас 7 %.
     laminate: { packArea: 2.397, reserve: 7, price: 0, priceUnit: 'm2' },
-    // Кварцвинил: 2,196 м² (например, 10 досок 1220×180 мм). Запас 7 %.
+    // Кварцвинил замковый: 2,196 м² (например, 10 досок 1220×180 мм). Запас 7 %.
     vinyl: { packArea: 2.196, reserve: 7, price: 0, priceUnit: 'm2' },
-    // Паркетная доска: 2,2 м² в упаковке — условно, фасовка сильно отличается. Запас 7 %.
+    // Кварцвинил клеевой: 3,6 м² в упаковке — условно. Запас 7 %.
+    vinylGlue: { packArea: 3.6, reserve: 7, price: 0, priceUnit: 'm2' },
+    // Паркетная доска: 2,2 м² — условно, фасовка сильно отличается. Запас 7 %.
     parquet: { packArea: 2.2, reserve: 7, price: 0, priceUnit: 'm2' },
-    // Плитка на пол: 60×60 см, 4 шт. = 1,44 м². Запас 10 % (по диагонали — 15 %).
-    tileFloor: { tileLength: 60, tileWidth: 60, piecesPerPack: 4, reserve: 10, price: 0, priceUnit: 'm2' },
+    // Штучный паркет: 1 м² в упаковке — условно. Запас 10 % (ёлочка — больше).
+    parquetBlock: { packArea: 1, reserve: 10, price: 0, priceUnit: 'm2' },
+    // Инженерная доска: 2 м² — условно. Запас 7 %.
+    engineered: { packArea: 2, reserve: 7, price: 0, priceUnit: 'm2' },
+    // Массивная доска: 1,5 м² — условно. Запас 10 %.
+    solidWood: { packArea: 1.5, reserve: 10, price: 0, priceUnit: 'm2' },
+    // Пробковое покрытие: 2 м² — условно. Запас 7 %.
+    corkFloor: { packArea: 2, reserve: 7, price: 0, priceUnit: 'm2' },
+    // Плитка керамическая на пол: 30×30 см, 12 шт. = 1,08 м². Запас 10 %.
+    tileFloor: { tileLength: 30, tileWidth: 30, piecesPerPack: 12, reserve: 10, price: 0, priceUnit: 'm2' },
+    // Керамогранит на пол: 60×60 см, 4 шт. = 1,44 м². Запас 10 %.
+    porcelainFloor: { tileLength: 60, tileWidth: 60, piecesPerPack: 4, reserve: 10, price: 0, priceUnit: 'm2' },
     // Линолеум: ширины рулонов в продаже, припуск 0,1 м на отрез. Ширина подбирается сама.
     linoleum: { rollWidths: '2; 2,5; 3; 3,5; 4', trim: 0.1, reserve: 0, price: 0 },
     // Ковролин: ширины рулонов 3, 4, 5 м, припуск 0,1 м.
     carpet: { rollWidths: '3; 4; 5', trim: 0.1, reserve: 0, price: 0 },
-    // Подложка: 10 м² в рулоне/упаковке. Запас 5 %.
-    underlay: { packArea: 10, reserve: 5, price: 0 },
-    // Плинтус напольный: планка 2,5 м. Запас 10 % — на подрезку в углах.
-    floorPlinth: { pieceLength: 2.5, reserve: 10, price: 0 },
+    // Подложки: вспененный полиэтилен — рулон 10 м²; XPS — упаковка 5 м² (листы 1000×500 мм);
+    // хвойная — 6,99 м² (15 плит 790×590 мм); пробковая — рулон 10 м² (1 × 10 м). Запас 5 %.
+    underlayPE: { packArea: 10, reserve: 5, price: 0 },
+    underlayXPS: { packArea: 5, reserve: 5, price: 0 },
+    underlayConifer: { packArea: 6.99, reserve: 5, price: 0 },
+    underlayCork: { packArea: 10, reserve: 5, price: 0 },
+    // Фанера под паркет: лист 1,525 × 1,525 м. Запас 10 %.
+    plywood: { sheetWidth: 1.525, sheetLength: 1.525, reserve: 10, price: 0 },
+    // Клей для кварцвинила: 0,3 кг/м² (у клеев для LVT 0,25–0,35), ведро 10 кг.
+    vinylAdhesive: { consumption: 0.3, packWeight: 10, reserve: 10, price: 0 },
+    // Клей для паркета (2К полиуретановый): 1,0 кг/м² (обычно 0,8–1,2), ведро 10 кг.
+    parquetGlue: { consumption: 1, packWeight: 10, reserve: 10, price: 0 },
+    // Лак для паркета: 0,1 л/м² на слой (80–100 мл/м²), 3 слоя, банка 5 л.
+    parquetLacquer: { consumption: 0.1, coats: 3, canVolume: 5, reserve: 10, price: 0 },
+    // Плинтусы: длина планки ПВХ 2,5 м, МДФ 2,07 м, дерево 2,2 м, дюрополимер 2 м. Запас 10 %.
+    plinthPVC: { pieceLength: 2.5, reserve: 10, price: 0 },
+    plinthMDF: { pieceLength: 2.07, reserve: 10, price: 0 },
+    plinthWood: { pieceLength: 2.2, reserve: 10, price: 0 },
+    plinthPolymer: { pieceLength: 2, reserve: 10, price: 0 },
 
     // --- Стены ---
     // Краска: 8 м² с 1 литра на слой, 2 слоя, банка 9 л, запас 10 %.
     paintWall: { coverage: 8, coats: 2, canVolume: 9, reserve: 10, price: 0 },
-    // Обои: рулон 1,06 × 10,05 м, раппорт 0, припуск 0,1 м на полосу, запас 5 % полос.
+    // Обои флизелиновые и виниловые: рулон 1,06 × 10,05 м; бумажные — 0,53 × 10,05 м.
+    // Раппорт 0, припуск 0,1 м на полосу, запас 5 % полос.
     wallpaper: { rollWidth: 1.06, rollLength: 10.05, rapport: 0, trim: 0.1, subtractOpenings: false, reserve: 5, price: 0 },
+    wallpaperVinyl: { rollWidth: 1.06, rollLength: 10.05, rapport: 0, trim: 0.1, subtractOpenings: false, reserve: 5, price: 0 },
+    wallpaperPaper: { rollWidth: 0.53, rollLength: 10.05, rapport: 0, trim: 0.1, subtractOpenings: false, reserve: 5, price: 0 },
     // Клей для обоев: одной пачки хватает на 30 м² (у разных марок 25–60 м²).
     wallpaperGlue: { coverage: 30, reserve: 10, price: 0 },
-    // Плитка на стены: 30×60 см, 8 шт. = 1,44 м². Запас 10 %.
+    // Жидкие обои: одной упаковки хватает на 4 м² (у Silk Plaster 3,5–5,3 м²).
+    liquidWallpaper: { coverage: 4, reserve: 10, price: 0 },
+    // Декоративная штукатурка «короед»: 3 кг/м² (Ceresit CT 35, зерно 2,5 мм: 2,5–3,0), мешок 25 кг.
+    decorPlaster: { consumption: 3, packWeight: 25, reserve: 10, price: 0 },
+    // Плитка керамическая на стены: 30×60 см, 8 шт. = 1,44 м². Запас 10 %.
     tileWall: { tileLength: 30, tileWidth: 60, piecesPerPack: 8, reserve: 10, price: 0, priceUnit: 'm2' },
-    // Панели ПВХ: 0,25 × 2,7 м. Запас 10 %.
+    // Керамогранит на стены: 60×120 см, 2 шт. = 1,44 м². Запас 10 %.
+    porcelainWall: { tileLength: 60, tileWidth: 120, piecesPerPack: 2, reserve: 10, price: 0, priceUnit: 'm2' },
+    // Мозаика: лист (матрица) 30×30 см, чип 2 см, толщина 4 мм. Запас 10 %.
+    mosaic: { tileLength: 30, tileWidth: 30, piecesPerPack: 1, chipSize: 2, thickness: 4, reserve: 10, price: 0, priceUnit: 'pack' },
+    // Панели ПВХ: 0,25 × 2,7 м; МДФ: 0,2 × 2,6 м. Запас 10 %.
     panels: { panelWidth: 0.25, panelLength: 2.7, reserve: 10, price: 0 },
+    panelsMDF: { panelWidth: 0.2, panelLength: 2.6, reserve: 10, price: 0 },
     // Стеклохолст: рулон 50 м² (1 × 50 м). Запас 10 % — нахлёст и подрезка.
     fiberglass: { rollArea: 50, reserve: 10, price: 0 },
 
     // --- Потолок ---
     paintCeiling: { coverage: 8, coats: 2, canVolume: 9, reserve: 10, price: 0 },
-    // Натяжной потолок: цена за м² (обычно с монтажом). Полотно делают по размеру — запас 0.
+    // Натяжные потолки: цена за м² (обычно с монтажом). Полотно по размеру — запас 0.
     stretchCeiling: { reserve: 0, price: 0 },
+    stretchFabric: { reserve: 0, price: 0 },
+    // Реечный потолок: цена за м² комплекта, запас 5 % на подрезку.
+    rackCeiling: { reserve: 5, price: 0 },
     // Потолочный плинтус (галтель): планка 2 м. Запас 10 %.
     ceilingPlinth: { pieceLength: 2, reserve: 10, price: 0 },
 
@@ -190,30 +278,46 @@
     // Профиль ПН 28×27: длина 3 м. Запас 10 %.
     profileUD: { pieceLength: 3, reserve: 10, price: 0 },
 
-    // --- Окна и двери --- (цена за м² окна; подоконники и откосы — за погонный метр)
+    // --- Окна и двери --- (окна — цена за м²; подоконники и откосы — за погонный метр; двери — за штуку)
     windowPVC: { price: 0 },
+    windowAluWarm: { price: 0 },
     windowAlu: { price: 0 },
     windowWood: { price: 0 },
+    windowFrameless: { price: 0 },
     // Подоконник: длина = ширина окна + 0,1 м (заход по 5 см за откосы с каждой стороны).
     windowSill: { overhang: 0.1, price: 0 },
     windowSlopes: { price: 0 },
-    doorInterior: { price: 0 },
+    doorEco: { price: 0 },
+    doorVeneer: { price: 0 },
+    doorEnamel: { price: 0 },
+    doorSolid: { price: 0 },
+    doorHidden: { price: 0 },
     doorEntrance: { price: 0 },
 
     // --- Электрика ---
-    // Кабель: среднее расстояние от щита до комнаты 7 м, бухта 100 м, запас 15 %.
+    // Кабель: среднее расстояние от щита до комнаты 7 м, бухта 100 м (3×6 — 50 м), запас 15 %.
     cableSocket: { toPanel: 7, coilLength: 100, reserve: 15, price: 0, priceUnit: 'm' },
     cableLight: { toPanel: 7, coilLength: 100, reserve: 15, price: 0, priceUnit: 'm' },
+    cablePower: { toPanel: 7, coilLength: 50, reserve: 15, price: 0, priceUnit: 'm' },
     elSocket: { price: 0 },
+    elPowerSocket: { price: 0 },
     elSwitch: { price: 0 },
     elBox: { price: 0 },
     elLight: { price: 0 },
 
     // --- Отопление ---
-    // Радиаторы: 100 Вт на 1 м² при потолке до 2,7 м; секция 180 Вт (биметалл 500 мм — смотрите паспорт).
-    radiator: { wattsPerM2: 100, sectionPower: 180, reserve: 10, price: 0 },
-    // Тёплый пол: мат 150 Вт/м² на 70 % площади пола, размеры матов с шагом 0,5 м². Цена за м² мата.
+    // 100 Вт на 1 м² при потолке до 2,7 м. Мощность секции: биметалл 180 Вт, алюминий 175 Вт,
+    // чугун 160 Вт (смотрите паспорт). Панельный радиатор — мощность одного радиатора: 1200 Вт
+    // (тип 22, 500×1000 мм, у разных марок 1200–2300 Вт). Запас 10 %.
+    radiatorBimetal: { wattsPerM2: 100, sectionPower: 180, reserve: 10, price: 0 },
+    radiatorAlu: { wattsPerM2: 100, sectionPower: 175, reserve: 10, price: 0 },
+    radiatorCastIron: { wattsPerM2: 100, sectionPower: 160, reserve: 10, price: 0 },
+    radiatorPanel: { wattsPerM2: 100, sectionPower: 1200, reserve: 10, price: 0 },
+    // Тёплый пол: мат 150 Вт/м², плёнка 220 Вт/м², кабель 150 Вт/м² при погонной мощности 18 Вт/м.
+    // Укладка на 70 % площади пола; маты и плёнка — с шагом размеров 0,5 м².
     floorHeating: { share: 70, power: 150, matStep: 0.5, price: 0 },
+    floorFilm: { share: 70, power: 220, matStep: 0.5, price: 0 },
+    floorCable: { share: 70, power: 150, linearPower: 18, reserve: 0, price: 0 },
     thermostat: { price: 0 }
   };
 
@@ -383,8 +487,8 @@
 
   /** Площадь одной единицы для материалов «по площади». */
   function unitAreaOf(key, p) {
-    if (key === 'drywall') return toNumber(p.sheetWidth) * toNumber(p.sheetLength);
-    if (key === 'panels') return toNumber(p.panelWidth) * toNumber(p.panelLength);
+    if (key === 'drywall' || key === 'plywood') return toNumber(p.sheetWidth) * toNumber(p.sheetLength);
+    if (key === 'panels' || key === 'panelsMDF') return toNumber(p.panelWidth) * toNumber(p.panelLength);
     if (key === 'fiberglass') return toNumber(p.rollArea);
     return toNumber(p.packArea);
   }
@@ -642,7 +746,8 @@
    * Затирка.
    *   кг = Σ (площадь плитки × расход на м² для её размера) × (1 + запас%)
    *   упаковок = ⌈ кг / вес упаковки ⌉
-   * parts — массив { area, tileLength, tileWidth } (плитка на пол, на стены).
+   * parts — массив { area, tileLength, tileWidth, depth? } (плитка на пол, на стены, мозаика;
+   * depth — своя глубина шва, иначе берётся толщина плитки из параметров затирки).
    */
   function calcGrout(parts, p) {
     var errors = [];
@@ -653,8 +758,9 @@
     var rates = [];
     (parts || []).forEach(function (part) {
       if (!(part.area > 0)) return;
-      var rate = groutRate(part.tileLength, part.tileWidth, p.jointWidth, p.tileThickness, p.density);
-      rates.push({ area: part.area, rate: rate, tileLength: part.tileLength, tileWidth: part.tileWidth });
+      var depth = part.depth !== undefined ? part.depth : p.tileThickness;
+      var rate = groutRate(part.tileLength, part.tileWidth, p.jointWidth, depth, p.density);
+      rates.push({ area: part.area, rate: rate, tileLength: part.tileLength, tileWidth: part.tileWidth, depth: toNumber(depth), title: part.title });
       area += part.area;
       kg += part.area * rate;
     });
@@ -777,6 +883,24 @@
   }
 
   /**
+   * Тёплый пол кабелем в стяжку.
+   *   мощность = площадь укладки × Вт/м²
+   *   метров кабеля = ⌈ мощность / погонная мощность (Вт/м) × (1 + запас%) ⌉
+   *   стоимость = метров × цена за метр
+   */
+  function calcHeatingCable(area, p) {
+    var errors = [];
+    var linear = toNumber(p.linearPower);
+    if (linear <= 0) errors.push('не задана погонная мощность кабеля');
+    var watts = area * toNumber(p.power);
+    var meters = linear > 0 ? ceilSafe(withReserve(watts / linear, p.reserve)) : 0;
+    return {
+      area: area, amount: meters, amountUnit: 'м', meters: meters, watts: watts,
+      packs: 0, cost: meters * toNumber(p.price), errors: errors
+    };
+  }
+
+  /**
    * Свои позиции.
    *   от площади/периметра: количество = (сумма по выбранным комнатам) × расход на единицу × (1 + запас%)
    *   штучные: количество = указанное количество × (1 + запас%)
@@ -797,11 +921,56 @@
    * 6. Что нужно для комнаты
    * ================================================================== */
 
-  var FLOOR_AREA_KEYS = { laminate: 'laminate', vinyl: 'vinyl', parquet: 'parquet', tile: 'tileFloor', linoleum: 'linoleum', carpet: 'carpet' };
-  var UNDERLAY_FLOORS = { laminate: true, parquet: true };
-  var PLINTH_FLOORS = { laminate: true, vinyl: true, parquet: true, linoleum: true, carpet: true };
-  var WINDOW_KEYS = { pvc: 'windowPVC', alu: 'windowAlu', wood: 'windowWood' };
-  var DOOR_KEYS = { interior: 'doorInterior', entrance: 'doorEntrance' };
+  // Что выбрано в комнате → какой материал считать.
+  var FLOOR_KEYS = {
+    laminate: 'laminate', vinyl: 'vinyl', vinylGlue: 'vinylGlue', parquet: 'parquet', parquetBlock: 'parquetBlock',
+    engineered: 'engineered', solidWood: 'solidWood', cork: 'corkFloor', tile: 'tileFloor', porcelain: 'porcelainFloor',
+    linoleum: 'linoleum', carpet: 'carpet'
+  };
+  var UNDERLAY_KEYS = { pe: 'underlayPE', xps: 'underlayXPS', conifer: 'underlayConifer', cork: 'underlayCork', plywood: 'plywood' };
+  var PLINTH_KEYS = { pvc: 'plinthPVC', mdf: 'plinthMDF', wood: 'plinthWood', polymer: 'plinthPolymer' };
+  var WALL_KEYS = {
+    paint: 'paintWall', wallpaper: 'wallpaper', wallpaperVinyl: 'wallpaperVinyl', wallpaperPaper: 'wallpaperPaper',
+    liquid: 'liquidWallpaper', decor: 'decorPlaster', tile: 'tileWall', porcelain: 'porcelainWall', mosaic: 'mosaic',
+    panels: 'panels', panelsMDF: 'panelsMDF'
+  };
+  var CEILING_KEYS = { paint: 'paintCeiling', stretch: 'stretchCeiling', stretchFabric: 'stretchFabric', panels: 'panels', rack: 'rackCeiling' };
+  var WINDOW_KEYS = { pvc: 'windowPVC', aluWarm: 'windowAluWarm', alu: 'windowAlu', wood: 'windowWood', frameless: 'windowFrameless' };
+  // interior — значение из первой версии калькулятора (межкомнатная без уточнения)
+  var DOOR_KEYS = {
+    eco: 'doorEco', interior: 'doorEco', veneer: 'doorVeneer', enamel: 'doorEnamel', solid: 'doorSolid',
+    hidden: 'doorHidden', entrance: 'doorEntrance'
+  };
+  var RADIATOR_KEYS = { bimetal: 'radiatorBimetal', alu: 'radiatorAlu', castIron: 'radiatorCastIron', panel: 'radiatorPanel' };
+  var FLOOR_HEAT_KEYS = { mat: 'floorHeating', film: 'floorFilm', cable: 'floorCable' };
+
+  // Подложка и плинтус по умолчанию для покрытия (в комнате можно выбрать другие).
+  var UNDERLAY_DEFAULT = {
+    laminate: 'xps', vinyl: 'none', parquet: 'conifer', parquetBlock: 'plywood', engineered: 'plywood',
+    solidWood: 'plywood', cork: 'none'
+  };
+  var PLINTH_DEFAULT = {
+    laminate: 'pvc', vinyl: 'pvc', vinylGlue: 'pvc', parquet: 'mdf', parquetBlock: 'mdf', engineered: 'mdf',
+    solidWood: 'wood', cork: 'pvc', linoleum: 'pvc', carpet: 'pvc'
+  };
+  // Покрытия, под которые кладут клей и лак.
+  var PARQUET_GLUE_FLOORS = { parquetBlock: true, engineered: true, solidWood: true };
+  var LACQUER_FLOORS = { parquetBlock: true, solidWood: true };
+  // Плитка: на полу и на стенах (для клея и затирки).
+  var FLOOR_TILE_KEYS = ['tileFloor', 'porcelainFloor'];
+  var WALL_TILE_KEYS = ['tileWall', 'porcelainWall', 'mosaic'];
+
+  /** Выбранная в комнате подложка (если не выбрана — по умолчанию для покрытия). */
+  function roomUnderlay(room) {
+    if (room.underlay !== undefined && room.underlay !== null) return room.underlay;
+    return UNDERLAY_DEFAULT[room.floor] || 'none';
+  }
+
+  /** Выбранный в комнате плинтус (если не выбран — по умолчанию для покрытия). */
+  function roomPlinth(room) {
+    if (room.plinth !== undefined && room.plinth !== null) return room.plinth;
+    return PLINTH_DEFAULT[room.floor] || 'none';
+  }
 
   /** Параметры материала: значения по умолчанию, поверх — введённые пользователем. */
   function materialParams(materials, key) {
@@ -817,23 +986,28 @@
   /**
    * Потребность комнаты по материалам (в м², м, шт. или Вт — см. baseUnit в каталоге).
    * Что куда идёт:
-   *   пол: покрытие → площадь пола; подложка — под ламинат и паркетную доску;
-   *        плинтус — периметр минус ширина дверей (кроме плитки);
+   *   пол: выбранное покрытие → площадь пола; подложка выбранного типа — площадь пола;
+   *        плинтус выбранного типа — периметр минус ширина дверей;
+   *        клей для кварцвинила — под клеевой кварцвинил; клей для паркета — под штучный паркет,
+   *        инженерную и массивную доску; лак — на штучный паркет и массивную доску;
    *        стяжка, наливной пол, грунт — площадь пола;
    *        гидроизоляция — пол + полоса на стены высотой «заход» по периметру без дверей;
-   *   стены: краска, обои (+ клей), плитка, панели, штукатурка, шпаклёвки, стеклохолст, грунт,
-   *          ГКЛ — «чистая» площадь стен;
-   *   потолок: краска, натяжной, панели, штукатурка, шпаклёвки, грунт, ГКЛ — площадь потолка;
+   *   стены: выбранная отделка, штукатурка, шпаклёвки, стеклохолст, грунт, ГКЛ — «чистая» площадь стен;
+   *          к любым обоям — клей для обоев;
+   *   потолок: выбранная отделка, штукатурка, шпаклёвки, грунт, ГКЛ — площадь потолка;
    *            потолочный плинтус — периметр;
+   *   клей для плитки и затирка — вся плитка, керамогранит и мозаика комнаты;
    *   каркас ГКЛ на стенах: стоек = ⌈ периметр / шаг ⌉, ПП = стоек × высота, ПН = 2 × периметр;
    *   каркас ГКЛ на потолке: рядов = ⌈ короткая сторона / шаг ⌉ − 1 (не меньше 1),
    *                          ПП = рядов × длинная сторона, ПН = периметр;
-   *   окна: площадь окна → тип остекления; подоконник = (ширина + заход) × шт.;
-   *         откосы = (2 × высота + ширина) × шт.;  двери — штуки;
+   *   окна: площадь окна → выбранный тип остекления; подоконник = (ширина + заход) × шт.;
+   *         откосы = (2 × высота + ширина) × шт.;  двери выбранного типа — штуки;
    *   электрика: кабель розеток = до щита + периметр + розеток × высота потолка,
-   *              кабель света = до щита + (длина + ширина) + (выключателей + светильников) × высота;
-   *              подрозетники = розетки + выключатели;
-   *   отопление: радиаторы — мощность комнаты (Вт); тёплый пол — площадь мата.
+   *              кабель света = до щита + (длина + ширина) + (выключателей + светильников) × высота,
+   *              силовой кабель = приборов × (до щита + длина + ширина + высота);
+   *              подрозетники = розетки + выключатели + силовые розетки;
+   *   отопление: радиаторы выбранного типа — мощность комнаты (Вт);
+   *              тёплый пол выбранного типа — площадь укладки; терморегулятор — 1 на комнату.
    */
   function roomNeeds(room, geometry, paramsOf) {
     var P = paramsOf || function (key) { return materialParams(null, key); };
@@ -848,16 +1022,20 @@
     var out = { needs: n, wallpaper: null, roll: null, radiator: null };
 
     function add(key, value) {
-      if (value > 0) n[key] = (n[key] || 0) + value;
+      if (key && value > 0) n[key] = (n[key] || 0) + value;
     }
 
-    var floorKey = FLOOR_AREA_KEYS[room.floor];
     var floorRest = Math.max(0, g.perimeter - g.doorsWidth);
 
-    // Пол
-    if (floorKey) add(floorKey, g.floorArea);
-    if (UNDERLAY_FLOORS[room.floor]) add('underlay', g.floorArea);
-    if (PLINTH_FLOORS[room.floor]) add('floorPlinth', floorRest);
+    // Пол: покрытие, подложка, клей и лак для паркета, плинтус
+    add(FLOOR_KEYS[room.floor], g.floorArea);
+    if (FLOOR_KEYS[room.floor]) {
+      add(UNDERLAY_KEYS[roomUnderlay(room)], g.floorArea);
+      add(PLINTH_KEYS[roomPlinth(room)], floorRest);
+    }
+    if (room.floor === 'vinylGlue') add('vinylAdhesive', g.floorArea);
+    if (PARQUET_GLUE_FLOORS[room.floor]) add('parquetGlue', g.floorArea);
+    if (LACQUER_FLOORS[room.floor]) add('parquetLacquer', g.floorArea);
     if (room.floor === 'linoleum' || room.floor === 'carpet') {
       out.roll = { key: room.floor, name: room.name, length: g.length, width: g.width, area: g.floorArea };
     }
@@ -867,14 +1045,12 @@
     if (pf.waterproofing) add('waterproofing', g.floorArea + floorRest * toNumber(P('waterproofing').upturn));
 
     // Стены
-    if (room.walls === 'paint') add('paintWall', g.wallNet);
-    if (room.walls === 'tile') add('tileWall', g.wallNet);
-    if (room.walls === 'panels') add('panels', g.wallNet);
-    if (room.walls === 'wallpaper') {
-      add('wallpaper', g.wallNet);
+    var wallKey = WALL_KEYS[room.walls];
+    add(wallKey, g.wallNet);
+    if (wallKey && MATERIALS[wallKey].kind === 'wallpaper') {
       add('wallpaperGlue', g.wallNet);
       if (g.perimeter > 0 && g.height > 0) {
-        out.wallpaper = { perimeter: g.perimeter, height: g.height, openingsWidth: g.openingsWidth, area: g.wallNet };
+        out.wallpaper = { key: wallKey, perimeter: g.perimeter, height: g.height, openingsWidth: g.openingsWidth, area: g.wallNet };
       }
     }
     if (pw.plaster) add('plaster', g.wallNet);
@@ -884,9 +1060,7 @@
     if (pw.primer) add('primer', g.wallNet);
 
     // Потолок
-    if (room.ceiling === 'paint') add('paintCeiling', g.ceilingArea);
-    if (room.ceiling === 'stretch') add('stretchCeiling', g.ceilingArea);
-    if (room.ceiling === 'panels') add('panels', g.ceilingArea);
+    add(CEILING_KEYS[room.ceiling], g.ceilingArea);
     if (pc.plaster) add('plaster', g.ceilingArea);
     if (pc.puttyStart) add('puttyStart', g.ceilingArea);
     if (pc.putty) add('putty', g.ceilingArea);
@@ -894,7 +1068,7 @@
     if (pc.plinth) add('ceilingPlinth', g.perimeter);
 
     // Плиточные работы: клей и затирка — на всю плитку комнаты
-    var tileArea = (room.floor === 'tile' ? g.floorArea : 0) + (room.walls === 'tile' ? g.wallNet : 0);
+    var tileArea = (n.tileFloor || 0) + (n.porcelainFloor || 0) + (n.tileWall || 0) + (n.porcelainWall || 0) + (n.mosaic || 0);
     add('tileAdhesive', tileArea);
     add('grout', tileArea);
 
@@ -920,10 +1094,10 @@
       var h = toNumber(o.height);
       var c = toNumber(o.count);
       if ((o.type || 'window') === 'window') {
-        if (WINDOW_KEYS[o.replace]) add(WINDOW_KEYS[o.replace], w * h * c);
+        add(WINDOW_KEYS[o.replace], w * h * c);
         if (o.sill) add('windowSill', (w + sillOverhang) * c);
         if (o.slopes) add('windowSlopes', (2 * h + w) * c);
-      } else if (DOOR_KEYS[o.replace]) {
+      } else {
         add(DOOR_KEYS[o.replace], c);
       }
     });
@@ -932,25 +1106,31 @@
     var sockets = toNumber(el.sockets);
     var switches = toNumber(el.switches);
     var lights = toNumber(el.lights);
+    var power = toNumber(el.power);
     add('elSocket', sockets);
     add('elSwitch', switches);
-    add('elBox', sockets + switches);
+    add('elBox', sockets + switches + power);
     add('elLight', lights);
+    add('elPowerSocket', power);
     if (sockets > 0) add('cableSocket', toNumber(P('cableSocket').toPanel) + g.perimeter + sockets * g.height);
     if (switches + lights > 0) {
       add('cableLight', toNumber(P('cableLight').toPanel) + g.length + g.width + (switches + lights) * g.height);
     }
+    // у каждого мощного прибора своя линия от щита
+    if (power > 0) add('cablePower', power * (toNumber(P('cablePower').toPanel) + g.length + g.width + g.height));
 
     // Отопление
     if (heat.radiators) {
-      var watts = roomHeatPower(g.floorArea, g.height, P('radiator').wattsPerM2);
-      add('radiator', watts);
-      if (watts > 0) out.radiator = { name: room.name, watts: watts, radiators: g.windowsCount };
+      var rKey = RADIATOR_KEYS[heat.radiatorType] || 'radiatorBimetal';
+      var watts = roomHeatPower(g.floorArea, g.height, P(rKey).wattsPerM2);
+      add(rKey, watts);
+      if (watts > 0) out.radiator = { key: rKey, name: room.name, watts: watts, radiators: g.windowsCount };
     }
     if (heat.floor) {
-      var mat = matArea(g.floorArea, P('floorHeating'));
-      add('floorHeating', mat);
-      if (mat > 0) add('thermostat', 1);
+      var hKey = FLOOR_HEAT_KEYS[heat.floorType] || 'floorHeating';
+      var heated = matArea(g.floorArea, P(hKey));
+      add(hKey, heated);
+      if (heated > 0) add('thermostat', 1);
     }
 
     return out;
@@ -998,19 +1178,31 @@
     }
 
     var totals = {};
-    var wallpaperWalls = [];
+    var wallpaperWalls = {};
     var rollRooms = { linoleum: [], carpet: [] };
-    var radiatorRooms = [];
+    var radiatorRooms = {};
 
     var roomResults = rooms.map(function (room) {
       var g = roomGeometry(room);
       var r = roomNeeds(room, g, P);
       Object.keys(r.needs).forEach(function (k) { totals[k] = (totals[k] || 0) + r.needs[k]; });
-      if (r.wallpaper) wallpaperWalls.push(r.wallpaper);
+      if (r.wallpaper) (wallpaperWalls[r.wallpaper.key] = wallpaperWalls[r.wallpaper.key] || []).push(r.wallpaper);
       if (r.roll) rollRooms[r.roll.key].push(r.roll);
-      if (r.radiator) radiatorRooms.push(r.radiator);
+      if (r.radiator) (radiatorRooms[r.radiator.key] = radiatorRooms[r.radiator.key] || []).push(r.radiator);
       return { id: room.id, name: room.name, geometry: g, areas: r.needs };
     });
+
+    function sumOf(keys) {
+      return keys.reduce(function (sum, k) { return sum + (totals[k] || 0); }, 0);
+    }
+    // Затирка: у каждой плитки свой размер; у мозаики шов идёт вокруг чипов на глубину мозаики.
+    function groutParts() {
+      return FLOOR_TILE_KEYS.concat(WALL_TILE_KEYS).map(function (k) {
+        var tp = P(k);
+        if (k === 'mosaic') return { area: totals[k] || 0, tileLength: tp.chipSize, tileWidth: tp.chipSize, depth: tp.thickness, title: MATERIALS[k].title };
+        return { area: totals[k] || 0, tileLength: tp.tileLength, tileWidth: tp.tileWidth, title: MATERIALS[k].title };
+      });
+    }
 
     var materials = [];
     var skipped = [];
@@ -1027,22 +1219,23 @@
         case 'roll': r = calcRollCovering(rollRooms[key], p); break;
         case 'pieces': r = calcPieces(base, p); break;
         case 'paint': r = calcPaint(base, p); break;
-        case 'wallpaper': r = calcWallpaper(wallpaperWalls, p); break;
+        case 'wallpaper': r = calcWallpaper(wallpaperWalls[key] || [], p); break;
         case 'glue': r = calcCoverage(base, p); break;
-        case 'adhesive': r = calcTileAdhesive(totals.tileFloor || 0, totals.tileWall || 0, p); break;
-        case 'grout':
-          r = calcGrout([
-            { area: totals.tileFloor || 0, tileLength: P('tileFloor').tileLength, tileWidth: P('tileFloor').tileWidth },
-            { area: totals.tileWall || 0, tileLength: P('tileWall').tileLength, tileWidth: P('tileWall').tileWidth }
-          ], p);
+        case 'perArea': r = calcLayered(base, p.consumption, 1, p.packWeight, p.reserve, p.price, 'кг'); break;
+        case 'adhesive': r = calcTileAdhesive(sumOf(FLOOR_TILE_KEYS), sumOf(WALL_TILE_KEYS), p); break;
+        case 'grout': r = calcGrout(groutParts(), p); break;
+        case 'layered':
+          if (key === 'primer') r = calcPrimer(base, p);
+          else if (key === 'waterproofing') r = calcWaterproofing(base, p);
+          else r = calcLayered(base, p.consumption, p.coats, p.canVolume, p.reserve, p.price, 'л');
           break;
-        case 'layered': r = key === 'primer' ? calcPrimer(base, p) : calcWaterproofing(base, p); break;
         case 'drymix': r = calcDryMix(base, p); break;
         case 'measured': r = calcMeasured(base, p); break;
         case 'count': r = calcCount(base, p); break;
         case 'cable': r = calcCable(base, p); break;
-        case 'radiator': r = calcRadiators(radiatorRooms, p); break;
+        case 'radiator': r = calcRadiators(radiatorRooms[key] || [], p); break;
         case 'heatingMat': r = calcHeatingMat(base, p); break;
+        case 'heatingCable': r = calcHeatingCable(base, p); break;
       }
       r.key = key;
       r.title = meta.title;
@@ -1123,6 +1316,11 @@
     calcRadiators: calcRadiators,
     matArea: matArea,
     calcHeatingMat: calcHeatingMat,
+    calcHeatingCable: calcHeatingCable,
+    roomUnderlay: roomUnderlay,
+    roomPlinth: roomPlinth,
+    UNDERLAY_DEFAULT: UNDERLAY_DEFAULT,
+    PLINTH_DEFAULT: PLINTH_DEFAULT,
     calcCustom: calcCustom,
     customBase: customBase,
     roomNeeds: roomNeeds,
