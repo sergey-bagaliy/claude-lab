@@ -1,0 +1,1631 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ремонтный SaaS займёт нишу между Excel и Gectaro</title>
+<meta name="description" content="Исследование рынка и бизнес-план подписочного софта для ремонтных компаний России.">
+<style>
+:root {
+  color-scheme: light dark;
+  --bg: #ffffff; --bg-soft: #f4f6f9; --ink: #142030; --ink-2: #33445a; --muted: #5f6f83;
+  --line: #e1e6ed; --brand: #1d3557; --accent: #c2410c; --link: #1f5fa8;
+  --mark: #fff4d6; --mark-ink: #8a5300; --code: #eef2f7;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1722; --bg-soft: #17212f; --ink: #e8edf4; --ink-2: #c4cdd9; --muted: #93a1b3;
+    --line: #2a3646; --brand: #9cc0f0; --accent: #ff8f5a; --link: #8fbaf5;
+    --mark: #3b2f12; --mark-ink: #ffd27a; --code: #1d2938;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1722; --bg-soft: #17212f; --ink: #e8edf4; --ink-2: #c4cdd9; --muted: #93a1b3;
+  --line: #2a3646; --brand: #9cc0f0; --accent: #ff8f5a; --link: #8fbaf5;
+  --mark: #3b2f12; --mark-ink: #ffd27a; --code: #1d2938;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; overflow-x: hidden; }
+a { color: var(--link); overflow-wrap: anywhere; }
+header.top { background: var(--brand); color: #fff; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) header.top { background: #1b2a40; } }
+:root[data-theme="dark"] header.top { background: #1b2a40; }
+header.top .in { max-width: 1180px; margin: 0 auto; padding: 32px 16px 28px; }
+header.top h1 { margin: 0 0 8px; font-size: clamp(26px, 4vw, 38px); line-height: 1.2; color: #fff; }
+header.top p { margin: 0; opacity: .85; }
+.layout { max-width: 1180px; margin: 0 auto; padding: 24px 16px 64px; display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 40px; }
+nav.toc { position: sticky; top: 16px; align-self: start; max-height: calc(100vh - 32px); overflow-y: auto; font-size: 14px; }
+nav.toc .h { font-weight: 700; text-transform: uppercase; letter-spacing: .06em; font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+nav.toc ul { margin: 0; padding: 0; list-style: none; }
+nav.toc li { margin: 6px 0; }
+nav.toc a { color: var(--ink-2); text-decoration: none; }
+nav.toc a:hover { color: var(--link); text-decoration: underline; }
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; gap: 16px; }
+  nav.toc { position: static; max-height: none; background: var(--bg-soft); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+}
+article { min-width: 0; }
+article h2 { font-size: clamp(22px, 3vw, 28px); line-height: 1.25; margin: 44px 0 14px; padding-top: 12px; border-top: 2px solid var(--line); scroll-margin-top: 16px; }
+article h2:first-child { margin-top: 0; border-top: 0; padding-top: 0; }
+article h3 { font-size: 19px; margin: 28px 0 10px; }
+article h4 { font-size: 16px; margin: 20px 0 8px; }
+article p, article li { color: var(--ink); }
+article ul, article ol { padding-left: 22px; }
+article li { margin: 4px 0; }
+article blockquote { margin: 16px 0; padding: 12px 16px; background: var(--bg-soft); border-left: 4px solid var(--accent); border-radius: 0 10px 10px 0; color: var(--ink-2); }
+article blockquote p { margin: 6px 0; }
+article code { background: var(--code); padding: 1px 6px; border-radius: 6px; font-size: .92em; }
+article hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+.table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 16px 0; border: 1px solid var(--line); border-radius: 12px; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { padding: 9px 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+th { background: var(--bg-soft); font-weight: 700; white-space: nowrap; }
+tr:last-child td { border-bottom: 0; }
+td { min-width: 110px; }
+mark.todo { background: var(--mark); color: var(--mark-ink); padding: 0 4px; border-radius: 4px; }
+.footnote { font-size: 14px; color: var(--muted); }
+footer.bottom { border-top: 1px solid var(--line); color: var(--muted); font-size: 14px; }
+footer.bottom .in { max-width: 1180px; margin: 0 auto; padding: 20px 16px 40px; }
+@media print { nav.toc { display: none; } .layout { display: block; } a { color: inherit; } }
+</style>
+</head>
+<body>
+<header class="top"><div class="in">
+<h1>Ремонтный SaaS займёт нишу между Excel и Gectaro</h1>
+<p>Исследование рынка и бизнес-план · данные на 04.11.2026 · цифры со ссылками на источники, непроверенное помечено «нужно уточнить»</p>
+</div></header>
+<div class="layout">
+<nav class="toc" aria-label="Содержание"><div class="h">Содержание</div><ul><li><a href="#коротко">Коротко</a></li><li><a href="#1-конкуренты-между-5-и-17-тыс--в-месяц-почти-пусто">1. Конкуренты: между 5 и 17 тыс. ₽ в месяц почти пусто</a></li><li><a href="#2-покупатель--владелец-с-38-объектами-которому-не-хватает-глаз-на-площадке">2. Покупатель — владелец с 3–8 объектами, которому не хватает глаз на площадке</a></li><li><a href="#3-тарифы-цены-черновика-выдерживают-сравнение-лимиты--нет">3. Тарифы: цены черновика выдерживают сравнение, лимиты — нет</a></li><li><a href="#4-каналы-продаж-на-старте-личные-продажи-сильнее-рекламы">4. Каналы продаж: на старте личные продажи сильнее рекламы</a></li><li><a href="#5-юридическое-восемь-вещей-закрыть-до-первого-платежа">5. Юридическое: восемь вещей закрыть до первого платежа</a></li><li><a href="#6-план-первых-90-дней-13-недель-09112026--07022027">6. План первых 90 дней (13 недель): 09.11.2026 — 07.02.2027</a></li><li><a href="#7-первые-10-платящих-платный-пилот-вместо-холодной-рекламы">7. Первые 10 платящих: платный пилот вместо холодной рекламы</a></li><li><a href="#8-риски-и-как-их-снижать">8. Риски и как их снижать</a></li><li><a href="#9-что-нужно-уточнить-вручную">9. Что нужно уточнить вручную</a></li><li><a href="#заключение">Заключение</a></li></ul></nav>
+<article>
+
+<h2 id="коротко">Коротко</h2>
+<p><strong>Дата исследования: 04.11.2026.</strong> Бизнес-план и исследование рынка софта по подписке для ремонтных компаний и прорабов России: приложение контроля ремонта (смета, график, фотоотчёты, акты, оплаты по этапам, чат с заказчиком), калькулятор сметы и 3D-планировщик квартир. Автор — владелец ремонтной компании в Краснодаре, у которого уже есть своё приложение.</p>
+<p>Место для продукта есть, но оно узкое и уже тесное. Российские продукты для ремонтных компаний стоят либо <strong>0–5 тыс. ₽ в месяц на команду</strong>: WorkAB — от 1 500 до 4 700 ₽, «101» — 1 400–3 800 ₽ при годовой оплате, СметаЧек — 990–2 990 ₽ (<a href="https://workab.ru/" target="_blank" rel="noopener noreferrer">workab.ru</a>, <a href="https://101-group.ru/download" target="_blank" rel="noopener noreferrer">101-group.ru</a>, <a href="https://smetacheck.ru/pricing" target="_blank" rel="noopener noreferrer">smetacheck.ru</a>), либо <strong>от 17–21 тыс. ₽</strong> (Gectaro: 21 166 ₽ на сайте, 17 000 ₽ у дистрибьютора 1С-БИТ — вероятно, устаревшая цифра) (<a href="https://gectaro.com/pricing" target="_blank" rel="noopener noreferrer">gectaro.com</a>, <a href="https://www.1cbit.ru/1csoft/gectaro/" target="_blank" rel="noopener noreferrer">1cbit.ru</a>). Главный реальный соперник — связка Excel и мессенджера: половина компаний без CRM ведёт учёт в Excel или Google Таблицах (<a href="https://www.klerk.ru/buh/articles/645537/" target="_blank" rel="noopener noreferrer">Клерк</a>). Черновые тарифы лендинга (1 490 / 4 900 / 9 900 ₽) по цене попадают в этот коридор, и цены можно оставить, а лимиты нужно поменять. «Прораб» с одним сотрудником и тремя объектами скупее бесплатных тарифов конкурентов: у Сметтера бесплатно 4 пользователя, у Сметеры — 3 участника (<a href="https://smetter.ru/terms-of-service" target="_blank" rel="noopener noreferrer">smetter.ru</a>, <a href="https://smetera.ru/" target="_blank" rel="noopener noreferrer">smetera.ru</a>). Кроме того, он отсекает верх типичной бригады, которая ведёт 2–4 объекта (<a href="https://plan-os.ru/business-plan/remont-kvartir" target="_blank" rel="noopener noreferrer">plan-os.ru</a>). Не хватает бесплатного входа или 14-дневного триала, годовой скидки и 3D-планировщика как недорогого дополнения, а не только в тарифе за 9 900 ₽. Ни у одного конкурента не подтверждена комбинация: оплаты по этапам с подтверждением заказчиком, акты на простой электронной подписи, мобильное приложение прораба в RuStore и цепочка «3D-план → объёмы → смета по прайсу компании → контроль исполнения». Продавать стоит её, потому что «ссылка для заказчика» уже стала стандартом. Покупатель — владелец или прораб с 3–8 объектами одновременно. Его боли задокументированы: прораб «накинет сверху процентов 30–40» на материалах, а в 32% случаев итоговый объём работ расходится с договорённостями (<a href="https://vc.ru/life/1749489-iz-it-v-stroiku-kak-aitishniki-iz-moskvy-otkryli-sovremennuyu-remontnuyu-kompaniyu-v-moskve-i-skolko-eto-prinosit" target="_blank" rel="noopener noreferrer">vc.ru</a>, <a href="https://spb.mk.ru/economics/2025/07/14/avito-uslugi-kazhdyy-tretiy-zakazchik-somnevaetsya-v-kachestve-remonta.html" target="_blank" rel="noopener noreferrer">МК</a>). До первого платежа нужно закрыть юридический минимум. Персональные данные хранятся только в российском ЦОД: штраф за нарушение локализации — до 6 млн ₽. Вход — по российскому номеру или через Госуслуги вместо Google и Apple: с 07.07.2026 за нарушение юрлицо платит 500–700 тыс. ₽. Нужны поручение на обработку ПДн в оферте, уведомление РКН и онлайн-касса для оплат картой. Свободный чат с заказчиком лучше заменить комментариями к этапам из-за риска статуса организатора распространения информации (<a href="https://companies.rbc.ru/news/SZRjtRsMIn/novyie-trebovaniya-k-obrabotke-personalnyih-dannyih-polnyij-gajd-na-2026-god/" target="_blank" rel="noopener noreferrer">РБК Компании</a>, <a href="https://pravo.ru/news/264596/" target="_blank" rel="noopener noreferrer">Право.ру</a>, <a href="https://profile.ru/?p=920827" target="_blank" rel="noopener noreferrer">profile.ru</a>). Первых 10 платящих реалистичнее получить платными пилотами в Краснодаре, используя сеть автора и его собственную компанию как живой кейс. Реклама здесь слабее: по агентской оценке клик стоит 150–1 500 ₽, так что тестовые 20 тыс. ₽ в Директе дают лишь около 13–133 кликов (<a href="https://digitalriff.ru/services/kontekstnaya-reklama-dlya-it-saas/" target="_blank" rel="noopener noreferrer">digitalriff.ru</a>).</p>
+<blockquote>
+<p><strong>Как читать этот отчёт.</strong> Исследовательская среда <strong>не смогла открыть большинство российских сайтов напрямую</strong>: gectaro.com, smetter.ru, stroit.online, reparo-app.ru, vc.ru, otzovik.com, rbc.ru, consultant.ru, yookassa.ru, bitrix24.ru и другие отвечали ошибками DNS или прокси. Поэтому все цены, цифры и цитаты взяты <strong>из поисковых сниппетов указанных страниц</strong>, а не из их полного чтения. Перед любым решением — особенно о ценах конкурентов, суммах штрафов и тарифах эквайринга — их нужно перепроверить на самих страницах. Обозначения в тексте: <strong>«Факт»</strong> — утверждение со ссылкой на источник; <strong>«Вывод»</strong> — моя интерпретация фактов; <strong>«Рекомендация (гипотеза)»</strong> — предложение, которое нужно проверить на клиентах; <strong>«Допущение»</strong> — число без источника, взятое только для расчёта; <strong><mark class="todo">«нужно уточнить»</mark></strong> — данных нет. Юридический раздел — не юридическое заключение, его нужно подтвердить у юриста.</p>
+</blockquote>
+<hr />
+<h2 id="1-конкуренты-между-5-и-17-тыс--в-месяц-почти-пусто">1. Конкуренты: между 5 и 17 тыс. ₽ в месяц почти пусто</h2>
+<h3 id="четыре-слоя-рынка-и-смежные-инструменты">Четыре слоя рынка и смежные инструменты</h3>
+<p><strong>Факт.</strong> Рынок раздроблен на четыре слоя.</p>
+<p>Первый слой — тяжёлые строительные платформы. Gectaro называет себя «сервисом для управления строительством и ремонтом» и держит отраслевую страницу «Ремонт и дизайн» (<a href="https://gectaro.com/otrasli/remont-i-dizajn" target="_blank" rel="noopener noreferrer">gectaro.com</a>). Exon работает с генподрядчиками и госзаказом, цена считается за объект (<a href="https://1exon.ru/" target="_blank" rel="noopener noreferrer">1exon.ru</a>).</p>
+<p>Второй слой — недорогие SaaS для подрядчиков: Строит.онлайн, Сметтер, WorkAB, «101», Kabbi.NET, 1С:РемонтКвартир, Смета Просто, Сметера.</p>
+<p>Третий слой — мини-продукты для прорабов 2025–2026 годов. Это Reparo с клиентской ссылкой и Telegram-уведомлениями (<a href="https://reparo-app.ru/" target="_blank" rel="noopener noreferrer">reparo-app.ru</a>), «Прораб 360» в виде PWA и Telegram Mini App (<a href="https://maximtkachuk.ru/prorab-360-mini-app" target="_blank" rel="noopener noreferrer">maximtkachuk.ru</a>) и мелкие приложения в RuStore. У части из них меньше тысячи установок (<a href="https://www.rustore.ru/catalog/app/com.renovatorpro.app" target="_blank" rel="noopener noreferrer">RuStore: ЗамерПро</a>, <a href="https://www.rustore.ru/catalog/app/com.vaex.smeta.master" target="_blank" rel="noopener noreferrer">RuStore: VAEX Смета</a>).</p>
+<p>Четвёртый слой — отраслевые конфигурации Битрикс24 и amoCRM. «Готовая CRM: Ремонт квартир под ключ» от it-in стоит 29 900 ₽ разово, а расширенная версия с тарифом «Профессиональный» — 96 980 ₽ (<a href="https://www.it-in.ru/bitrix24-otraslevye-resheniya/bitrix24-remont-kvartir/" target="_blank" rel="noopener noreferrer">it-in.ru</a>). Внедрение amoCRM для ремонта квартир на Kwork — от 17 000 ₽ (<a href="https://kwork.ru/usability-testing/14540154/vnedrenie-amocrm-dlya-remonta-kvartir" target="_blank" rel="noopener noreferrer">kwork.ru</a>).</p>
+<p>Рядом стоят три группы смежных инструментов: сметные комплексы для сметчиков (ГРАНД-Смета, Smeta.ru), 3D-планировщики (Remplanner, Planoplan) и бесплатные калькуляторы платформ и ритейла (Smart Plan от «СтройБиржи», калькулятор «Петровича»). Ремонтные компании пишут и собственные приложения: на Хабре описан PWA компании, которая ведёт 30–75 объектов одновременно (<a href="https://habr.com/ru/articles/1023398/" target="_blank" rel="noopener noreferrer">habr.com</a>). Это косвенно говорит о том, что доминирующего коробочного продукта нет.</p>
+<h3 id="таблица-цен-управление-ремонтом-и-стройкой">Таблица цен: управление ремонтом и стройкой</h3>
+<p>Все цены — по поисковой выдаче на 04.11.2026, перепроверить на страницах.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Продукт</th>
+<th>Модель цены</th>
+<th>Тарифы (как в источнике)</th>
+<th>Бесплатно / триал</th>
+<th>Источник</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Gectaro</td>
+<td>за компанию, лимит пользователей, оплата за год</td>
+<td>Стартовый 21 166 ₽/мес (до 3 польз.), Базовый 33 333 ₽ (до 8), Бизнес 55 833 ₽ (до 15), Профи 81 500 ₽ (до 30); проекты без лимита</td>
+<td>7 дней</td>
+<td><a href="https://gectaro.com/pricing" target="_blank" rel="noopener noreferrer">gectaro.com/pricing</a>; те же цифры с датой 22.05.2026 — <a href="https://mediarost.com/catalog/gectaro/" target="_blank" rel="noopener noreferrer">mediarost.com</a></td>
+</tr>
+<tr>
+<td>Сметтер</td>
+<td>за компанию, лимит пользователей</td>
+<td>Главная: «Сметы» 3 750 ₽/мес (3 польз.; 3 150 ₽ при оплате за год), «Стройка» 8 250 ₽ (8), «Бизнес» 18 250 ₽ (15). Страница /tariffs: 3 230 / 6 930 / 15 930 ₽ (лимиты 4/5/10/20 польз.). App Store: 3 990 ₽/мес, 38 490 ₽/год</td>
+<td>Бесплатно 4 сметы и 4 польз.; 14 дней на платный тариф</td>
+<td><a href="https://smetter.ru/" target="_blank" rel="noopener noreferrer">smetter.ru</a>, <a href="https://smetter.ru/tariffs" target="_blank" rel="noopener noreferrer">smetter.ru/tariffs</a>, <a href="https://smetter.ru/terms-of-service" target="_blank" rel="noopener noreferrer">условия</a>, <a href="https://smetter.ru/faq" target="_blank" rel="noopener noreferrer">FAQ</a>, <a href="https://apps.apple.com/ru/app/%D1%81%D0%BC%D0%B5%D1%82%D1%82%D0%B5%D1%80/id1442093843" target="_blank" rel="noopener noreferrer">App Store</a></td>
+</tr>
+<tr>
+<td>WorkAB</td>
+<td>за команду</td>
+<td>от 1 500 ₽/мес (команда до 5 чел.) до 4 700 ₽/мес</td>
+<td>2 сметы и 2 объекта бесплатно навсегда; 14 дней без карты</td>
+<td><a href="https://workab.ru/" target="_blank" rel="noopener noreferrer">workab.ru</a></td>
+</tr>
+<tr>
+<td>«101»</td>
+<td>за компанию</td>
+<td>Базовый — 0 ₽; Средний 1 400 ₽/мес за год (1 890 ₽ помесячно); Максимальный 3 800 ₽/мес за год (4 990 ₽ помесячно); цена одного тарифа — «после одобрения заявки на вступление в клуб»</td>
+<td>Бесплатный тариф (до 70 «событий»)</td>
+<td><a href="https://101-group.ru/download" target="_blank" rel="noopener noreferrer">101-group.ru/download</a>, <a href="https://101-app.com/?amp=&amp;amp=" target="_blank" rel="noopener noreferrer">101-app.com</a></td>
+</tr>
+<tr>
+<td>Строит.онлайн</td>
+<td>за пользователя</td>
+<td>799 ₽/польз./мес; 679 ₽ при оплате за 12 мес.</td>
+<td>14 дней</td>
+<td><a href="https://stroit.online/pricing" target="_blank" rel="noopener noreferrer">stroit.online/pricing</a></td>
+</tr>
+<tr>
+<td>1С:РемонтКвартир</td>
+<td>за одновременного пользователя</td>
+<td>2 000 ₽/мес; 1 800 ₽ от 2 лицензий</td>
+<td>14 дней</td>
+<td><a href="https://xn--24-6kctvkgiadfbv6a.xn--p1ai/" target="_blank" rel="noopener noreferrer">ремонтонлайн24.рф</a></td>
+</tr>
+<tr>
+<td>Kabbi.NET</td>
+<td>—</td>
+<td>«от 600 р./мес»</td>
+<td>15 дней</td>
+<td><a href="https://a2is.ru/catalog/crm-sistemy-vse/kabbinet" target="_blank" rel="noopener noreferrer">a2is.ru</a>, <a href="https://kabbi.ru/otdelochnikam.aspx" target="_blank" rel="noopener noreferrer">kabbi.ru</a></td>
+</tr>
+<tr>
+<td>СметаЧек</td>
+<td>за компанию</td>
+<td>«Мастер» 990 ₽/мес; «Компания» 2 990 ₽/мес (до 5 мастеров)</td>
+<td>14 дней без карты и автопродления</td>
+<td><a href="https://smetacheck.ru/pricing" target="_blank" rel="noopener noreferrer">smetacheck.ru/pricing</a></td>
+</tr>
+<tr>
+<td>Reparo</td>
+<td>за проекты</td>
+<td>1 активный проект — бесплатно навсегда; платные — «Готовим тарифы»</td>
+<td>Бесплатный тариф</td>
+<td><a href="https://reparo-app.ru/" target="_blank" rel="noopener noreferrer">reparo-app.ru</a></td>
+</tr>
+<tr>
+<td>Смета Просто (.com)</td>
+<td>—</td>
+<td>бесплатный тариф 0 ₽; платные — <mark class="todo">нужно уточнить</mark></td>
+<td>Бесплатный тариф</td>
+<td><a href="https://smetaprosto.com/" target="_blank" rel="noopener noreferrer">smetaprosto.com</a></td>
+</tr>
+<tr>
+<td>Сметера</td>
+<td>—</td>
+<td>бесплатно до 10 проектов и 3 участников; платные — <mark class="todo">нужно уточнить</mark></td>
+<td>Бесплатный тариф</td>
+<td><a href="https://smetera.ru/" target="_blank" rel="noopener noreferrer">smetera.ru</a></td>
+</tr>
+<tr>
+<td>«Прораб 360»</td>
+<td>—</td>
+<td><mark class="todo">нужно уточнить</mark></td>
+<td>—</td>
+<td><a href="https://maximtkachuk.ru/prorab-360-mini-app" target="_blank" rel="noopener noreferrer">maximtkachuk.ru</a></td>
+</tr>
+<tr>
+<td>it-in «Ремонт квартир под ключ» + Битрикс24</td>
+<td>разово + лицензия CRM</td>
+<td>29 900 ₽ / 96 980 ₽ разово; Битрикс24 Базовый 2 490 ₽/мес (5 польз.), Стандартный 6 990 ₽ (50), Профессиональный 13 990 ₽ (100)</td>
+<td>—</td>
+<td><a href="https://www.it-in.ru/bitrix24-otraslevye-resheniya/bitrix24-remont-kvartir/" target="_blank" rel="noopener noreferrer">it-in.ru</a>, <a href="https://www.bitrix24.ru/prices/" target="_blank" rel="noopener noreferrer">bitrix24.ru/prices</a></td>
+</tr>
+<tr>
+<td>amoCRM + внедрение</td>
+<td>разово + лицензия</td>
+<td>внедрение от 17 000 ₽; amoCRM Базовый 599 ₽/польз./мес</td>
+<td>—</td>
+<td><a href="https://kwork.ru/usability-testing/14540154/vnedrenie-amocrm-dlya-remonta-kvartir" target="_blank" rel="noopener noreferrer">kwork.ru</a>, <a href="https://flysk.ru/blog/amocrm-2026-amma-relize-amokonf" target="_blank" rel="noopener noreferrer">flysk.ru</a></td>
+</tr>
+<tr>
+<td>Exon</td>
+<td>за объект (от сметной стоимости)</td>
+<td>по запросу</td>
+<td>—</td>
+<td><a href="https://1exon.ru/" target="_blank" rel="noopener noreferrer">1exon.ru</a></td>
+</tr>
+<tr>
+<td>OCC/WAY (B2C-агрегатор, не инструмент подрядчика)</td>
+<td>за объект</td>
+<td>технадзор 57 000–63 000 ₽ за объект</td>
+<td>—</td>
+<td><a href="https://occochi.ru/uslugi/tehnadzor/saratov" target="_blank" rel="noopener noreferrer">Саратов</a>, <a href="https://occochi.ru/uslugi/tehnadzor/kaliningrad" target="_blank" rel="noopener noreferrer">Калининград</a></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Факт.</strong> Две строки требуют особой осторожности. По Gectaro агрегаторы приводят разные цифры: старую сетку со Стартовым за 12 000 ₽ (<a href="https://crmindex.ru/products/gectaro" target="_blank" rel="noopener noreferrer">crmindex.ru</a>) и «от 1 600 ₽ за пользователя» (<a href="https://picktech.ru/product/gectaro/" target="_blank" rel="noopener noreferrer">picktech.ru</a>), а дистрибьютор 1С-БИТ — 17 000 ₽ за «Стартовый» при годовой оплате (<a href="https://www.1cbit.ru/1csoft/gectaro/" target="_blank" rel="noopener noreferrer">1cbit.ru</a>). Цифра 1С-БИТ, вероятно, устарела: «Бизнес» у того же дистрибьютора стоит 36 608 ₽ — как в старой сетке агрегаторов (<a href="https://crmindex.ru/products/gectaro" target="_blank" rel="noopener noreferrer">crmindex.ru</a>), а не 55 833 ₽, как на сайте Gectaro. У Сметтера в поисковом индексе одновременно висят четыре сетки. Среди них «Тест новых тарифов» с тарифом «Продажи» за 5 250 ₽ (<a href="https://smetter.ru/page335661409.html" target="_blank" rel="noopener noreferrer">smetter.ru</a>) и «Тарифы и возможности 2025» с 2 890 ₽/мес (<a href="https://smetter.ru/tariffs_2025" target="_blank" rel="noopener noreferrer">smetter.ru/tariffs_2025</a>). Какая из них действует в ноябре 2026 года — <mark class="todo">нужно уточнить</mark> вручную.</p>
+<h3 id="таблица-цен-сметы-калькуляторы-и-3d-планировщики">Таблица цен: сметы, калькуляторы и 3D-планировщики</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Продукт</th>
+<th>Цена (как в источнике)</th>
+<th>Связь «план → смета»</th>
+<th>ЦА</th>
+<th>Источник</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ГРАНД-Смета</td>
+<td>подписка на обновления 33 500 ₽/год (рабочее место с актуальной версией) или 39 500 ₽/год (без подписки), с 06.05.2026; бессрочная лицензия ~35 500 ₽ — по прайсам партнёров, <mark class="todo">нужно уточнить</mark></td>
+<td>нет, нормативные базы ФЕР/ГЭСН</td>
+<td>сметчики, экспертиза</td>
+<td><a href="https://avi-centr.ru/news/grand-smeta-new-prices-2026/" target="_blank" rel="noopener noreferrer">avi-centr.ru</a>, <a href="https://shop.grandsmeta.ru/produkty/programmnoe-obespechenie/pokupka-programmy" target="_blank" rel="noopener noreferrer">shop.grandsmeta.ru</a></td>
+</tr>
+<tr>
+<td>Smeta.ru</td>
+<td>лицензия v12 с годовой актуализацией 40 000 ₽ (прайс реселлера; к какому реселлеру относится цифра, <mark class="todo">нужно уточнить</mark>)</td>
+<td>нет</td>
+<td>сметчики</td>
+<td><a href="https://general-smeta.ru/kupit-smetaru.html" target="_blank" rel="noopener noreferrer">general-smeta.ru</a></td>
+</tr>
+<tr>
+<td>Сметтер, модуль «Обмеры»</td>
+<td>в тарифах Сметтера</td>
+<td>параметрический замер помещений → смета, закупки, план работ; 3D в выдаче не упоминается</td>
+<td>ремонтные компании</td>
+<td><a href="https://smetter.ru/news/vebinar-novyj-modul-obmery-i-obnovleniya-oseni" target="_blank" rel="noopener noreferrer">smetter.ru</a></td>
+</tr>
+<tr>
+<td>SMpro</td>
+<td>предложения 399–799 ₽ (период не указан); триал 7 дней за 7 ₽; бесплатный калькулятор без регистрации</td>
+<td>расчёт по помещениям</td>
+<td>мастера, компании</td>
+<td><a href="https://smpro.tech/" target="_blank" rel="noopener noreferrer">smpro.tech</a>, <a href="https://smpro.tech/solutions/smeta-na-remont" target="_blank" rel="noopener noreferrer">smpro.tech/solutions</a></td>
+</tr>
+<tr>
+<td>Remplanner</td>
+<td>«Персональный» 690 ₽/мес (до 5 проектов), «Расширенный» 1 190 ₽/мес (до 50 проектов), «Собственный» 1 990 ₽/мес; до −20% при оплате за год</td>
+<td>чертежи → автоматическая смета по 289 позициям + черновые материалы → Excel</td>
+<td>частные лица, дизайнеры, строители</td>
+<td><a href="https://toolfox.ru/services/s/remplanner" target="_blank" rel="noopener noreferrer">toolfox.ru</a>, <a href="https://dtf.ru/software/5021300-remplanner-onlajn-planirivshik-remonta" target="_blank" rel="noopener noreferrer">DTF</a></td>
+</tr>
+<tr>
+<td>Planoplan</td>
+<td>Base $40/мес, Expert $50/мес (международный сайт, система токенов с релиза 4.0.0 от 17.12.2025); в РФ через дистрибьютора CSD — «База», «Лайт», «Ремонт»; «Лайт» 1 890 ₽/мес или 18 900 ₽/год (атрибуция по обзору, <mark class="todo">нужно уточнить</mark> на csd.ru)</td>
+<td>смета на официальных страницах не подтверждена</td>
+<td>дизайнеры интерьера</td>
+<td><a href="https://planoplan.com/en/pricing/" target="_blank" rel="noopener noreferrer">planoplan.com</a>, <a href="https://csd.ru/news/new-tariff-planoplan/" target="_blank" rel="noopener noreferrer">csd.ru</a>, <a href="https://room-gpt.ru/blog/programmy-dlya-dizajna-interera-top-10" target="_blank" rel="noopener noreferrer">room-gpt.ru</a></td>
+</tr>
+<tr>
+<td>Smart Plan («СтройБиржа»)</td>
+<td>бесплатно</td>
+<td>план БТИ или шаблон → смета из 11 этапов работ с материалами примерно за 15 секунд; 36 городов; «более 1 200 квартир» с начала 2026 года (заявление компании)</td>
+<td>заказчики ремонта (B2C)</td>
+<td><a href="https://www.cnews.ru/news/line/2026-07-13_v_rossii_zapushchen_besplatnyj" target="_blank" rel="noopener noreferrer">CNews, 13.07.2026</a></td>
+</tr>
+<tr>
+<td>«Дизайн Интерьера 3D»</td>
+<td>бессрочно 973 ₽ («Премиум») / 1 995 ₽ («Профи»), только Windows</td>
+<td>3D-модель + смета по помещениям</td>
+<td>частные лица</td>
+<td><a href="https://www.syssoft.ru/AMS-Software/dizayn-interera-3d/" target="_blank" rel="noopener noreferrer">syssoft.ru</a></td>
+</tr>
+<tr>
+<td>Калькулятор «Петровича»</td>
+<td>бесплатно</td>
+<td>размеры комнаты → смета материалов и работ → корзина магазина</td>
+<td>заказчики</td>
+<td><a href="https://moscow.petrovich.ru/kalkulyator-remonta/raschet-stoimosti/" target="_blank" rel="noopener noreferrer">moscow.petrovich.ru</a></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="матрица-функций-оплату-этапа-с-подтверждением-заказчиком-не-удалось-подтвердить-ни-у-кого">Матрица функций: оплату этапа с подтверждением заказчиком не удалось подтвердить ни у кого</h3>
+<p>Данные взяты с официальных сайтов по выдаче. «?» означает «не подтверждено, <mark class="todo">нужно уточнить»</mark>. Последняя строка описывает продукт автора так, как он заявлен в задании, а не по результатам проверки.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Продукт</th>
+<th>Смета</th>
+<th>Этапы / график</th>
+<th>Фотоотчёты</th>
+<th>Акты</th>
+<th>Оплаты клиента</th>
+<th>Кабинет / ссылка заказчика</th>
+<th>Чат</th>
+<th>Моб. приложение</th>
+<th>Цена входа</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://workab.ru/" target="_blank" rel="noopener noreferrer">WorkAB</a></td>
+<td>да</td>
+<td>этапы</td>
+<td>?</td>
+<td>исполнительная документация</td>
+<td>оплаты клиента по квартире</td>
+<td>портал заказчика</td>
+<td>?</td>
+<td>?</td>
+<td>от 1 500 ₽/мес</td>
+</tr>
+<tr>
+<td><a href="https://xn--24-6kctvkgiadfbv6a.xn--p1ai/" target="_blank" rel="noopener noreferrer">1С:РемонтКвартир</a></td>
+<td>да</td>
+<td>?</td>
+<td>?</td>
+<td>акты в приложении клиента</td>
+<td>оплаты в приложении клиента</td>
+<td>ЛК клиентов и партнёров</td>
+<td>?</td>
+<td>приложение для клиентов</td>
+<td>2 000 ₽/мес за лицензию</td>
+</tr>
+<tr>
+<td><a href="https://101-app.com/blog/renovation-management-in-app" target="_blank" rel="noopener noreferrer">«101»</a></td>
+<td>да</td>
+<td>этапы по прайс-листу</td>
+<td>?</td>
+<td>скрытые работы, документы заказчику</td>
+<td>авансы и задолженности</td>
+<td>отправка документов</td>
+<td>чаты</td>
+<td>RuStore, App Store</td>
+<td>0 / 1 400 ₽</td>
+</tr>
+<tr>
+<td><a href="https://a2is.ru/catalog/crm-sistemy-vse/kabbinet" target="_blank" rel="noopener noreferrer">Kabbi.NET</a></td>
+<td>да</td>
+<td>?</td>
+<td>?</td>
+<td>КС-2, КС-3</td>
+<td>счета</td>
+<td>ЛК заказчика, работников, субподрядчиков</td>
+<td>?</td>
+<td>?</td>
+<td>от 600 ₽/мес</td>
+</tr>
+<tr>
+<td><a href="https://smetaprosto.com/" target="_blank" rel="noopener noreferrer">Смета Просто</a></td>
+<td>да</td>
+<td>график</td>
+<td>фото, лента</td>
+<td>акты PDF</td>
+<td>оплаты видны заказчику</td>
+<td>ссылка без регистрации</td>
+<td>?</td>
+<td>?</td>
+<td>0 ₽</td>
+</tr>
+<tr>
+<td><a href="https://reparo-app.ru/" target="_blank" rel="noopener noreferrer">Reparo</a></td>
+<td>да</td>
+<td>статус по помещениям</td>
+<td>да</td>
+<td>?</td>
+<td>?</td>
+<td>ссылка-приглашение</td>
+<td>Telegram-уведомления</td>
+<td>?</td>
+<td>0 ₽ (1 проект)</td>
+</tr>
+<tr>
+<td><a href="https://smetera.ru/" target="_blank" rel="noopener noreferrer">Сметера</a></td>
+<td>да, с версиями</td>
+<td>график оплат</td>
+<td>?</td>
+<td>?</td>
+<td>график и факт оплат</td>
+<td>ссылка для заказчика</td>
+<td>?</td>
+<td>?</td>
+<td>0 ₽ (до 10 проектов)</td>
+</tr>
+<tr>
+<td><a href="https://maximtkachuk.ru/prorab-360-mini-app" target="_blank" rel="noopener noreferrer">«Прораб 360»</a></td>
+<td>?</td>
+<td>этапы</td>
+<td>да</td>
+<td>?</td>
+<td>?</td>
+<td>лента фото по ссылке</td>
+<td>Telegram</td>
+<td>PWA + Telegram Mini App</td>
+<td><mark class="todo">нужно уточнить</mark></td>
+</tr>
+<tr>
+<td><a href="https://gectaro.com/kontrol" target="_blank" rel="noopener noreferrer">Gectaro</a></td>
+<td>да</td>
+<td>план работ</td>
+<td>да (приложение прораба)</td>
+<td>да (жалобы на гибкость)</td>
+<td>?</td>
+<td>ссылка на смету с прогрессом</td>
+<td>?</td>
+<td>iOS, Android; RuStore не подтверждён</td>
+<td>21 166 ₽/мес</td>
+</tr>
+<tr>
+<td><a href="https://smetter.ru/" target="_blank" rel="noopener noreferrer">Сметтер</a></td>
+<td>да</td>
+<td>контроль выполнения</td>
+<td>?</td>
+<td>автоформирование актов (по описанию на <a href="https://crmindex.ru/services/smetter" target="_blank" rel="noopener noreferrer">crmindex</a>)</td>
+<td>взаиморасчёты с мастерами</td>
+<td>кабинет (просмотр сметы)</td>
+<td>?</td>
+<td>да</td>
+<td>~3 150–3 750 ₽/мес</td>
+</tr>
+<tr>
+<td><a href="https://occochi.ru/s/kontrol-remonta" target="_blank" rel="noopener noreferrer">OCC/WAY</a> (B2C)</td>
+<td>по смете</td>
+<td>этапы с датами</td>
+<td>да</td>
+<td>?</td>
+<td>расходы с чеками, утверждение или оспаривание заказчиком</td>
+<td>приложение заказчика</td>
+<td>чат с бригадой</td>
+<td>да</td>
+<td>технадзор 57–63 тыс. ₽</td>
+</tr>
+<tr>
+<td><strong>Продукт автора (заявлено)</strong></td>
+<td>да + калькулятор</td>
+<td>график</td>
+<td>да</td>
+<td>да</td>
+<td>оплаты по этапам</td>
+<td>да</td>
+<td>да</td>
+<td>есть своё приложение</td>
+<td>черновик: 1 490 ₽</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Вывод.</strong> Клиентская ссылка есть у Reparo, Сметеры, Сметы Просто, «Прораба 360» и Gectaro, то есть это уже стандарт, а не преимущество. Самая близкая к продукту автора модель «этап → фото → заказчик утверждает платёж» — у OCC/WAY. Но это агрегатор и технадзор, работающий в 46 городах (заявление компании), а не инструмент подрядчика (<a href="https://occochi.ru/s/kontrol-remonta" target="_blank" rel="noopener noreferrer">occochi.ru</a>). По позиционированию и цене прямые конкуренты — WorkAB (сценарий «ремонт квартир под ключ», портал заказчика, оплаты и закупки по квартире) и 1С:РемонтКвартир. Ни у одного продукта не подтверждены одновременно оплаты по этапам с подтверждением заказчиком, чат, приложение прораба в RuStore с офлайн-режимом и цена до 3–5 тыс. ₽ в месяц.</p>
+<h3 id="слабые-места-мобильность-негибкие-акты-сырые-финансы-неточные-авто-сметы">Слабые места: мобильность, негибкие акты, сырые финансы, неточные авто-сметы</h3>
+<p><strong>Факт.</strong> На otzovik и irecommend независимых отзывов о нишевом ПО для ремонта почти нет. Доверие формируется через агрегаторы ПО (a2is, startpack, crmindex, picktech, hf.ru), и часть отзывов там короткие и похожи на рекламные.</p>
+<p><strong>Gectaro.</strong> Средняя оценка высокая — 4,8 из 5 по 66 отзывам (<a href="https://picktech.ru/product/gectaro/reviews/" target="_blank" rel="noopener noreferrer">picktech.ru</a>). Но претензии повторяются: «на мобильном телефоне сейчас не очень удобно», «нехватает мобильного приложение не только для прораба», «сделайте более гибкие настройки на акты выполненных работ», «из минусов отметил бы высокий ценник», «первоначальное обучение заняло немного больше времени, чем расчитывали», «при миграции из Excel были нюансы». Цитаты собраны поисковиком с <a href="https://a2is.ru/catalog/programmy-dlya-stroitelstva-i-remonta/gectaro/reviews-gectaro" target="_blank" rel="noopener noreferrer">a2is.ru</a>, <a href="https://hf.ru/services/gectaro" target="_blank" rel="noopener noreferrer">hf.ru</a>, <a href="https://picktech.ru/product/gectaro/reviews/" target="_blank" rel="noopener noreferrer">picktech.ru</a> и <a href="https://crmindex.ru/products/gectaro/reviews" target="_blank" rel="noopener noreferrer">crmindex.ru</a>; к какой странице относится каждая цитата, <mark class="todo">нужно уточнить</mark>. Приложение прораба есть в App Store (14 оценок, средняя 4,9) и в Google Play (5K+ установок), а его публикацию в RuStore подтвердить не удалось (<a href="https://apps.apple.com/ru/app/gectaro-%D0%BF%D1%80%D0%BE%D1%80%D0%B0%D0%B1/id1629689592" target="_blank" rel="noopener noreferrer">App Store</a>, <a href="https://play.google.com/store/apps/details?id=com.gectaro.worker&amp;hl=en_US" target="_blank" rel="noopener noreferrer">Google Play</a>).</p>
+<p><strong>Сметтер.</strong> Если судить по базе клиентов, которую заявляет сама компания, это крупнейший вертикальный игрок (вывод): «более 2 500 строительных компаний» (<a href="https://smetter.ru/success_stories" target="_blank" rel="noopener noreferrer">smetter.ru/success_stories</a>) или «более пяти тысяч» (<a href="https://smetter.ru/faq" target="_blank" rel="noopener noreferrer">smetter.ru/faq</a>). Отзывы при этом жёсткие. Сервис «рассчитан не на малый строительный бизнес» (<a href="https://startpack.ru/application/smetter/reviews" target="_blank" rel="noopener noreferrer">startpack.ru</a>). Об интеграции с банками отзывы расходятся: по одному её нет (<a href="https://a2is.ru/catalog/programmy-dlya-stroitelstva-i-remonta/smetter/reviews-smetter" target="_blank" rel="noopener noreferrer">a2is.ru</a>), по другому — она есть только с Т-Банком и «кривая». В отзывах разных лет на агрегаторах описаны также ошибка расчёта маржи (400 тыс. ₽ вместо фактических 300 тыс. ₽), модуль «Финансы», который «висит по несколько минут», поддержка, не перезванивающая даже на топ-тарифе, и реклама Сметтера в документах, которые уходят заказчику (<a href="https://crmindex.ru/services/smetter" target="_blank" rel="noopener noreferrer">crmindex.ru</a>, <a href="https://a2is.ru/catalog/programmy-dlya-stroitelstva-i-remonta/smetter/reviews-smetter" target="_blank" rel="noopener noreferrer">a2is.ru</a>, <a href="https://startpack.ru/application/smetter/reviews" target="_blank" rel="noopener noreferrer">startpack.ru</a>, <a href="https://hf.ru/services/smetter" target="_blank" rel="noopener noreferrer">hf.ru</a>). Жалоба на рекламу в документах — с crmindex; к какой площадке относятся остальные жалобы, <mark class="todo">нужно уточнить</mark>. Кабинет заказчика «сводится к просмотру сметы» (<a href="https://wechoose.pro/service/smetter/reviews" target="_blank" rel="noopener noreferrer">wechoose.pro</a>). Оценки — 4,5 из 5 по 13 мнениям на <a href="https://a2is.ru/catalog/programmy-dlya-stroitelstva-i-remonta/smetter" target="_blank" rel="noopener noreferrer">a2is.ru</a> и 3,2 на <a href="https://wechoose.pro/service/smetter/reviews" target="_blank" rel="noopener noreferrer">wechoose.pro</a>.</p>
+<p><strong>Остальные игроки.</strong> У «101» цена одного из тарифов известна «только после одобрения заявки на вступление в клуб» (<a href="https://101-app.com/?amp=&amp;amp=" target="_blank" rel="noopener noreferrer">101-app.com</a>). У Reparo платные тарифы не опубликованы, независимых отзывов нет (<a href="https://reparo-app.ru/" target="_blank" rel="noopener noreferrer">reparo-app.ru</a>). В Битрикс24-конфигурации расширенная версия не входит в подписку, а внедрение оценивается отдельно, так что клиент зависит от интегратора (<a href="https://www.bitrix24.ru/apps/app/itin.gotovaya_crm_remont_kvartir_pod_klyuch/" target="_blank" rel="noopener noreferrer">bitrix24.ru/apps</a>).</p>
+<p><strong>Remplanner.</strong> Пользователь купил «Расширенный» ради расчёта материалов, а программа не посчитала пол и потолок (<a href="https://otzovik.com/reviews/remplanner_ru-onlayn-planirovschik_kvartir/" target="_blank" rel="noopener noreferrer">otzovik.com</a>). Шаблон сметы содержит только типовые работы и не редактируется (<a href="https://irecommend.ru/content/remplanner-otlichiya-platnoi-i-besplatnoi-versii" target="_blank" rel="noopener noreferrer">irecommend.ru</a>). Даже доброжелательный обзор на DTF предупреждает, что «расчёт материалов в программе не отменяет контроль мастера на объекте» (<a href="https://dtf.ru/software/5021300-remplanner-onlajn-planirivshik-remonta" target="_blank" rel="noopener noreferrer">DTF</a>).</p>
+<p><strong>Planoplan.</strong> После перехода на токены компания сама признала «гневные комментарии на отзовиках о том, что программа не бесплатная» (<a href="https://t.me/s/planoplaneditor?before=290" target="_blank" rel="noopener noreferrer">t.me/s/planoplaneditor</a>).</p>
+<h3 id="западные-системы-для-российской-компании-фактически-закрыты">Западные системы для российской компании фактически закрыты</h3>
+<p><strong>Факт.</strong> Правило BIS от июня 2024 года запрещает без лицензии передавать в Россию ПО классов ERP, CRM, BIM и ряд других. С 12 сентября 2024 года действует запрет OFAC на отдельные IT-услуги (<a href="https://www.thompsonhine.com/insights/ofac-and-bis-significantly-extend-sanctions-and-export-control-restrictions-against-russia-and-belarus/" target="_blank" rel="noopener noreferrer">Thompson Hine</a>). У ЕС есть свои ограничения на поставку ПО и IT-услуг российским юрлицам (<a href="https://commission.europa.eu/topics/eu-solidarity-ukraine/eu-sanctions-against-russia-following-invasion-ukraine/import-and-export-bans_en" target="_blank" rel="noopener noreferrer">European Commission</a>). По данным сервисов-посредников, monday.com невозможно оплатить из РФ ни картами, ни переводом (<a href="https://vc.ru/services/2146480-kak-oplatit-monday-iz-rossii" target="_blank" rel="noopener noreferrer">vc.ru</a>). Planner 5D объявил о прекращении работы в России и Беларуси (<a href="https://planner5d.com/blog/press-release-operations-rus-bel" target="_blank" rel="noopener noreferrer">planner5d.com</a>). Представитель Homestyler на официальном форуме подтверждал, что российские пользователи не могут платить картами и через PayPal; это ответ 2023 года (<a href="https://ru.homestyler.com/forum/view/1665954574294315010" target="_blank" rel="noopener noreferrer">ru.homestyler.com</a>).</p>
+<p><strong>Вывод.</strong> Аргумент «российское ПО, оплата в рублях, данные в РФ» обязателен, но не уникален: он есть у всех местных конкурентов.</p>
+<h3 id="что-из-этого-следует">Что из этого следует</h3>
+<p><strong>Вывод.</strong> Ценовой коридор малого SaaS для подрядчика — примерно <strong>1 000–5 000 ₽ в месяц на команду</strong>. Gectaro с ценой от 17–21 тыс. ₽ живёт в другом сегменте, где его годовая подписка начинается примерно с 204–254 тыс. ₽ (расчёт: 17 000 × 12 = 204 000; 21 166 × 12 = 253 992). Между верхом малого SaaS (4 700–4 990 ₽ у WorkAB и «101») и входом в Gectaro (17 000–21 166 ₽) — разрыв в 3,4–4,5 раза (расчёт: 17 000 / 4 990 ≈ 3,4; 21 166 / 4 700 ≈ 4,5), и он почти пуст. Из вертикальных продуктов там только старшие тарифы Сметтера (5 250–18 250 ₽ в разных версиях сетки), из горизонтальных — Битрикс24 Стандартный и Профессиональный (6 990 и 13 990 ₽).</p>
+<p>Бесплатный вход — норма рынка: бесплатные тарифы есть у Reparo, WorkAB, Сметтера, «101», Сметеры и Сметы Просто. Дифференцироваться можно тремя вещами, которые подтверждены жалобами на лидеров:</p>
+<ul>
+<li>сильное мобильное приложение прораба, в том числе в RuStore;</li>
+<li>полноценный кабинет заказчика с оплатами и актами, а не «просмотр сметы»;</li>
+<li>цепочка «замер/3D → смета по собственному прайсу → исполнение», которой нет ни у сметных SaaS (у них нет визуального плана), ни у планировщиков (у них негибкие шаблоны смет).</li>
+</ul>
+<p>Отдельная угроза снизу — бесплатный Smart Plan. Он приучает заказчика к ожиданию «смета за 15 секунд бесплатно» и может перехватывать лиды раньше, чем они дойдут до ремонтной компании.</p>
+<hr />
+<h2 id="2-покупатель--владелец-с-38-объектами-которому-не-хватает-глаз-на-площадке">2. Покупатель — владелец с 3–8 объектами, которому не хватает глаз на площадке</h2>
+<h3 id="пирамида-рынка-миллион-мастеров-десятки-тысяч-компаний">Пирамида рынка: миллион мастеров, десятки тысяч компаний</h3>
+<p><strong>Факт.</strong> В «ремонте и строительстве» зарегистрировано около <strong>1 млн самозанятых</strong>, примерно 7% всех плательщиков НПД. На июнь 2025 года их было 977 108, а за 2025 год их число выросло на 37%. Эти цифры поисковая сводка собрала из нескольких материалов, поэтому точная привязка к источнику неоднозначна (<a href="https://www.kommersant.ru/doc/8236020" target="_blank" rel="noopener noreferrer">Коммерсантъ</a>, <a href="https://konsol.pro/blog/samozanyatye-v-tsifrah" target="_blank" rel="noopener noreferrer">Konsol.pro</a>, <a href="https://secrets.tbank.ru/blogi-kompanij/camozanyatost-v-2026-godu/" target="_blank" rel="noopener noreferrer">Т-Банк</a>).</p>
+<p>Юрлиц с отделочными кодами ОКВЭД по счётчикам Rusprofile (основной код, дата снимка не указана):</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Код ОКВЭД</th>
+<th>Организаций</th>
+<th>Источник</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>43.3</td>
+<td>26 239</td>
+<td><a href="https://www.rusprofile.ru/codes/433000" target="_blank" rel="noopener noreferrer">Rusprofile</a></td>
+</tr>
+<tr>
+<td>43.31</td>
+<td>22 498</td>
+<td><a href="https://www.rusprofile.ru/codes/433100" target="_blank" rel="noopener noreferrer">Rusprofile</a></td>
+</tr>
+<tr>
+<td>43.34</td>
+<td>4 872</td>
+<td><a href="https://www.rusprofile.ru/codes/433000" target="_blank" rel="noopener noreferrer">Rusprofile</a></td>
+</tr>
+<tr>
+<td>43.39</td>
+<td>35 004</td>
+<td><a href="https://www.rusprofile.ru/codes/433900" target="_blank" rel="noopener noreferrer">Rusprofile</a></td>
+</tr>
+</tbody>
+</table></div>
+<p>Агрегаторы считают по-разному: Точка показывает 112 393 организации по коду 43.3 (<a href="https://check.tochka.com/okved/43-3/" target="_blank" rel="noopener noreferrer">check.tochka.com</a>).</p>
+<p>В Краснодарском крае по итогам 2025 года около 320 тыс. субъектов МСП, это +6,3% (<a href="https://www.kommersant.ru/doc/8605102" target="_blank" rel="noopener noreferrer">Коммерсантъ</a>). На 28.02.2026 там было более 782 тыс. самозанятых всех отраслей (<a href="https://www.nalog.gov.ru/rn23/news/tax_doc_news/16606765/" target="_blank" rel="noopener noreferrer">УФНС по Краснодарскому краю</a>).</p>
+<p><strong>Вывод (грубая оценка, не факт).</strong> Сумма четырёх кодов в таблице — около 88,6 тыс. записей (расчёт: 26 239 + 22 498 + 4 872 + 35 004 = 88 613). Доля края в МСП России — 320 тыс. из 6,76 млн, то есть ~4,7% (расчёт: 320 / 6 760 ≈ 0,047) (<a href="https://www.vedomosti.ru/economics/articles/2025/12/25/1166484-chislo-subektov-msp-uvelichilos" target="_blank" rel="noopener noreferrer">Ведомости</a>). Если перенести эту долю на отделочные юрлица, в крае их порядка 4 тыс. (расчёт: 88 613 × 0,047 ≈ 4 200). Сюда не входят ИП, зато могут входить недействующие организации. <mark class="todo">Нужно уточнить</mark> по реестру МСП с фильтром по ОКВЭД 43.3 и региону 23.</p>
+<p><strong>Факт.</strong> Объём рынка оценивают двумя несопоставимыми методиками. По T-Data (Т-Банк), россияне потратили на строительство и ремонт <strong>526 млрд ₽ в 2024 году</strong>, это рекорд за 5 лет (<a href="https://incrussia.ru/news/rekord-v-stroitelnom-sektore-rossiyane-potratili-526-mlrd-na-remont-v-2024-godu/" target="_blank" rel="noopener noreferrer">Inc. Russia</a>). По ORO и «Авито Услугам», исполнители в ремонте и строительстве заработали около 4 678 млрд ₽, из них 3 740 млрд ₽ пришлось на строительство. Средняя выручка исполнителя в ремонте — около 145 тыс. ₽ в месяц, средний чек — около 89 тыс. ₽ (исследование, по-видимому, 2024 года) (<a href="https://stroit.ru/novosti/analiz-struktury-rynka-uslug-v-sfere-remonta-i-stroitelstva-v-rossii/" target="_blank" rel="noopener noreferrer">stroit.ru</a>).</p>
+<p>Спрос растёт. В сентябре 2026 года спрос на ремонтные работы на «Авито Услугах» вырос на 24% год к году: ремонт полов — +62%, укладка плитки — +37% (<a href="https://www.retail.ru/news/v-nachale-oseni-spros-na-remontnye-raboty-vyros-na-24--22-oktyabrya-2026-283602/" target="_blank" rel="noopener noreferrer">retail.ru, 22.10.2026</a>). До 96% клиентов в ремонте и отделке — частные заказчики (<a href="https://spb.mk.ru/economics/2025/07/14/avito-uslugi-kazhdyy-tretiy-zakazchik-somnevaetsya-v-kachestve-remonta.html" target="_blank" rel="noopener noreferrer">МК</a>). Средний бюджет на ремонт по опросу «Авито» — 493 тыс. ₽ (<a href="https://www.cnews.ru/news/line/2026-03-27_avito_uslugi_i_avito_reklama" target="_blank" rel="noopener noreferrer">CNews, 27.03.2026</a>).</p>
+<h3 id="сегменты-и-сколько-они-готовы-платить">Сегменты и сколько они готовы платить</h3>
+<p>Опросов о том, сколько ремонтные компании платят именно за софт, найти не удалось. Колонка «готовность платить» — это вывод из ценовых якорей, которые сегмент видит на рынке, и её нужно проверить на custdev.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Сегмент</th>
+<th>Что о нём известно (факт)</th>
+<th>Ценовые якоря, которые он видит (факт)</th>
+<th>Готовность платить (вывод, гипотеза)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>A. Частный мастер / самозанятый, 1–2 объекта</strong></td>
+<td>~1 млн самозанятых в ремонте; средняя выручка исполнителя в ремонте ~145 тыс. ₽/мес (<a href="https://stroit.ru/novosti/analiz-struktury-rynka-uslug-v-sfere-remonta-i-stroitelstva-v-rossii/" target="_blank" rel="noopener noreferrer">stroit.ru</a>); 77% заказчиков мастеров — частный сектор (<a href="https://www.retail.ru/news/lemana-pro-dolya-masterov-s-pyatyu-i-bolee-spetsialnostyami-vyrosla-do-28-7-avgusta-2026-280785/" target="_blank" rel="noopener noreferrer">retail.ru, «Лемана ПРО»</a>)</td>
+<td>СметаЧек «Мастер» 990 ₽; Remplanner 690 ₽; бесплатные тарифы Reparo, «101», WorkAB; 38% тех, кто платит за ИИ, тратят не больше 3 000 ₽/мес (<a href="https://www.computerra.ru/373112/okupaemost-ii-malyj-biznes/" target="_blank" rel="noopener noreferrer">Computerra</a>)</td>
+<td>0 ₽ (бесплатный вход) — до ~1 000–1 500 ₽; массовый, но дешёвый сегмент</td>
+</tr>
+<tr>
+<td><strong>B. Прораб-владелец бригады, 2–4 объекта</strong></td>
+<td>оборот 1,5–4 млн ₽/мес, маржа 20–30% (<a href="https://plan-os.ru/business-plan/remont-kvartir" target="_blank" rel="noopener noreferrer">plan-os.ru</a>, маркетинговый бизнес-план); у франчайзи «ДМ» 6 рабочих в 2–3 бригадах и 3–4 объекта (<a href="https://franchise.dachamaster.org/dm-franchise/dm-franshiza-remont-i-otdelka-raschet-pribylnosti/" target="_blank" rel="noopener noreferrer">dachamaster.org</a>)</td>
+<td>«101» 1 400–1 890 ₽; WorkAB от 1 500 ₽; Битрикс24 Базовый 2 490 ₽</td>
+<td>~1 500–5 000 ₽/мес</td>
+</tr>
+<tr>
+<td><strong>C. Ремонтная компания «под ключ», 4–8 объектов, 2–5 бригад</strong></td>
+<td>«ключ к стабильности — 4–8 объектов в параллели и поэтапная оплата»; чистая прибыль 8–15% оборота (<a href="https://plan-os.ru/business-plan/remont-kvartir" target="_blank" rel="noopener noreferrer">plan-os.ru</a>)</td>
+<td>Сметтер «Стройка» 8 250 ₽; Битрикс24 Стандартный 6 990 ₽; Gectaro от 17–21 тыс. ₽; при выручке до 15 млн ₽/год МСП готовы тратить ~5 000 ₽/мес на один класс ПО (ИБ, опрос «Солара») (<a href="https://www.vedomosti.ru/technology/articles/2025/09/04/1136408-malii-i-srednii-biznes-mozhet-udvoit-spros-na-ib-servisi" target="_blank" rel="noopener noreferrer">Ведомости</a>)</td>
+<td>~5 000–15 000 ₽/мес; <strong>основной целевой сегмент</strong></td>
+</tr>
+<tr>
+<td><strong>D. Дизайнеры и дизайн-студии (для 3D)</strong></td>
+<td>Planoplan Expert рассчитан на профессиональных дизайнеров (<a href="https://planoplan.com/en/blog/articles/the-expert-plan-in-planoplan-maximum-capabilities-for-the-professional-interior-designer/" target="_blank" rel="noopener noreferrer">planoplan.com</a>); Remplanner «Расширенный» — «для дизайнеров и строителей» (<a href="https://toolfox.ru/services/s/remplanner" target="_blank" rel="noopener noreferrer">toolfox.ru</a>)</td>
+<td>Planoplan $40–50/мес; Remplanner 1 190 ₽</td>
+<td>~700–2 000 ₽ за 3D-модуль; скорее партнёр-канал, чем ядро</td>
+</tr>
+<tr>
+<td><strong>E. Крупные компании, 10+ объектов</strong></td>
+<td>компания с 30–75 объектами пишет собственный PWA (<a href="https://habr.com/ru/articles/1023398/" target="_blank" rel="noopener noreferrer">habr.com</a>)</td>
+<td>Gectaro 21–82 тыс. ₽</td>
+<td>не первый приоритет: пишут своё или берут Gectaro</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Вывод (расчёт на данных бизнес-плана).</strong> При чистой прибыли 8–15% от оборота 1,5–4 млн ₽ компания зарабатывает около 120–600 тыс. ₽ в месяц (расчёт: 8% × 1,5 млн = 120 тыс.; 15% × 4 млн = 600 тыс.). Подписка «Команда» за 4 900 ₽ — это <strong>0,8–4,1% этой прибыли</strong> (расчёт: 4 900 / 600 000 ≈ 0,8%; 4 900 / 120 000 ≈ 4,1%). Такие траты оправданы, если продукт снижает хотя бы часть перерасхода на материалах. Слабое место расчёта: источник оборота и маржи — маркетинговый бизнес-план, а не статистика.</p>
+<p><strong>Факт.</strong> Цифровизация низкая. По опросу МИРБИС и «Сбер Бизнес Софт», более 60% предпринимателей считают, что ИИ и CRM повышают эффективность, но используют их лишь около 30% (<a href="https://www.vedomosti.ru/technology/news/2025/10/14/1146516-opros-60-kompanii" target="_blank" rel="noopener noreferrer">Ведомости</a>). В опросе 530 компаний высокая стоимость внедрения названа главным барьером для 65% малых фирм (<a href="https://www.novostiitkanala.ru/news/detail.php?ID=181940" target="_blank" rel="noopener noreferrer">Новости IT-канала</a>). Основной канал связи строителей с клиентами и бригадами — Telegram и WhatsApp; это данные из вендорского материала (<a href="https://101-app.com/blog/apps-for-construction-companies" target="_blank" rel="noopener noreferrer">101-app.com</a>).</p>
+<h3 id="боли-за-которые-платят-накрутка-на-материалах-и-споры-об-объёме">Боли, за которые платят: накрутка на материалах и споры об объёме</h3>
+<p><strong>Факт.</strong> Владельцы московской ремонтной компании пишут, что прораб, закупающий материалы сам, «накинет сверху процентов 30–40». Проекты у них затягивались вдвое, а проблемы с бригадами были связаны с задержками зарплат (<a href="https://vc.ru/life/1749489-iz-it-v-stroiku-kak-aitishniki-iz-moskvy-otkryli-sovremennuyu-remontnuyu-kompaniyu-v-moskve-i-skolko-eto-prinosit" target="_blank" rel="noopener noreferrer">vc.ru</a>).</p>
+<p>По «Авито Услугам», каждый третий заказчик сомневается в качестве ремонта. Недоверие между сторонами отмечают 21% мастеров, а в 32% случаев итоговый объём работ расходится с договорённостями (<a href="https://spb.mk.ru/economics/2025/07/14/avito-uslugi-kazhdyy-tretiy-zakazchik-somnevaetsya-v-kachestve-remonta.html" target="_blank" rel="noopener noreferrer">МК</a>).</p>
+<p>Технадзор описывает пять схем подрядчиков, от завышения объёма в смете до присвоения остатков. В одном примере подрядчик завысил расход стяжки вдвое и получил лишние около 100 000 ₽ (<a href="https://vc.ru/life/955047-kak-nas-obmanyvayut-stroiteli-pri-remonte-top-5-shem-raboty-nedobrosovestnyh-podryadchikov" target="_blank" rel="noopener noreferrer">vc.ru</a>).</p>
+<p>В кейсе внедрения CRM в ремонтной компании отмечено, что заказ часто получает тот, кто первым даёт смету и договор (<a href="https://vc.ru/growth/2934568-vnedrenie-amocrm-dlya-remontnoy-kompanii-avtomatizatsiya-smet-i-dokumentov" target="_blank" rel="noopener noreferrer">vc.ru</a>).</p>
+<p><strong>Вывод.</strong> Самые измеримые свидетельства описывают боль <strong>заказчика</strong> ремонта, а не владельца компании. Поэтому продукт стоит продавать как двойную ценность. Для владельца это внутренний контроль: материалы, фотоотчёты, деньги по этапам. Для его клиента это «прозрачный ремонт», который помогает ремонтной компании выигрывать сделки быстрее конкурентов. Модули продукта ложатся на задокументированные боли так:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Модуль</th>
+<th>Какую боль закрывает</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Смета и калькулятор</td>
+<td>завышенная и неполная смета, скорость первого КП</td>
+</tr>
+<tr>
+<td>Фотоотчёты и учёт материалов</td>
+<td>накрутка 30–40% и присвоение остатков</td>
+</tr>
+<tr>
+<td>Акты, комментарии и кабинет клиента</td>
+<td>расхождение объёма в 32% случаев и недоверие</td>
+</tr>
+<tr>
+<td>График оплат по этапам</td>
+<td>кассовые разрывы и задержки выплат бригадам</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="краснодар-много-строящегося-жилья-но-ввод-упал-на-треть">Краснодар: много строящегося жилья, но ввод упал на треть</h3>
+<p><strong>Факт.</strong> На 01.07.2026 в Краснодарском крае строилось 8,9 млн м² жилья (<a href="https://kuban.rbc.ru/krasnodar/freenews/6a7c41179a7947bd0be7f10b" target="_blank" rel="noopener noreferrer">РБК Кубань</a>). В самом Краснодаре на начало августа 2026 года возводилось 5,5 млн м² — третье место среди городов РФ (<a href="https://rostov.rbc.ru/rostov/26/08/2026/6a8edb0d9a794736d4c9ded3" target="_blank" rel="noopener noreferrer">РБК Ростов</a>). При этом рынок сжимается:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Показатель</th>
+<th>Значение</th>
+<th>Источник</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ввод жилья за 2025 год</td>
+<td>6,2 млн м² (−6,7%)</td>
+<td><a href="https://expert.ru/news/v-rossii-vveli-bolee-108-mln-kvadratov-zhilya-v-2025-godu" target="_blank" rel="noopener noreferrer">Эксперт</a></td>
+</tr>
+<tr>
+<td>Ввод за январь–сентябрь 2026 года</td>
+<td>3,1 млн м² (−31,7%)</td>
+<td><a href="https://krasnodarmedia.su/news/2658786/" target="_blank" rel="noopener noreferrer">KrasnodarMedia</a></td>
+</tr>
+<tr>
+<td>Распроданность строящегося жилья в крае и Ростовской области</td>
+<td>не выше 24%</td>
+<td><a href="https://rostov.rbc.ru/rostov/26/08/2026/6a8edb0d9a794736d4c9ded3" target="_blank" rel="noopener noreferrer">РБК Ростов</a></td>
+</tr>
+<tr>
+<td>Ключевая ставка</td>
+<td>14%</td>
+<td><a href="https://www.cbr.ru/hd_base/keyrate/" target="_blank" rel="noopener noreferrer">ЦБ РФ</a></td>
+</tr>
+</tbody>
+</table></div>
+<p>Цены на ремонт известны только по прайсам подрядчиков, независимой статистики нет. Ремонт под ключ с материалами в базовой комплектации — 15 000 ₽/м² (<a href="https://kvartirnydoktor.ru/services_cat/remont-kvartir/" target="_blank" rel="noopener noreferrer">kvartirnydoktor.ru</a>). Двухкомнатная квартира 50–60 м² под ключ — 1,2–3,5 млн ₽; к какой из страниц подрядчиков относится эта цифра, однозначно установить не удалось (<a href="https://rsk23.ru/tseny" target="_blank" rel="noopener noreferrer">rsk23.ru</a>).</p>
+<h3 id="что-из-этого-следует_1">Что из этого следует</h3>
+<p><strong>Вывод.</strong> Стартовый рынок автора даёт смешанный сигнал. Поток квартир под ремонт из введённого в 2024–2025 годах жилья ещё идёт. Но падение ввода в 2026 году и низкая распроданность означают, что в 2027 году поток новостроек «из-под ключей», вероятно, сократится. Поэтому продукт не стоит замыкать на крупных ремонтах под ключ: растёт точечный ремонт. И продажи стоит с самого начала строить онлайн, а не только в Краснодаре.</p>
+<p><strong>Целевой клиент первой волны — сегмент C</strong>: компания на 4–8 объектов, где владелец уже физически не успевает объехать все площадки. Сегмент B — второй по приоритету.</p>
+<hr />
+<h2 id="3-тарифы-цены-черновика-выдерживают-сравнение-лимиты--нет">3. Тарифы: цены черновика выдерживают сравнение, лимиты — нет</h2>
+<h3 id="ценовая-лестница-рынка-факты">Ценовая лестница рынка (факты)</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Уровень</th>
+<th>Что стоит на этом уровне</th>
+<th>Источник</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0 ₽</td>
+<td>Reparo — 1 проект; WorkAB — 2 объекта и 2 сметы; Сметера — 10 проектов и 3 участника; «101» — Базовый; Сметтер — 4 сметы и 4 пользователя</td>
+<td><a href="https://reparo-app.ru/" target="_blank" rel="noopener noreferrer">reparo-app.ru</a>, <a href="https://workab.ru/" target="_blank" rel="noopener noreferrer">workab.ru</a>, <a href="https://smetera.ru/" target="_blank" rel="noopener noreferrer">smetera.ru</a>, <a href="https://101-group.ru/download" target="_blank" rel="noopener noreferrer">101-group.ru</a>, <a href="https://smetter.ru/terms-of-service" target="_blank" rel="noopener noreferrer">smetter.ru</a></td>
+</tr>
+<tr>
+<td>~600–1 200 ₽</td>
+<td>Kabbi.NET от 600 ₽; Строит.онлайн 799 ₽ за пользователя; СметаЧек «Мастер» 990 ₽; Remplanner 690–1 190 ₽</td>
+<td><a href="https://a2is.ru/catalog/crm-sistemy-vse/kabbinet" target="_blank" rel="noopener noreferrer">a2is.ru</a>, <a href="https://stroit.online/pricing" target="_blank" rel="noopener noreferrer">stroit.online</a>, <a href="https://smetacheck.ru/pricing" target="_blank" rel="noopener noreferrer">smetacheck.ru</a>, <a href="https://toolfox.ru/services/s/remplanner" target="_blank" rel="noopener noreferrer">toolfox.ru</a></td>
+</tr>
+<tr>
+<td>~1 400–2 000 ₽</td>
+<td>«101» Средний 1 400 ₽ (за год) / 1 890 ₽ (помесячно); WorkAB от 1 500 ₽ за команду до 5 человек; Planoplan «Лайт» 1 890 ₽; 1С:РемонтКвартир 2 000 ₽ за пользователя</td>
+<td><a href="https://101-group.ru/download" target="_blank" rel="noopener noreferrer">101-group.ru</a>, <a href="https://workab.ru/" target="_blank" rel="noopener noreferrer">workab.ru</a>, <a href="https://room-gpt.ru/blog/programmy-dlya-dizajna-interera-top-10" target="_blank" rel="noopener noreferrer">room-gpt.ru</a>, <a href="https://xn--24-6kctvkgiadfbv6a.xn--p1ai/" target="_blank" rel="noopener noreferrer">ремонтонлайн24.рф</a></td>
+</tr>
+<tr>
+<td>~2 500–5 000 ₽</td>
+<td>Битрикс24 Базовый 2 490 ₽ (5 польз.); СметаЧек «Компания» 2 990 ₽ (5 мастеров); Сметтер «Сметы» 3 750 ₽ (3 польз.); «101» Максимальный 3 800 / 4 990 ₽; WorkAB до 4 700 ₽</td>
+<td><a href="https://www.bitrix24.ru/prices/" target="_blank" rel="noopener noreferrer">bitrix24.ru</a>, <a href="https://smetacheck.ru/pricing" target="_blank" rel="noopener noreferrer">smetacheck.ru</a>, <a href="https://smetter.ru/" target="_blank" rel="noopener noreferrer">smetter.ru</a>, <a href="https://101-group.ru/download" target="_blank" rel="noopener noreferrer">101-group.ru</a>, <a href="https://workab.ru/" target="_blank" rel="noopener noreferrer">workab.ru</a></td>
+</tr>
+<tr>
+<td>~7 000–18 000 ₽</td>
+<td>Битрикс24 Стандартный 6 990 ₽ (50 польз.); Сметтер «Стройка» 8 250 ₽ (8 польз.); Битрикс24 Профессиональный 13 990 ₽ (100 польз.); Сметтер «Бизнес» 18 250 ₽ (15 польз.)</td>
+<td><a href="https://www.bitrix24.ru/prices/" target="_blank" rel="noopener noreferrer">bitrix24.ru</a>, <a href="https://smetter.ru/" target="_blank" rel="noopener noreferrer">smetter.ru</a></td>
+</tr>
+<tr>
+<td>17 000 ₽ и выше</td>
+<td>Gectaro: 17 000 ₽ (1С-БИТ) или 21 166 ₽ (сайт) за 3 пользователя, до 81 500 ₽</td>
+<td><a href="https://www.1cbit.ru/1csoft/gectaro/" target="_blank" rel="noopener noreferrer">1cbit.ru</a>, <a href="https://gectaro.com/pricing" target="_blank" rel="noopener noreferrer">gectaro.com</a></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Факт: нормы рынка по триалу и годовой оплате.</strong></p>
+<p>Триал:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Длительность</th>
+<th>У кого</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>14 дней</td>
+<td>Строит.онлайн, WorkAB, 1С:РемонтКвартир, Сметтер, СметаЧек (у WorkAB и СметаЧека — без карты)</td>
+</tr>
+<tr>
+<td>15 дней</td>
+<td>Kabbi.NET</td>
+</tr>
+<tr>
+<td>7 дней</td>
+<td>Gectaro</td>
+</tr>
+</tbody>
+</table></div>
+<p>Скидка за годовую оплату:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Скидка</th>
+<th>У кого</th>
+<th>Источник</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>−15%</td>
+<td>Строит.онлайн (679 ₽ вместо 799 ₽)</td>
+<td><a href="https://stroit.online/pricing" target="_blank" rel="noopener noreferrer">stroit.online</a></td>
+</tr>
+<tr>
+<td>≈−16%</td>
+<td>Сметтер (3 150 ₽ вместо 3 750 ₽)</td>
+<td><a href="https://smetter.ru/" target="_blank" rel="noopener noreferrer">smetter.ru</a></td>
+</tr>
+<tr>
+<td>≈−17%</td>
+<td>Planoplan</td>
+<td><a href="https://planoplan.com/en/pricing/" target="_blank" rel="noopener noreferrer">planoplan.com</a></td>
+</tr>
+<tr>
+<td>−20%</td>
+<td>Битрикс24</td>
+<td><a href="https://www.bitrix24.ru/journal/sravnenie-tarifov-bitriks24/" target="_blank" rel="noopener noreferrer">bitrix24.ru</a></td>
+</tr>
+<tr>
+<td>до −20%</td>
+<td>Remplanner</td>
+<td><a href="https://toolfox.ru/services/s/remplanner" target="_blank" rel="noopener noreferrer">toolfox.ru</a></td>
+</tr>
+<tr>
+<td>≈−26%</td>
+<td>«101» (1 400 ₽ вместо 1 890 ₽)</td>
+<td><a href="https://101-group.ru/download" target="_blank" rel="noopener noreferrer">101-group.ru</a></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="оценка-черновика-лендинга">Оценка черновика лендинга</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Тариф (черновик)</th>
+<th>С чем сравнивается (факты из таблиц выше)</th>
+<th>Вердикт</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>«Прораб» — 1 490 ₽/мес, до 3 объектов, 1 сотрудник</strong></td>
+<td>Цена — на уровне «101» Средний (1 400 ₽ за год / 1 890 ₽ помесячно) и WorkAB (от 1 500 ₽, но команда до 5 человек). Лимит в 1 сотрудника ниже даже бесплатных тарифов: у Сметтера 4 пользователя, у Сметеры 3 участника. Лимит в 3 объекта отсекает верх типичной бригады, ведущей 2–4 объекта (<a href="https://plan-os.ru/business-plan/remont-kvartir" target="_blank" rel="noopener noreferrer">plan-os.ru</a>)</td>
+<td><strong>Цену подтвердить, лимиты расширить</strong></td>
+</tr>
+<tr>
+<td><strong>«Команда» — 4 900 ₽/мес, до 15 объектов, 7 сотрудников</strong></td>
+<td>На уровне верха малого SaaS — между WorkAB (до 4 700 ₽) и «101» Максимальный (4 990 ₽ помесячно); заметно дешевле Сметтера «Стройка» (8 250 ₽ за 8 польз.). 15 объектов с запасом покрывают типичные 4–8</td>
+<td><strong>Подтвердить</strong>; дать доступ к 3D как к платному дополнению</td>
+</tr>
+<tr>
+<td><strong>«Компания» — 9 900 ₽/мес, без лимита объектов, до 20 сотрудников, 3D</strong></td>
+<td>Ниже Сметтера «Бизнес» (18 250 ₽ за 15 польз.) и Битрикс24 Профессиональный (13 990 ₽). В 1,7–2,1 раза дешевле Gectaro «Стартовый» (17 000–21 166 ₽ за 3 польз.; расчёт: 17 000 / 9 900 ≈ 1,7; 21 166 / 9 900 ≈ 2,1). Выходит 495 ₽ за пользователя (расчёт: 9 900 / 20) — дешевле базового amoCRM (599 ₽ за пользователя, <a href="https://flysk.ru/blog/amocrm-2026-amma-relize-amokonf" target="_blank" rel="noopener noreferrer">flysk.ru</a>)</td>
+<td><strong>Подтвердить как гипотезу</strong>; не повышать без данных custdev</td>
+</tr>
+<tr>
+<td>3D-планировщик только в «Компании»</td>
+<td>Отдельные планировщики стоят 690–1 990 ₽/мес (Remplanner, Planoplan «Лайт»); связку «план → смета → контроль» никто не предлагает</td>
+<td><strong>Изменить</strong>: прорабу не нужно переходить с 1 490 ₽ на 9 900 ₽ ради 3D</td>
+</tr>
+<tr>
+<td>Нет бесплатного входа (по описанию черновика)</td>
+<td>Бесплатные тарифы у 6 конкурентов</td>
+<td><strong>Изменить</strong>: добавить бесплатный тариф или триал</td>
+</tr>
+<tr>
+<td>Годовая цена (на лендинге не указана — уточнить)</td>
+<td>Чаще всего −15–20%, у «101» ≈−26% (таблица выше)</td>
+<td><strong>Добавить</strong></td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>Обновлено 04.11.2026.</strong> По итогам этой оценки лендинг (<code>saas-remont/site</code>) уже приведён к рекомендуемой сетке ниже: «Прораб» — до 4 объектов и 3 сотрудников, бесплатный объект, 14 дней без карты, 2 месяца в подарок при оплате за год, 3D-дополнение за 990 ₽. Всё по-прежнему помечено «черновик, утвердить владельцем».</p>
+</blockquote>
+<h3 id="рекомендуемая-сетка--гипотеза-для-проверки">Рекомендуемая сетка — гипотеза для проверки</h3>
+<p><strong>Рекомендация (гипотеза).</strong> Сетка ниже — предложение для проверки на первых 20 разговорах и пилотах, а не вывод из данных. Цены черновика сохранены, потому что они укладываются в рыночный коридор. Меняются лимиты, вход и 3D. Цена за год считается как «2 месяца в подарок» (≈−17%), то есть в середине рыночной нормы.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Тариф</th>
+<th>Цена в месяц</th>
+<th>Цена за год (≈−17%)</th>
+<th>Лимиты</th>
+<th>Что добавляется к предыдущему тарифу</th>
+<th>Обоснование (факты)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>«Старт»</strong></td>
+<td>0 ₽</td>
+<td>—</td>
+<td>1 активный объект, 1 пользователь</td>
+<td>смета и калькулятор, фотоотчёты, ссылка для заказчика</td>
+<td>Reparo — 1 проект бесплатно, WorkAB — 2 объекта; это норма рынка</td>
+</tr>
+<tr>
+<td><strong>«Прораб»</strong></td>
+<td>1 490 ₽</td>
+<td>14 900 ₽</td>
+<td>до <strong>4</strong> активных объектов, до <strong>3</strong> пользователей</td>
+<td>акты на ПЭП, график оплат по этапам, PDF без чужого бренда</td>
+<td>бригада ведёт 2–4 объекта; у Сметтера «Сметы» — 3 пользователя, у WorkAB за 1 500 ₽ — 5 человек</td>
+</tr>
+<tr>
+<td><strong>«Команда»</strong></td>
+<td>4 900 ₽</td>
+<td>49 000 ₽</td>
+<td>до 15 объектов, до 7 пользователей</td>
+<td>роли, финансы и закупки по объекту, брендирование документов; 3D — дополнением</td>
+<td>WorkAB до 4 700 ₽, Сметтер «Стройка» 8 250 ₽</td>
+</tr>
+<tr>
+<td><strong>«Компания»</strong></td>
+<td>9 900 ₽</td>
+<td>99 000 ₽</td>
+<td>без лимита объектов, до 20 пользователей</td>
+<td>3D-планировщик включён, приоритетная поддержка</td>
+<td>Сметтер «Бизнес» 18 250 ₽, Gectaro от 17 000 ₽</td>
+</tr>
+<tr>
+<td><strong>Дополнение «3D-планировщик»</strong></td>
+<td>990 ₽</td>
+<td>9 900 ₽</td>
+<td>для «Прораба» и «Команды»</td>
+<td>3D-план с переносом объёмов в смету</td>
+<td>Remplanner 690–1 190 ₽, Planoplan «Лайт» 1 890 ₽</td>
+</tr>
+</tbody>
+</table></div>
+<p>Общие правила для всех тарифов — тоже гипотезы:</p>
+<ul>
+<li><strong>Кто считается пользователем.</strong> Считать только «офисных» пользователей: владельца, прорабов, сметчика. Заказчики по ссылке и рабочие с ролью «только фотоотчёт» не тратят лимит. Обоснование: бригады часто состоят из самозанятых (около 1 млн в отрасли), и платить за каждого временного рабочего клиент не будет.</li>
+<li><strong>Триал.</strong> 14 дней тарифа «Команда» без карты — это рыночная норма.</li>
+<li><strong>НДС.</strong> На лендинге писать «НДС не облагается», только если это так: при УСН с доходом до 20 млн ₽ или при включении в реестр ПО (раздел 5).</li>
+<li><strong>Без рекламы в документах.</strong> Документы для заказчика в платных тарифах — без бренда сервиса. Это прямой ответ на жалобу на рекламу Сметтера в клиентских документах (<a href="https://crmindex.ru/services/smetter" target="_blank" rel="noopener noreferrer">crmindex.ru</a>).</li>
+<li><strong>Первые клиенты.</strong> Первым 10 клиентам — фиксация цены на 12 месяцев в обмен на отзыв и кейс.</li>
+</ul>
+<h3 id="что-дадут-первые-10-клиентов-в-деньгах">Что дадут первые 10 клиентов в деньгах</h3>
+<p><strong>Допущение и расчёт.</strong> Состав клиентов выбран для иллюстрации: 5 «Прорабов», 4 «Команды» и 1 «Компания». Такой набор даёт <strong>36 950 ₽ выручки в месяц</strong>, или 443 400 ₽ в год (расчёт: 5 × 1 490 + 4 × 4 900 + 1 × 9 900 = 36 950; 36 950 × 12 = 443 400).</p>
+<p>Против этой выручки стоят два известных расхода:</p>
+<ul>
+<li>комиссия автоплатежей ЮKassa «от 2,8%» — около 1 035 ₽ в месяц, если все клиенты платят картой (расчёт: 36 950 × 0,028 ≈ 1 035) (<a href="https://yookassa.ru/regulyarnye-platezhi/" target="_blank" rel="noopener noreferrer">yookassa.ru</a>);</li>
+<li>виртуальная машина 2 vCPU / 4 ГБ в аттестованном облаке — «от ~1 500 ₽/мес» (агрегатор, без даты) (<a href="https://toolfox.ru/services/hosting/hosting-152-fz" target="_blank" rel="noopener noreferrer">toolfox.ru</a>).</li>
+</ul>
+<p>Расходы на юриста, рекламу и онбординг — <mark class="todo">нужно уточнить</mark>.</p>
+<p><strong>Вывод.</strong> Первые 10 клиентов — это проверка гипотезы, а не бизнес. Потолок ниши можно грубо прикинуть по лидеру. Если бы все заявленные Сметтером 2 500–5 000 компаний платили за его младший тариф (3 150–3 750 ₽), это дало бы порядка 95–225 млн ₽ в год (расчёт: 2 500 × 3 150 × 12 ≈ 94,5 млн; 5 000 × 3 750 × 12 = 225 млн). Это верхняя граница, а не оценка выручки Сметтера. Ниша способна прокормить устойчивый небольшой бизнес, но не обещает взрывного роста.</p>
+<hr />
+<h2 id="4-каналы-продаж-на-старте-личные-продажи-сильнее-рекламы">4. Каналы продаж: на старте личные продажи сильнее рекламы</h2>
+<h3 id="что-известно-о-каналах">Что известно о каналах</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Канал</th>
+<th>Что известно (факт)</th>
+<th>Роль в первые 90 дней (рекомендация, гипотеза)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Сеть автора и его компания как кейс</strong></td>
+<td>Прямых данных нет; заказ часто получает тот, кто первым даёт смету и договор (<a href="https://vc.ru/growth/2934568-vnedrenie-amocrm-dlya-remontnoy-kompanii-avtomatizatsiya-smet-i-dokumentov" target="_blank" rel="noopener noreferrer">vc.ru</a>)</td>
+<td><strong>Главный канал</strong>: субподрядчики, поставщики, знакомые прорабы и владельцы. Демо на реальном объекте автора</td>
+</tr>
+<tr>
+<td><strong>Прямой outreach по публичным профилям</strong></td>
+<td>На Профи.ру в Москве 20 645 мастеров по комплексному ремонту (<a href="https://profi.ru/remont/remont/" target="_blank" rel="noopener noreferrer">profi.ru</a>); исполнители платят за продвижение: тариф «Компания» — 5 990 ₽/мес, заявки — 50–500 ₽ (сторонний обзор) (<a href="https://toolfox.ru/services/s/profi" target="_blank" rel="noopener noreferrer">toolfox.ru</a>); на «Авито» около 1,5 млн исполнителей в ремонте и строительстве (неофициальный агрегатор) (<a href="https://inclient.ru/avito-stats/" target="_blank" rel="noopener noreferrer">inclient.ru</a>)</td>
+<td>Второй канал: список ремонтных компаний Краснодара и края с Авито, Профи.ру и 2ГИС, персональные обращения. Массовые рассылки без согласия упираются в законы о рекламе и ПДн — правовая сторона в этом исследовании не проверялась, <mark class="todo">нужно уточнить</mark></td>
+</tr>
+<tr>
+<td><strong>Сообщества и форумы</strong></td>
+<td>FORUMHOUSE: ~3,95 млн визитов в мае 2025 года, ~27% трафика с yandex.ru (<a href="https://ja.semrush.com/website/forumhouse.ru/overview" target="_blank" rel="noopener noreferrer">Semrush</a>); Telegram: «Строительство и бизнес» (@RussiaBuild) — 110 648 подписчиков (<a href="https://tlgrm.ru/channels/@RussiaBuild" target="_blank" rel="noopener noreferrer">tlgrm.ru</a>), «Ремонтяш» — 58,2 тыс. (<a href="https://tgstat.ru/en/channel/@realremontyash" target="_blank" rel="noopener noreferrer">TGStat</a>), «Просто Ремонт» — 34,5 тыс. (<a href="https://t.me/s/prostoremont?before=1078" target="_blank" rel="noopener noreferrer">t.me</a>); локальные краснодарские чаты прорабов не найдены</td>
+<td>Контент-кейс собственной компании на FORUMHOUSE; интервью или размещение в @RussiaBuild (аудитория владельцев); поиск местных чатов вручную</td>
+</tr>
+<tr>
+<td><strong>Яндекс Директ</strong></td>
+<td>Частотности Wordstat и CPC по «crm для ремонта» и похожим запросам не опубликованы. Агентская оценка для IT/SaaS — 150–1 500 ₽ за клик на поиске, в РСЯ от 30 ₽ (<a href="https://digitalriff.ru/services/kontekstnaya-reklama-dlya-it-saas/" target="_blank" rel="noopener noreferrer">digitalriff.ru</a>); на старт рекомендуют 10–20 тыс. ₽ плюс 20–40% запаса (<a href="https://kokoc.com/blog/yandex-direct-budget-estimation/" target="_blank" rel="noopener noreferrer">Kokoc</a>)</td>
+<td>Только тест на 2–4 недели. Сначала снять точную частотность («"!WS"») по РФ и по краю (<a href="https://righty.ru/blog/kak-rabotat-s-wordstat" target="_blank" rel="noopener noreferrer">Righty</a>) и прогноз бюджета</td>
+</tr>
+<tr>
+<td><strong>Битрикс24 Маркет</strong></td>
+<td>При подписочной модели разработчики получают 85% распределяемой выручки, 50% выплачивается при покупке и 50% по мере использования (<a href="https://apidocs.bitrix24.ru/market/monetization/subscription-details.html" target="_blank" rel="noopener noreferrer">apidocs.bitrix24.ru</a>); на Маркете уже есть 4+ «CRM для ремонта» (<a href="https://www.bitrix24.ru/apps/app/gkopti.remont/" target="_blank" rel="noopener noreferrer">bitrix24.ru</a>)</td>
+<td>Не в первые 90 дней. Позже — интеграция «смета и контроль ремонта» для компаний, которые уже живут в Битрикс24</td>
+</tr>
+<tr>
+<td><strong>amoMarket</strong></td>
+<td>Официальная комиссия не найдена; сторонние разработчики виджетов платят партнёрам 50% (<a href="https://getsales.bz/partners" target="_blank" rel="noopener noreferrer">getsales.bz</a>)</td>
+<td><mark class="todo">Нужно уточнить</mark></td>
+</tr>
+<tr>
+<td><strong>RuStore, App Store, Google Play</strong></td>
+<td>RuStore берёт 15% за платежи через свой SDK (<a href="https://www.rustore.ru/developer/blog/monetizaciya-mobilnyh-prilozhenij-i-igr-v-rossii-v-2026-chto-rabotaet-i-gde-zarabatyvat" target="_blank" rel="noopener noreferrer">RuStore</a>); с 01.02.2026 монетизация закрыта для самозанятых и физлиц (<a href="https://xn--80aapgyievp4gwb.xn--p1ai/blog/rustore-otmenyaet-monetizaciyu-samozanyatym" target="_blank" rel="noopener noreferrer">бизнес-блог</a>). В Google Play монетизация недоступна разработчикам с российским счётом с декабря 2024 года (<a href="https://vc.ru/dev/2924893-monetizaciya-prilozhenij-dlya-razrabotchikov-iz-rossii" target="_blank" rel="noopener noreferrer">vc.ru</a>). С 01.04.2026 Apple ID нельзя оплатить с мобильного баланса (<a href="https://www.computerra.ru/359749/app-store-i-google-play-v-rossii-v-2026-godu-kak-polzovatsya-i-gde-skachivat-udalennye-prilozheniya/" target="_blank" rel="noopener noreferrer">Computerra</a>)</td>
+<td>Сторы — только для распространения приложения прораба и клиента (обязательно RuStore). Оплата подписки — на сайте</td>
+</tr>
+<tr>
+<td><strong>Партнёры: магазины стройматериалов, дизайн-студии</strong></td>
+<td>Условия pro-программ «Петровича», «Лемана ПРО», OBI не найдены. «Лемана ПРО» исследует мастеров: 28% из них владеют 5+ специальностями (<a href="https://www.retail.ru/news/lemana-pro-dolya-masterov-s-pyatyu-i-bolee-spetsialnostyami-vyrosla-do-28-7-avgusta-2026-280785/" target="_blank" rel="noopener noreferrer">retail.ru</a>)</td>
+<td>Локальные B2B-отделы краснодарских магазинов и дизайн-студии (3D для их клиентов) — гипотеза, источников нет</td>
+</tr>
+<tr>
+<td><strong>Банки</strong></td>
+<td>Партнёрская программа Т-Банка: «до 70 500 ₽ за каждого» клиента, приведённого в сервисы банка (<a href="https://www.tbank.ru/business/partnership/" target="_blank" rel="noopener noreferrer">tbank.ru</a>); программы Сбера (<a href="https://sber.pro/publication/partnyorstvo-v-b2b-kak-vibrat-format-i-masshtabirovat-biznes-vmeste-so-sberom/" target="_blank" rel="noopener noreferrer">sber.pro</a>) и «Альфапартнерс» (<a href="https://alfapartners.alfabank.ru/" target="_blank" rel="noopener noreferrer">alfabank.ru</a>)</td>
+<td>Скорее дополнительный доход (рекомендовать клиентам расчётный счёт или эквайринг), чем канал привлечения; витрины SaaS у банков — <mark class="todo">нужно уточнить</mark></td>
+</tr>
+<tr>
+<td><strong>Выставки</strong></td>
+<td>YugBuild 2026 прошла 25–28.02.2026 в «Экспоград Юг»; YugBuild 2027 — 2–4 или 2–5 марта 2027 года, источники расходятся (<a href="https://www.retail.ru/events/yugbuild-s-2-marta-2027-do-5-marta-2027/" target="_blank" rel="noopener noreferrer">retail.ru</a>); MosBuild 2027 — 30.03–02.04.2027, «Крокус Экспо», 1 250+ экспонентов (<a href="https://www.newsfilecorp.com/release/297318" target="_blank" rel="noopener noreferrer">Newsfile</a>)</td>
+<td>За пределами 90 дней. YugBuild — первая выставка после старта, к ней готовить кейсы первых клиентов</td>
+</tr>
+<tr>
+<td><strong>Гранты и акселераторы</strong></td>
+<td>ФСИ «Старт» — до 5 млн ₽ (приём до 16.02.2026) (<a href="https://makushinskij-r45.gosweb.gosuslugi.ru/dlya-zhiteley/novosti-i-reportazhi/novosti-193_3999.html" target="_blank" rel="noopener noreferrer">Госвеб</a>); «Старт-2» — до 10 млн ₽ при софинансировании ≥15% (<a href="https://goodstartup.ru/start-2-2026" target="_blank" rel="noopener noreferrer">goodstartup.ru</a>); ФРИИ в феврале 2026 года отменил порог выручки 500 тыс. ₽/мес для инвестиций (<a href="https://incrussia.ru/news/startapy-vnov-nauchat-schitat-dengi-frii-otkryl-nabor-v-preakselerator/" target="_blank" rel="noopener noreferrer">Inc. Russia</a>); на Кубани «Воронка инновационных стартапов» — бесплатно, но «в некоторых случаях» за долю до 10%, приём закрыт 22.10.2026 (<a href="https://iqarium.ru/accelerator" target="_blank" rel="noopener noreferrer">iqarium.ru</a>)</td>
+<td>Все очереди 2026 года закрыты. Отслеживать очереди 2027 года на fasie.ru, iidf.ru, iqarium.ru</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Вывод.</strong> Для узкой B2B-ниши поиск, скорее всего, мал, а клик дорог, потому что за те же запросы конкурируют amoCRM, Битрикс24 и отраслевые продукты. При бюджете 20 тыс. ₽ и агентской цене клика 150–1 500 ₽ получится примерно 13–133 клика (расчёт: 20 000 / 1 500 ≈ 13; 20 000 / 150 ≈ 133). Даже лучший вариант не даёт объёма регистраций, нужного для самообслуживания (раздел 7). Поэтому Директ в первые 90 дней — измерительный инструмент, а не источник клиентов.</p>
+<p><strong>Вывод.</strong> Отдельное наблюдение: исполнители уже платят за лиды. Профи.ру, по стороннему обзору, продаёт исполнителям тарифы 2 990–5 990 ₽ в месяц (<a href="https://toolfox.ru/services/s/profi" target="_blank" rel="noopener noreferrer">toolfox.ru</a>), а мастера жалуются на платные отклики Ремонтник.ру — «ни одного заказа я не получил с этого агрегатора»; многие из этих отзывов написаны до 2025 года (<a href="https://irecommend.ru/content/vozlagali-na-etot-sait-bolshie-nadezhdy-v-itoge-naprasno-potratili-vremya" target="_blank" rel="noopener noreferrer">irecommend.ru</a>, <a href="https://otzovik.com/review_4181066.html" target="_blank" rel="noopener noreferrer">otzovik.com</a>). Сильный аргумент продаж: «вы платите за заявку — продукт помогает превратить её в договор быстрее конкурента».</p>
+<h3 id="приём-платежей">Приём платежей</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Провайдер</th>
+<th>Рекуррентные платежи</th>
+<th>Ставка (по сниппетам, ноябрь 2026)</th>
+<th>Особенности</th>
+<th>Источник</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ЮKassa</td>
+<td>да</td>
+<td>автоплатежи «от 2,8%»; СБП от 0,4% (сторонний обзор)</td>
+<td>подключение бесплатное, через менеджера; B2B-оплата счёта через СберБизнес «от 0,4% + НДС» (сторонний каталог)</td>
+<td><a href="https://yookassa.ru/regulyarnye-platezhi/" target="_blank" rel="noopener noreferrer">yookassa.ru</a>, <a href="https://promokod-biznes.ru/blog/yukassa-chto-eto/" target="_blank" rel="noopener noreferrer">promokod-biznes.ru</a>, <a href="https://toolfox.ru/services/s/yookassa" target="_blank" rel="noopener noreferrer">toolfox.ru</a></td>
+</tr>
+<tr>
+<td>CloudPayments</td>
+<td>да</td>
+<td>~2,6% (сторонний обзор), ставка индивидуальная</td>
+<td>не работает с самозанятыми</td>
+<td><a href="https://bankprofi.ru/blog/rekurrentnye-platezhi-dlya-biznesa-kakoy-servis-vybrat" target="_blank" rel="noopener noreferrer">bankprofi.ru</a>, <a href="https://developers.cloudpayments.ru/#rekurrentnye-platezhi" target="_blank" rel="noopener noreferrer">developers.cloudpayments.ru</a></td>
+</tr>
+<tr>
+<td>Т-Касса</td>
+<td>да</td>
+<td>2,99% при обороте до 3 млн ₽/мес (счёт в другом банке), минимум 3,49 ₽</td>
+<td>с 01.01.2026 на комиссию интернет-эквайринга начисляется НДС 22%, на СБП и T-Pay — нет</td>
+<td><a href="https://help.flexbe.ru/tinkoff/" target="_blank" rel="noopener noreferrer">help.flexbe.ru</a>, <a href="https://www.tbank.ru/business/payments/online-cashbox/ip/" target="_blank" rel="noopener noreferrer">tbank.ru</a></td>
+</tr>
+<tr>
+<td>Робокасса</td>
+<td>да</td>
+<td>«Стартовый»: 3,9% по картам, 2,7% по СБП (сторонний обзор)</td>
+<td>комиссия «не облагается НДС» (заявление Робокассы)</td>
+<td><a href="https://vakas.ru/articles/robokassa-obzor/" target="_blank" rel="noopener noreferrer">vakas.ru</a>, <a href="https://robokassa.com/solutions/industry/platezhi-po-podpiske/" target="_blank" rel="noopener noreferrer">robokassa.com</a></td>
+</tr>
+<tr>
+<td>Prodamus</td>
+<td>да, «клубная система»</td>
+<td>3,8% за первый платёж, 4,8% за каждый следующий; подключение 10 000 ₽</td>
+<td>дороже остальных на подписках</td>
+<td><a href="https://prodamus.ru/priem-rekurrentnyh-platezhej" target="_blank" rel="noopener noreferrer">prodamus.ru</a>, <a href="https://prodamus.ru/rates" target="_blank" rel="noopener noreferrer">prodamus.ru/rates</a></td>
+</tr>
+<tr>
+<td>Оплата по счёту с расчётного счёта</td>
+<td>—</td>
+<td>эквайринговой комиссии нет (общий вывод, не цитата)</td>
+<td>ККТ не нужна при безналичных расчётах организаций и ИП без электронных средств платежа (<a href="https://www.nalog.gov.ru/html/sites/www.rn86.nalog.ru/files/Publichnye%20obsujdeniya/2kv_2022/Otvet_na_vopros.docx" target="_blank" rel="noopener noreferrer">ИФНС</a>)</td>
+<td>—</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Рекомендация (гипотеза).</strong> Для ООО — годовая оплата по счёту. Для ИП и прорабов — автоплатёж картой или СБП через ЮKassa или Т-Кассу с облачной кассой. Ставки зафиксировать у менеджеров с датой: официальные тарифные страницы не открывались.</p>
+<hr />
+<h2 id="5-юридическое-восемь-вещей-закрыть-до-первого-платежа">5. Юридическое: восемь вещей закрыть до первого платежа</h2>
+<p>Раздел — не юридическое заключение. Пометка <strong>ЮРИСТ</strong> означает, что пункт обязательно подтвердить у специалиста.</p>
+<h3 id="договор-публичная-оферта-лицензия-отдельная-редакция-для-физлиц">Договор: публичная оферта-лицензия, отдельная редакция для физлиц</h3>
+<p><strong>Факт.</strong> Специальной нормы о SaaS в ГК РФ на май 2026 года нет. Если пользователь получает право использовать программу в определённых пределах, договор лицензионный (ст. 1235 ГК); если предмет договора — результат деятельности исполнителя, это услуги (<a href="https://vitvet.com/articles/intellekt/po_i_bd/saas_licenzionnyy_dogovor/" target="_blank" rel="noopener noreferrer">ВИТВЕТ</a>). Нормы ГК, на которые опирается конструкция (<a href="https://www.consultant.ru/document/cons_doc_LAW_5142/" target="_blank" rel="noopener noreferrer">ГК РФ ч. 1</a>, <a href="https://www.consultant.ru/document/cons_doc_LAW_64629/" target="_blank" rel="noopener noreferrer">ч. 4</a>; тексты нужно сверить по актуальной редакции):</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Норма</th>
+<th>Что даёт</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ст. 437 ГК</td>
+<td>публичная оферта</td>
+</tr>
+<tr>
+<td>Ст. 438 ГК</td>
+<td>акцепт действием, например оплатой</td>
+</tr>
+<tr>
+<td>Ст. 1286 п. 5 ГК</td>
+<td>лицензию на программу можно заключить как договор присоединения, в том числе электронно</td>
+</tr>
+<tr>
+<td>Ст. 401 п. 4 ГК</td>
+<td>заранее заключённое соглашение об ограничении ответственности за умышленное нарушение ничтожно</td>
+</tr>
+</tbody>
+</table></div>
+<p>Если подписку покупает физлицо для личных нужд, к нему применяется Закон о защите прав потребителей. Ущемляющие условия по ст. 16 ЗоЗПП недопустимы, а убытки от них возмещаются в полном объёме (<a href="https://legalacts.ru/doc/ZZPP/glava-i/statja-16/" target="_blank" rel="noopener noreferrer">legalacts.ru</a>).</p>
+<p><strong>Рекомендация.</strong> Оформить публичную оферту «Лицензионный договор (простая неисключительная лицензия) на использование ПО путём удалённого доступа» с акцептом регистрацией или оплатой. В неё входят:</p>
+<ul>
+<li>название программы — то же, что будет в реестре ПО;</li>
+<li>тарифы и порядок их изменения с уведомлением;</li>
+<li>SLA;</li>
+<li>ограничение ответственности для B2B (суммой оплаты за N месяцев, без упущенной выгоды);</li>
+<li>приложения «Поручение на обработку ПДн» и «Правила использования ПЭП».</li>
+</ul>
+<p>Для прорабов-физлиц без статуса ИП или самозанятого нужна отдельная, более мягкая редакция. Модель «лицензия» нужна ещё и для льготы по НДС (см. ниже). <strong>ЮРИСТ.</strong></p>
+<h3 id="152-фз-ремонтная-компания--оператор-saas--обработчик">152-ФЗ: ремонтная компания — оператор, SaaS — обработчик</h3>
+<p><strong>Факт.</strong> У SaaS-компании две роли в отношении персональных данных.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Чьи данные</th>
+<th>Роль SaaS</th>
+<th>Что это значит</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Данные заказчиков ремонта в аккаунте ремонтной компании (ФИО, телефон, адрес, фото, переписка, платежи, акты)</td>
+<td>обработчик по поручению оператора (ч. 3 ст. 6)</td>
+<td>оператор — сама ремонтная компания; согласие субъектов получает она, а не облачный провайдер; оператор отвечает перед субъектом за обработчика (<a href="https://h-cons.ru/stati/poruchenie-na-obrabotku-personalnyh-dannyh-komu-mozhno-poruchit-kak-oformit-dogovor-i-kto-neset-otvetstvennost" target="_blank" rel="noopener noreferrer">h-cons.ru</a>)</td>
+</tr>
+<tr>
+<td>Данные собственных пользователей (прорабы, сотрудники клиентов, лиды с сайта, cookies)</td>
+<td>оператор</td>
+<td>нужны свои политика, уведомление РКН, меры защиты и локализация</td>
+</tr>
+</tbody>
+</table></div>
+<p>Поручение по ч. 3 ст. 6 должно содержать обязательные условия (<a href="https://www.securitylab.ru/blog/company/USSC/352262.php" target="_blank" rel="noopener noreferrer">SecurityLab, УЦСБ</a>):</p>
+<ul>
+<li>перечень ПДн, действия с ними и цели обработки;</li>
+<li>конфиденциальность;</li>
+<li>соблюдение локализации (ч. 5 ст. 18) и ст. 18.1;</li>
+<li>меры безопасности по ст. 19;</li>
+<li>уведомление оператора об инцидентах (ч. 3.1 ст. 21).</li>
+</ul>
+<p><strong>Факт.</strong> С 01.09.2025 согласие на обработку ПДн оформляется документом <strong>отдельно от договоров</strong> (156-ФЗ от 24.06.2025) (<a href="https://its.1c.ru/db/content/newscomm/src/495627.htm" target="_blank" rel="noopener noreferrer">ИТС 1С</a>, <a href="https://harant.ru/blog/internet-pravo/chto-izmenilos-s-1-sentyabrya-2025-goda-v-oblasti-personalnyh-dannyh-dlya-onlajn-biznesa/" target="_blank" rel="noopener noreferrer">Харант</a>). Штраф для юрлица за обработку без надлежащего согласия (ч. 2 ст. 13.11 КоАП) — до 700 тыс. ₽, при повторном нарушении — до 1,5 млн ₽ (<a href="https://tochka.com/knowledge/buhgalteriya/soglasie-na-obrabotku-personalnyh-dannyh/" target="_blank" rel="noopener noreferrer">tochka.com</a>). Политику обработки ПДн нужно опубликовать на странице, где идёт сбор (ч. 2 ст. 18.1); сумма штрафа по ч. 3 ст. 13.11 — <mark class="todo">нужно уточнить</mark>.</p>
+<p><strong>Рекомендация.</strong> Встроить поручение в оферту как приложение — это договор между оператором и обработчиком, а не согласие субъекта. Ремонтной компании основание для обработки данных заказчика даёт сам договор подряда. Отдельное согласие понадобится ей для рассылок и публикации фото «до/после» в портфолио. Шаблон такого согласия удобно встроить в приложение, чтобы компания отправляла его клиенту на подпись по ПЭП. Распознавание лиц на фото не делать, чтобы не попасть в биометрию: позиции РКН по фото расходятся (<a href="https://legalacts.ru/doc/razjasnenija-roskomnadzora-o-voprosakh-otnesenija-foto-i/" target="_blank" rel="noopener noreferrer">legalacts.ru</a>). <strong>ЮРИСТ.</strong></p>
+<h3 id="локализация-и-хостинг-всё-с-пдн--в-российском-цод">Локализация и хостинг: всё с ПДн — в российском ЦОД</h3>
+<p><strong>Факт.</strong> С 01.07.2025 (23-ФЗ от 28.02.2025) при сборе ПДн граждан РФ запрещено записывать, систематизировать, накапливать, хранить, уточнять и извлекать их с использованием баз данных за рубежом (<a href="https://companies.rbc.ru/news/SZRjtRsMIn/novyie-trebovaniya-k-obrabotke-personalnyih-dannyih-polnyij-gajd-na-2026-god/" target="_blank" rel="noopener noreferrer">РБК Компании</a>, <a href="https://www.comnews.ru/digital-economy/content/241730/2025-10-13/2025-w42/1016/granica-zamke-osobennosti-raboty-personalnymi-dannymi-rossii" target="_blank" rel="noopener noreferrer">ComNews</a>). Штраф для юрлица — до 6 млн ₽, при повторном нарушении — до 18 млн ₽ (<a href="https://www.unisender.com/ru/blog/otvetstvennost-za-personalnye-dannye-trebovaniya-k-lokalizacii/" target="_blank" rel="noopener noreferrer">Unisender</a>). С 01.03.2023 любая трансграничная передача требует отдельного предварительного уведомления РКН (<a href="https://buh.ru/news/uchet_nalogi/164243/" target="_blank" rel="noopener noreferrer">buh.ru</a>).</p>
+<p>Три облака публично заявляют аттестат ИСПДн до УЗ-1 и дают договор-поручение: Yandex Cloud (<a href="https://yandex.cloud/ru/security/standards/152-fz" target="_blank" rel="noopener noreferrer">yandex.cloud</a>), Selectel (<a href="https://selectel.ru/services/cloud/servers/152fz/" target="_blank" rel="noopener noreferrer">selectel.ru</a>) и Cloud.ru (<a href="https://cloud.ru/services/oblako-152fz" target="_blank" rel="noopener noreferrer">cloud.ru</a>). По VK Cloud и Timeweb Cloud официальных страниц о 152-ФЗ найти не удалось.</p>
+<p><strong>Рекомендация.</strong> В российском аттестованном сегменте должно лежать всё, где есть ПДн: основная БД, хранилище фото и сканов актов, переписка, резервные копии и логи с телефонами и IP. Иностранные сервисы не должны получать ПДн: Google Analytics, Firebase, Sentry, зарубежные SMTP и SMS-шлюзы, LLM-API, push через Apple и Google с персональными данными в тексте. <strong>Существующее приложение автора нужно проверить на это в первую очередь</strong> — где оно размещено и какие SDK использует, неизвестно, <mark class="todo">нужно уточнить</mark>.</p>
+<h3 id="уведомления-безопасность-утечки">Уведомления, безопасность, утечки</h3>
+<p><strong>Факт.</strong> С 01.09.2022 уведомлять РКН до начала обработки обязаны почти все операторы (<a href="https://habr.com/ru/post/680810" target="_blank" rel="noopener noreferrer">habr.com</a>). С 30.05.2025 неподача уведомления — отдельный состав (ч. 10 ст. 13.11): до 300 тыс. ₽ для юрлица (<a href="https://buh.ru/articles/shtrafy-za-personalnye-dannye-s-30-maya-2025-goda-utechka-v-internet-neuvedomlenie-rkn-o-nachale-obr.html" target="_blank" rel="noopener noreferrer">buh.ru</a>).</p>
+<p>Об утечке оператор уведомляет РКН дважды: в течение 24 часов и в течение 72 часов (<a href="https://its.1c.ru/db/content/newscomm/src/482635.htm" target="_blank" rel="noopener noreferrer">ИТС 1С</a>). За неуведомление (ч. 11 ст. 13.11) юрлицо платит до 3 млн ₽ (<a href="https://vitvet.com/articles/koap/sostavy/neuvedomlenie-rkn-utechka-13-11-ch11/" target="_blank" rel="noopener noreferrer">ВИТВЕТ</a>).</p>
+<p>Уровень защищённости определяется по ПП № 1119. Для «иных» ПДн при угрозах 3-го типа граница — 100 тыс. субъектов (<a href="https://www.s-terra.ru/upload/iblock/bf8/Webinar_Sterra_30-03-2017_Obzor-zakonodatelstva-po-zaschite-PDn.pdf" target="_blank" rel="noopener noreferrer">S-Terra</a>), а состав мер для каждого уровня задаёт приказ ФСТЭК № 21 (<a href="https://kontur.ru/aegis/blog/83426-prikaz_fstek_21" target="_blank" rel="noopener noreferrer">Контур.Эгида</a>).</p>
+<p><strong>Вывод.</strong> Каждая ремонтная компания — маленький оператор, но мультиарендная база SaaS суммарно легко превысит 10 тыс. и даже 100 тыс. субъектов. Это главный регуляторный риск продукта.</p>
+<p><strong>Рекомендация.</strong> Проектировать систему под УЗ-3. Подать уведомление РКН как оператор собственных пользователей до запуска. Завести минимальный пакет документов: приказ об ответственном, политику ПДн, модель угроз, регламент инцидентов. В регламенте обещать клиенту уведомление быстрее чем за 24 часа, чтобы он успевал уведомить РКН сам. <strong>ЮРИСТ</strong> или лицензиат ФСТЭК.</p>
+<h3 id="деньги-касса-ндс-22-льгота-для-по-из-реестра">Деньги: касса, НДС 22%, льгота для ПО из реестра</h3>
+<p><strong>54-ФЗ (касса).</strong> При оплате картой, СБП или по QR чек обязателен, квитанция эквайринга его не заменяет. За невыдачу чека — штраф 10 000 ₽ для организации и 2 000 ₽ для ИП (<a href="https://www.sostav.ru/blogs/269097/51073" target="_blank" rel="noopener noreferrer">Sostav</a>). Без ККТ можно принимать только безналичные платежи организаций и ИП с расчётного счёта без электронных средств платежа (<a href="https://www.nalog.gov.ru/html/sites/www.rn86.nalog.ru/files/Publichnye%20obsujdeniya/2kv_2022/Otvet_na_vopros.docx" target="_blank" rel="noopener noreferrer">ИФНС</a>). Корпоративная карта — тоже электронное средство платежа, значит, нужен чек.</p>
+<p><strong>НДС.</strong> С 01.01.2026 общая ставка НДС — 22% (425-ФЗ) (<a href="https://ppt.ru/news/nds/nds-22-s-2026-goda-zakon-opublikovan" target="_blank" rel="noopener noreferrer">ppt.ru</a>). Порог освобождения на УСН — 20 млн ₽; 228-ФЗ от 04.07.2026 сохранил его на 2026–2029 годы (<a href="https://www.v2b.ru/2026/07/06/limit-dohodov-dlya-uplaty-nds-na-usn-sohranyon-na-urovne-20-mln/" target="_blank" rel="noopener noreferrer">v2b.ru</a>).</p>
+<p><strong>Льгота для ПО из реестра.</strong> Право удалённого пользования программой по модели SaaS освобождается от НДС по пп. 26 п. 2 ст. 149 НК, если ПО включено в реестр российского ПО. Так ответил Минфин в письмах от 18.05.2026 № 03-07-07/41161 и от 11.03.2025 № 03-07-07/23592 (<a href="https://its.1c.ru/db/content/newsclar/src/500597.htm" target="_blank" rel="noopener noreferrer">ИТС 1С</a>). Для ПО не из реестра льгота не применяется (<a href="https://buhexpert8.ru/?p=143908" target="_blank" rel="noopener noreferrer">buhexpert8.ru</a>). По ПП № 1236 исключительные права на ПО должны принадлежать российскому юрлицу или гражданину РФ; это позиция коммерческого сервиса, её нужно сверить (<a href="https://vnesenie-v-reestr.ru/software" target="_blank" rel="noopener noreferrer">vnesenie-v-reestr.ru</a>).</p>
+<p><strong>IT-аккредитация.</strong> Её даёт ПП № 1729 в редакции ПП № 1949. Условия: доля IT-выручки — более 30%, выручка — более 1 млн ₽ (<a href="https://infostart.ru/journal/news/uchet-nalogi-pravo/skorrektirovany-kriterii-polucheniya-gosakkreditatsii-rossiyskimi-it-organizatsiyami_2552391/" target="_blank" rel="noopener noreferrer">Infostart</a>). Льготы 2026 года — налог на прибыль 5%, страховые взносы 15% в пределах базы и 7,6% сверх неё — доступны при не менее 70% IT-выручки и ПО в реестре (<a href="https://ppt.ru/news/strah-vsnosy/s-2026-goda-menyayutsya-lgotnye-tarify-strakhovykh-vznosov-dlya-it-kompaniy" target="_blank" rel="noopener noreferrer">ppt.ru</a>).</p>
+<p><strong>Вывод и рекомендация.</strong> Ремонтная компания автора не пройдёт порог IT-выручки, поэтому SaaS лучше вести в <strong>отдельном юрлице</strong>. Это нужно и для чистоты ролей по ПДн (раздел 8). Права на код существующего приложения нужно оформить на это юрлицо: если код писали подрядчики, нужен договор отчуждения. На старте, при УСН и доходе до 20 млн ₽, НДС не платится и без реестра. Реестр нужен для роста, клиентов на ОСН и IT-льгот. Поддержку и внедрение лучше выделять отдельными услугами, потому что они облагаются НДС. <strong>ЮРИСТ</strong> или налоговый консультант.</p>
+<h3 id="вход-только-российский-телефон-или-госуслуги">Вход: только российский телефон или Госуслуги</h3>
+<p><strong>Факт.</strong> С 01.12.2023 (406-ФЗ, ч. 10 ст. 8 149-ФЗ) владельцы российских сайтов и приложений авторизуют граждан РФ только четырьмя способами: по российскому номеру телефона, через ЕСИА, ЕБС или «иную систему» под российским контролем (<a href="https://www.sostav.ru/blogs/268560/40069" target="_blank" rel="noopener noreferrer">Sostav</a>).</p>
+<p>С 07.07.2026 (по другому источнику — с 06.07.2026) действует ст. 13.55 КоАП (199-ФЗ от 26.06.2026) со штрафами (<a href="https://its.1c.ru/db/content/newscomm/src/500375.htm" target="_blank" rel="noopener noreferrer">ИТС 1С</a>, <a href="https://pravo.ru/news/264596/" target="_blank" rel="noopener noreferrer">Право.ру</a>):</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Нарушитель</th>
+<th>Штраф</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Граждане</td>
+<td>10–20 тыс. ₽</td>
+</tr>
+<tr>
+<td>Должностные лица и ИП</td>
+<td>30–50 тыс. ₽</td>
+</tr>
+<tr>
+<td>Юрлица</td>
+<td>500–700 тыс. ₽</td>
+</tr>
+</tbody>
+</table></div>
+<p>Заголовок о «до 1,4 млн» на <a href="https://ppt.ru/amp/news/shtrafi/shtrafy-za-avtorizatsiyu-na-saytakh-cherez-inostrannuyu-pochtu-sostavyat-do-1-4-mln-rubley" target="_blank" rel="noopener noreferrer">ppt.ru</a> расходится с другими источниками; возможно, речь о повторном нарушении — <mark class="todo">нужно уточнить</mark>. Исключения для B2B в норме не найдено.</p>
+<p><strong>Рекомендация.</strong> Вход по номеру телефона с кодом. Кнопок «Войти через Google или Apple» не делать. Яндекс ID, VK ID и Сбер ID добавлять, только если подтвердится, что они считаются «иной системой». Заказчику, который открывает акт по ссылке, — тоже вход по телефону: это совпадает со сценарием ПЭП. <strong>ЮРИСТ.</strong></p>
+<h3 id="чат-риск-статуса-ори">Чат: риск статуса ОРИ</h3>
+<p><strong>Факт.</strong> По ст. 10.1 149-ФЗ организатором распространения информации (ОРИ) считается лицо, обеспечивающее работу систем для приёма и передачи электронных сообщений пользователей. ОРИ обязан уведомить РКН и хранить в РФ метаданные и сами сообщения (<a href="https://base.garant.ru/12148555/baf8d0298b9a3923e3794eecbe3d1996/" target="_blank" rel="noopener noreferrer">Гарант</a>).</p>
+<p>По позиции, публично заявленной участником рынка, обязанности ОРИ возникают независимо от включения в реестр. Затраты МСП на исполнение эксперты оценивали примерно в 1 млн ₽ (данные 2024 года) (<a href="https://profile.ru/?p=920827" target="_blank" rel="noopener noreferrer">profile.ru, 01.10.2026</a>). В реестр включались сервисы, где общение — не основная функция, например HeadHunter и мессенджер Сбербанка (<a href="https://infostart.ru/journal/news/zhizn/messendzher-sberbanka-ugodil-v-reestr-roskomnadzora_992746" target="_blank" rel="noopener noreferrer">Infostart</a>). Исключений для B2B-чатов найти не удалось.</p>
+<p><strong>Рекомендация.</strong> Вместо свободного чата сделать комментарии к этапам и задачам заказа — ленту событий объекта. Уведомления отправлять по SMS или в российский мессенджер со ссылкой. Если полноценный чат критичен — заранее готовиться к уведомлению РКН. Хранение переписки в РФ нужно и так, по 152-ФЗ. <strong>ЮРИСТ обязательно.</strong></p>
+<h3 id="акты-простая-электронная-подпись-по-sms">Акты: простая электронная подпись по SMS</h3>
+<p><strong>Факт.</strong> Код из SMS — это простая электронная подпись (ПЭП) (<a href="https://www.unisender.com/ru/blog/kak-ustroeno-podpisanie-dokumentov-cherez-sms/" target="_blank" rel="noopener noreferrer">Unisender</a>). Документ с ПЭП равнозначен бумажному, если это предусмотрено законом или соглашением сторон. Соглашение должно задавать правила, по которым определяется подписавший (ч. 2 ст. 6 и ст. 9 63-ФЗ) (<a href="https://www.consultant.ru/document/cons_doc_LAW_112701/" target="_blank" rel="noopener noreferrer">63-ФЗ</a>). Суды опираются на наличие такого соглашения (<a href="https://sudact.ru/regular/doc/FYu9DU9l2ZNd/" target="_blank" rel="noopener noreferrer">sudact.ru, дело № 2-6409/2024</a>). Практики именно по актам ремонта, подписанным по SMS, найти не удалось.</p>
+<p><strong>Рекомендация.</strong> Соглашение о ПЭП заключают ремонтная компания и её заказчик — лучше пунктом в договоре подряда при первой встрече. SaaS даёт шаблон и в оферте фиксирует, что он технический посредник, а не сторона соглашения. Механика в продукте:</p>
+<ol>
+<li>Подтверждение номера кодом.</li>
+<li>Подписание акта кодом из SMS.</li>
+<li>Запись в журнал: хеш документа, время, IP, номер, текст SMS, идентификатор сессии.</li>
+<li>PDF с отметкой о подписи — обеим сторонам.</li>
+</ol>
+<p>Заказчик — потребитель, поэтому условие не должно ограничивать его право оспорить акт (ст. 16 ЗоЗПП). <strong>ЮРИСТ.</strong></p>
+<h3 id="реклама-маркировка-erid">Реклама: маркировка erid</h3>
+<p><strong>Факт.</strong> Любая интернет-реклама требует токена erid от оператора рекламных данных (ОРД) и данных в ЕРИР (<a href="https://secrets.tbank.ru/glossarij/erir/" target="_blank" rel="noopener noreferrer">Т-Банк</a>). За январь–май 2025 года РКН вынес 230 постановлений на 13,08 млн ₽; 81% из них — за отсутствие erid (<a href="https://www.sostav.ru/blogs/239662/55258" target="_blank" rel="noopener noreferrer">Sostav</a>). Штрафы — до 500 тыс. ₽, при повторном нарушении — до 1 млн ₽ (<a href="https://postium.ru/razmery-shtrafov-za-narushenie-zakona-o-markirovke-reklamy/" target="_blank" rel="noopener noreferrer">Postium</a>).</p>
+<p><strong>Рекомендация.</strong> В Директе и VK Рекламе маркировкой занимаются ОРД площадок. Для посевов в Telegram нужны договор, регистрация креатива и erid.</p>
+<h3 id="сводная-таблица-что-сделать-до-первого-платежа-и-чем-грозит-пропуск">Сводная таблица: что сделать до первого платежа и чем грозит пропуск</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>№</th>
+<th>Что сделать</th>
+<th>Санкция за пропуск (факт)</th>
+<th>Источник</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Оферта-лицензия, тарифы, SLA, редакция для физлиц</td>
+<td>риск ничтожности условий по ст. 16 ЗоЗПП</td>
+<td><a href="https://legalacts.ru/doc/ZZPP/glava-i/statja-16/" target="_blank" rel="noopener noreferrer">legalacts.ru</a></td>
+</tr>
+<tr>
+<td>2</td>
+<td>Политика ПДн на сайте и уведомление РКН</td>
+<td>неподача уведомления — до 300 тыс. ₽ (юрлицо); штраф за политику — <mark class="todo">нужно уточнить</mark></td>
+<td><a href="https://buh.ru/articles/shtrafy-za-personalnye-dannye-s-30-maya-2025-goda-utechka-v-internet-neuvedomlenie-rkn-o-nachale-obr.html" target="_blank" rel="noopener noreferrer">buh.ru</a></td>
+</tr>
+<tr>
+<td>3</td>
+<td>Поручение (ч. 3 ст. 6) в оферте; шаблоны согласия (отдельный документ) и соглашения о ПЭП для клиентов</td>
+<td>без надлежащего согласия — до 700 тыс. ₽, повторно до 1,5 млн ₽</td>
+<td><a href="https://tochka.com/knowledge/buhgalteriya/soglasie-na-obrabotku-personalnyh-dannyh/" target="_blank" rel="noopener noreferrer">tochka.com</a></td>
+</tr>
+<tr>
+<td>4</td>
+<td>Все ПДн — в аттестованном российском облаке; иностранные SDK без ПДн</td>
+<td>локализация — до 6 млн ₽, повторно до 18 млн ₽</td>
+<td><a href="https://www.unisender.com/ru/blog/otvetstvennost-za-personalnye-dannye-trebovaniya-k-lokalizacii/" target="_blank" rel="noopener noreferrer">Unisender</a></td>
+</tr>
+<tr>
+<td>5</td>
+<td>Вход только по российскому телефону или ЕСИА</td>
+<td>500–700 тыс. ₽ (юрлицо)</td>
+<td><a href="https://pravo.ru/news/264596/" target="_blank" rel="noopener noreferrer">Право.ру</a></td>
+</tr>
+<tr>
+<td>6</td>
+<td>Касса для оплат картой и СБП; счёт для юрлиц; верный признак НДС в чеке</td>
+<td>невыдача чека — 10 000 ₽ (организация)</td>
+<td><a href="https://www.sostav.ru/blogs/269097/51073" target="_blank" rel="noopener noreferrer">Sostav</a></td>
+</tr>
+<tr>
+<td>7</td>
+<td>Чат заменить комментариями к этапам или готовиться к статусу ОРИ</td>
+<td>штрафы по ст. 13.31 КоАП — <mark class="todo">нужно уточнить</mark>; затраты ~1 млн ₽ (оценка 2024 года)</td>
+<td><a href="https://profile.ru/?p=920827" target="_blank" rel="noopener noreferrer">profile.ru</a></td>
+</tr>
+<tr>
+<td>8</td>
+<td>Маркировка рекламы</td>
+<td>до 500 тыс. ₽, повторно до 1 млн ₽</td>
+<td><a href="https://postium.ru/razmery-shtrafov-za-narushenie-zakona-o-markirovke-reklamy/" target="_blank" rel="noopener noreferrer">Postium</a></td>
+</tr>
+<tr>
+<td>—</td>
+<td>Регламент инцидентов (24/72 ч)</td>
+<td>неуведомление — до 3 млн ₽</td>
+<td><a href="https://vitvet.com/articles/koap/sostavy/neuvedomlenie-rkn-utechka-13-11-ch11/" target="_blank" rel="noopener noreferrer">ВИТВЕТ</a></td>
+</tr>
+<tr>
+<td>—</td>
+<td>Защита от утечки (журналирование, ограничение экспорта, NDA)</td>
+<td>утечка 1–10 тыс. субъектов — 3–5 млн ₽; 10–100 тыс. — 5–10 млн ₽; свыше 100 тыс. — 10–15 млн ₽; повторная — 1–3% выручки, но не более 500 млн ₽ (минимум 15, 20 или 25 млн ₽ — источники расходятся); уголовная ст. 272.1 УК — штраф до 300 тыс. ₽ или лишение свободы до 4 лет</td>
+<td><a href="https://www.garant.ru/news/1819191/" target="_blank" rel="noopener noreferrer">Гарант</a>, <a href="https://pravo.ru/news/258973/" target="_blank" rel="noopener noreferrer">Право.ру</a>, <a href="https://vitvet.com/articles/koap/otrasli/shtraf-it-kompanii-utechka-dannyh-polzovatelej/" target="_blank" rel="noopener noreferrer">ВИТВЕТ</a>, <a href="https://ppt.ru/obzory/vstupaet-v-silu/federalnyy-zakon-30-11-2024-421-fz" target="_blank" rel="noopener noreferrer">ppt.ru</a></td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="6-план-первых-90-дней-13-недель-09112026--07022027">6. План первых 90 дней (13 недель): 09.11.2026 — 07.02.2027</h2>
+<p><strong>Рекомендация (гипотеза).</strong> Весь план — рекомендация. Факты, на которые он опирается, даны со ссылками в разделах 1–5. Все количественные цели в колонке «Контрольная точка» — <strong>допущения</strong>, а не бенчмарки. Ниже по каждой неделе: что сделать в продукте и юридически, что в продажах и маркетинге, и контрольная точка.</p>
+<p><strong>Этап 0. Фундамент — недели 1–3 (09.11–29.11.2026).</strong></p>
+<p><strong>Неделя 1 (09–15.11).</strong>
+- <em>Продукт и право.</em> Аудит собственного приложения: где БД и файлы (РФ или нет); какие внешние SDK получают ПДн; есть ли вход через Google или Apple; есть ли свободный чат; готова ли мультиарендность (роли, изоляция данных компаний, биллинг); кому принадлежат права на код. Решение об отдельном юрлице для SaaS.
+- <em>Продажи и маркетинг.</em> Снять точную частотность Wordstat по 5–10 запросам («программа для ремонтной компании», «crm для ремонта», «программа для прораба», «смета ремонт программа», «контроль ремонта приложение») по РФ и по краю. Сценарий custdev-интервью. Начать список компаний.
+- <em>Контрольная точка.</em> Список «красных» пунктов из раздела 5; решение по юрлицу.</p>
+<p><strong>Неделя 2 (16–22.11).</strong>
+- <em>Продукт и право.</em> Заказать у юриста: оферту-лицензию (бизнес и физлица), политику ПДн, поручение, шаблоны согласия и соглашения о ПЭП. Выбрать аттестованное облако и начать перенос. Вход по телефону.
+- <em>Продажи и маркетинг.</em> 10 интервью с владельцами и прорабами из личной сети. Показывать сетку из раздела 3 и спрашивать, какой тариф и почему.
+- <em>Контрольная точка.</em> ≥10 интервью.</p>
+<p><strong>Неделя 3 (23–29.11).</strong>
+- <em>Продукт и право.</em> Уведомление РКН. Подключить эквайринг с облачной кассой и оплату по счёту. Убрать вход через Google и Apple. Опубликовать оферту и политику на лендинге.
+- <em>Продажи и маркетинг.</em> Ещё 10 интервью. Отобрать 5 «компаний-основателей» и сделать им оффер платного пилота.
+- <em>Контрольная точка.</em> 3–5 согласий на пилот.</p>
+<p><strong>Этап 1. Пилоты — недели 4–7 (30.11–27.12.2026).</strong></p>
+<p><strong>Неделя 4 (30.11–06.12).</strong>
+- <em>Продукт и право.</em> Онбординг пилотов «под ключ»: команда сама переносит смету и прайс из Excel клиента. Свободный чат заменить комментариями к этапам.
+- <em>Продажи и маркетинг.</em> Старт пилотов. Запуск теста в Директе на 10–20 тыс. ₽ плюс 20–40% запаса, через ОРД Яндекса.
+- <em>Контрольная точка.</em> Пилоты в работе, первые данные по Директу.</p>
+<p><strong>Неделя 5 (07–13.12).</strong>
+- <em>Продукт и право.</em> Исправления по обратной связи. Проверить журнал ПЭП на реальном акте.
+- <em>Продажи и маркетинг.</em> Кейс собственной компании: что изменилось на объектах. Публикации на FORUMHOUSE и в Telegram. Вторая волна обращений — 50 компаний из списка.
+- <em>Контрольная точка.</em> Собраны метрики пилотов (использование, акты, оплаты этапов).</p>
+<p><strong>Неделя 6 (14–20.12).</strong>
+- <em>Продукт и право.</em> Мобильное приложение прораба — подготовка публикации в RuStore.
+- <em>Продажи и маркетинг.</em> Анализ CPL в Директе; решение, продолжать ли. Разговоры с B2B-отделами 2–3 краснодарских магазинов стройматериалов и 2–3 дизайн-студиями.
+- <em>Контрольная точка.</em> Первые 2–3 оплаты.</p>
+<p><strong>Неделя 7 (21–27.12).</strong>
+- <em>Продукт и право.</em> Перевод первых пилотов на подписку; предложение годовой оплаты до конца года.
+- <em>Продажи и маркетинг.</em> Закрыть сделки до праздников.
+- <em>Контрольная точка.</em> 3–5 платящих.</p>
+<p><strong>Этап 2. Праздничная пауза — недели 8–9 (28.12.2026–10.01.2027).</strong> Точные даты каникул — по производственному календарю 2027 года, <mark class="todo">нужно уточнить</mark>.</p>
+<p><strong>Неделя 8 (28.12–03.01).</strong>
+- <em>Продукт и право.</em> Технический долг, публикация в RuStore. Сбор документов для реестра ПО — если по итогам консультации он нужен.
+- <em>Продажи и маркетинг.</em> Минимальная активность.
+- <em>Контрольная точка.</em> —</p>
+<p><strong>Неделя 9 (04–10.01).</strong>
+- <em>Продукт и право.</em> Разбор данных пилотов: что используют, что нет.
+- <em>Продажи и маркетинг.</em> Подготовить реферальное предложение и материалы для январской волны.
+- <em>Контрольная точка.</em> —</p>
+<p><strong>Этап 3. Масштабирование до 10 — недели 10–13 (11.01–07.02.2027).</strong></p>
+<p><strong>Неделя 10 (11–17.01).</strong>
+- <em>Продукт и право.</em> Онбординг второй группы пилотов.
+- <em>Продажи и маркетинг.</em> Третья волна обращений. Рекомендации от первых клиентов.
+- <em>Контрольная точка.</em> 5–8 платящих.</p>
+<p><strong>Неделя 11 (18–24.01).</strong>
+- <em>Продукт и право.</em> Решения: интеграция с Битрикс24 Маркетом (да или нет); реестр ПО и IT-аккредитация (сроки).
+- <em>Продажи и маркетинг.</em> Партнёрские продажи через магазины и студии, если неделя 6 дала сигнал.
+- <em>Контрольная точка.</em> —</p>
+<p><strong>Неделя 12 (25–31.01).</strong>
+- <em>Продукт и право.</em> Исправления по второй группе.
+- <em>Продажи и маркетинг.</em> Перевод второй группы пилотов на подписку.
+- <em>Контрольная точка.</em> —</p>
+<p><strong>Неделя 13 (01–07.02).</strong>
+- <em>Продукт и право.</em> Ретроспектива 90 дней: фактическая конверсия на каждом шаге, отток, какие лимиты упирались. Пересмотр тарифной сетки.
+- <em>Продажи и маркетинг.</em> Подготовка к YugBuild 2027 (2–4 или 2–5 марта). Отслеживание очередей ФСИ и ФРИИ на 2027 год.
+- <em>Контрольная точка.</em> <strong>10 платящих.</strong></p>
+<p><strong>Вывод.</strong> Новогодние каникулы выпадают на недели 8–9, поэтому сделки разумно закрывать до 27.12. Без формальностей недель 1–3 нельзя честно брать деньги даже за пилот. Это касается оферты, политики, кассы, хостинга в РФ и входа по телефону. Порядок «сначала юридика, потом выручка» здесь не перестраховка, а условие.</p>
+<hr />
+<h2 id="7-первые-10-платящих-платный-пилот-вместо-холодной-рекламы">7. Первые 10 платящих: платный пилот вместо холодной рекламы</h2>
+<p><strong>Рекомендация (гипотеза).</strong> Ниже конкретные шаги. Для каждого указан факт, на который он опирается.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Шаг</th>
+<th>Что сделать</th>
+<th>Почему (факт и источник)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>1. Кейс №0 — своя компания</strong></td>
+<td>Измерить «до и после» на объектах автора: время на смету и КП, число споров по объёму, перерасход материалов к смете, сроки оплаты этапов. Собственные данные автора — нужно собрать</td>
+<td>Боли измеримы и известны покупателю: накрутка 30–40% (<a href="https://vc.ru/life/1749489-iz-it-v-stroiku-kak-aitishniki-iz-moskvy-otkryli-sovremennuyu-remontnuyu-kompaniyu-v-moskve-i-skolko-eto-prinosit" target="_blank" rel="noopener noreferrer">vc.ru</a>), расхождение объёма в 32% случаев (<a href="https://spb.mk.ru/economics/2025/07/14/avito-uslugi-kazhdyy-tretiy-zakazchik-somnevaetsya-v-kachestve-remonta.html" target="_blank" rel="noopener noreferrer">МК</a>)</td>
+</tr>
+<tr>
+<td><strong>2. Список из 200 контактов</strong></td>
+<td>Личная сеть, субподрядчики, поставщики; ремонтные компании края с Авито, Профи.ру и 2ГИС; сегмент C (4–8 объектов) в приоритете</td>
+<td>По грубой оценке, в крае порядка 4 тыс. отделочных юрлиц (раздел 2) — <mark class="todo">нужно уточнить</mark>; исполнители видны публично на площадках (<a href="https://profi.ru/remont/remont/" target="_blank" rel="noopener noreferrer">profi.ru</a>)</td>
+</tr>
+<tr>
+<td><strong>3. Оффер «компания-основатель»</strong></td>
+<td>Платный пилот на 30 дней по цене выбранного тарифа; фиксация цены на 12 месяцев; перенос сметы и прайса из Excel силами команды автора; отзыв и кейс взамен</td>
+<td>Российский B2B-кейс: отказ от бесплатного триала в пользу платного пилота поднял конверсию с 4% до 23% (<a href="https://vc.ru/life/2733023-kak-otklyuchenie-besplatnogo-triala-uvelichilo-b2b-prodazhi" target="_blank" rel="noopener noreferrer">vc.ru</a>); на Gectaro жалуются на долгое обучение и миграцию из Excel (цитаты с агрегаторов отзывов, раздел 1); стоимость внедрения — главный барьер для 65% малых компаний (<a href="https://www.novostiitkanala.ru/news/detail.php?ID=181940" target="_blank" rel="noopener noreferrer">Новости IT-канала</a>)</td>
+</tr>
+<tr>
+<td><strong>4. Демо на живом объекте</strong></td>
+<td>Показать клиентскую ленту, подписание акта по SMS и оплату этапа на реальном объекте автора, а не на тестовых данных</td>
+<td>Самые сильные свидетельства — боль заказчика; заказ часто получает тот, кто первым даёт смету и договор (<a href="https://vc.ru/growth/2934568-vnedrenie-amocrm-dlya-remontnoy-kompanii-avtomatizatsiya-smet-i-dokumentov" target="_blank" rel="noopener noreferrer">vc.ru</a>)</td>
+</tr>
+<tr>
+<td><strong>5. Контрольная встреча на 21–25-й день</strong></td>
+<td>Разобрать использование (сколько актов подписано, сколько этапов оплачено через продукт); предложить годовую оплату со скидкой ≈17%</td>
+<td>Годовая скидка у конкурентов — чаще всего 15–20%, у «101» ≈26% (раздел 3)</td>
+</tr>
+<tr>
+<td><strong>6. Рекомендации</strong></td>
+<td>Месяц бесплатно за приведённую компанию — гипотеза</td>
+<td>Ниша формирует доверие через кейсы и сарафан, а не через отзовики (раздел 1)</td>
+</tr>
+<tr>
+<td><strong>7. Параллельно — самообслуживание</strong></td>
+<td>Бесплатный «Старт», бесплатный калькулятор сметы без регистрации как лид-магнит, тест Директа</td>
+<td>Бесплатный калькулятор без регистрации есть у SMpro (<a href="https://smpro.tech/solutions/smeta-na-remont" target="_blank" rel="noopener noreferrer">smpro.tech</a>), калькулятор «Петровича» продаёт товары магазина (<a href="https://petrovich.ru/kalkulyator-remonta/raschet-stoimosti/" target="_blank" rel="noopener noreferrer">petrovich.ru</a>)</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="воронка-все-конверсии-кроме-помеченных--допущения">Воронка: все конверсии, кроме помеченных, — допущения</h3>
+<p><strong>Основной путь — продажи основателя (Краснодар и край).</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Этап</th>
+<th>Количество</th>
+<th>Конверсия этапа</th>
+<th>Статус</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>База контактов</td>
+<td>200</td>
+<td>—</td>
+<td>допущение (реальный размер базы в крае <mark class="todo">нужно уточнить</mark>)</td>
+</tr>
+<tr>
+<td>Состоявшийся первый разговор</td>
+<td>80</td>
+<td>40%</td>
+<td>допущение</td>
+</tr>
+<tr>
+<td>Демо или custdev-встреча</td>
+<td>40</td>
+<td>50%</td>
+<td>допущение</td>
+</tr>
+<tr>
+<td>Платный пилот на 30 дней</td>
+<td>20</td>
+<td>50%</td>
+<td>допущение</td>
+</tr>
+<tr>
+<td>Платящий клиент после пилота</td>
+<td><strong>10</strong></td>
+<td>50%</td>
+<td>допущение</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Проверка на разумность.</strong> Сквозная конверсия «демо → оплата» в этой воронке — 25% (расчёт: 10 / 40). Это сопоставимо с двумя внешними ориентирами. Первый — иностранный: триалы без карты конвертируются примерно в 25% (<a href="https://baremetrics.com/blog/trial-conversion-rate-metrics-explained" target="_blank" rel="noopener noreferrer">Baremetrics</a>). Второй — единичный российский кейс с платным пилотом, давший 23% (<a href="https://vc.ru/life/2733023-kak-otklyuchenie-besplatnogo-triala-uvelichilo-b2b-prodazhi" target="_blank" rel="noopener noreferrer">vc.ru</a>). Ни одна из этих цифр не измерена на рынке ремонта. Российских бенчмарков trial→paid, оттока и длины цикла сделки для SMB SaaS найти не удалось.</p>
+<p><strong>Почему самообслуживание не заменит продажи основателя.</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Показатель</th>
+<th>Значение</th>
+<th>Статус</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Медианная конверсия free→paid за 6 месяцев (ChartMogul и ProductLed, опрос 200 B2B-продуктов, январь 2026)</td>
+<td>8%</td>
+<td>факт, иностранный бенчмарк (<a href="https://chartmogul.com/reports/saas-conversion-report/" target="_blank" rel="noopener noreferrer">ChartMogul</a>)</td>
+</tr>
+<tr>
+<td>Регистраций, нужных для 10 платящих</td>
+<td>~125</td>
+<td>расчёт: 10 / 0,08; за 90 дней, а не за 6 месяцев, понадобится больше</td>
+</tr>
+<tr>
+<td>Кликов за тестовые 20 000 ₽ в Директе</td>
+<td>~13–133</td>
+<td>расчёт: 20 000 / 1 500 ≈ 13; 20 000 / 150 ≈ 133 — по агентской оценке 150–1 500 ₽ за клик (<a href="https://digitalriff.ru/services/kontekstnaya-reklama-dlya-it-saas/" target="_blank" rel="noopener noreferrer">digitalriff.ru</a>)</td>
+</tr>
+<tr>
+<td>Конверсия клика в регистрацию</td>
+<td><mark class="todo">нужно уточнить</mark></td>
+<td>данных нет, измерить тестом</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Вывод.</strong> Даже в лучшем случае тестовый бюджет Директа даёт кликов примерно столько, сколько нужно регистраций. При любой реалистичной конверсии клика в регистрацию самообслуживание за 90 дней не принесёт 10 платящих. Бесплатный тариф и реклама в этот период работают на измерение спроса и на будущий поток. Первые 10 клиентов — задача личных продаж автора.</p>
+<hr />
+<h2 id="8-риски-и-как-их-снижать">8. Риски и как их снижать</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Риск</th>
+<th>Свидетельство</th>
+<th>Как снижать (рекомендация)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Неотличимость: «ссылка для заказчика» есть у всех</strong></td>
+<td>Reparo, Сметера, Смета Просто, «Прораб 360», Gectaro (раздел 1)</td>
+<td>Продавать незакрытую связку: оплата этапа с подтверждением заказчиком, акт на ПЭП, 3D → смета → исполнение, приложение прораба в RuStore</td>
+</tr>
+<tr>
+<td><strong>Бесплатные конкуренты давят на цену</strong></td>
+<td>Бесплатные тарифы у 6 продуктов; Smart Plan бесплатно считает смету «за 15 секунд» (<a href="https://www.cnews.ru/news/line/2026-07-13_v_rossii_zapushchen_besplatnyj" target="_blank" rel="noopener noreferrer">CNews</a>)</td>
+<td>Бесплатный «Старт» с жёстким лимитом в 1 объект; самое ценное (оплаты по этапам, акты, команда) — только в платных тарифах</td>
+</tr>
+<tr>
+<td><strong>Главный конкурент — Excel и мессенджер</strong></td>
+<td>Половина компаний без CRM — в Excel или Google Таблицах (<a href="https://www.klerk.ru/buh/articles/645537/" target="_blank" rel="noopener noreferrer">Клерк</a>); цена внедрения — барьер для 65% (<a href="https://www.novostiitkanala.ru/news/detail.php?ID=181940" target="_blank" rel="noopener noreferrer">Новости IT-канала</a>)</td>
+<td>Онбординг «под ключ», импорт из Excel, работа без интегратора; уведомления туда, где клиент уже общается</td>
+</tr>
+<tr>
+<td><strong>Сжатие строительного рынка в крае</strong></td>
+<td>Ввод −31,7% за 9 месяцев 2026 года (<a href="https://krasnodarmedia.su/news/2658786/" target="_blank" rel="noopener noreferrer">KrasnodarMedia</a>); распроданность ≤24% (<a href="https://rostov.rbc.ru/rostov/26/08/2026/6a8edb0d9a794736d4c9ded3" target="_blank" rel="noopener noreferrer">РБК Ростов</a>); ставка 14% (<a href="https://www.cbr.ru/hd_base/keyrate/" target="_blank" rel="noopener noreferrer">ЦБ РФ</a>)</td>
+<td>Не замыкаться на ремонте новостроек под ключ (точечный ремонт растёт: полы +62% (<a href="https://www.retail.ru/news/v-nachale-oseni-spros-na-remontnye-raboty-vyros-na-24--22-oktyabrya-2026-283602/" target="_blank" rel="noopener noreferrer">retail.ru</a>)); с самого начала продавать онлайн за пределы края</td>
+</tr>
+<tr>
+<td><strong>Утечка из мультиарендной базы</strong></td>
+<td>Штрафы 3–15 млн ₽, повторные — до 500 млн ₽ (<a href="https://www.garant.ru/news/1819191/" target="_blank" rel="noopener noreferrer">Гарант</a>)</td>
+<td>Аттестованное облако в РФ, проектирование под УЗ-3, журналирование, ограничение массовой выгрузки, NDA, регламент инцидентов быстрее 24 часов</td>
+</tr>
+<tr>
+<td><strong>Статус ОРИ из-за чата</strong></td>
+<td>Ст. 10.1 149-ФЗ; HeadHunter и мессенджер Сбербанка в реестре (<a href="https://infostart.ru/journal/news/zhizn/messendzher-sberbanka-ugodil-v-reestr-roskomnadzora_992746" target="_blank" rel="noopener noreferrer">Infostart</a>)</td>
+<td>Комментарии к этапам вместо свободного чата; консультация юриста до запуска</td>
+</tr>
+<tr>
+<td><strong>Штраф за вход через иностранные сервисы</strong></td>
+<td>500–700 тыс. ₽ с 07.07.2026 (<a href="https://pravo.ru/news/264596/" target="_blank" rel="noopener noreferrer">Право.ру</a>)</td>
+<td>Только российский телефон или ЕСИА; аудит существующего приложения в неделю 1</td>
+</tr>
+<tr>
+<td><strong>Конфликт интересов: автор — конкурент своих покупателей</strong></td>
+<td>Данных нет — это допущение, которое нужно проверить в custdev</td>
+<td>Отдельное юрлицо и бренд; пункт оферты о конфиденциальности и запрете доступа к данным клиентов для ремонтной компании автора; при сопротивлении — первые клиенты из других городов и смежных ниш</td>
+</tr>
+<tr>
+<td><strong>Зависимость от магазинов приложений</strong></td>
+<td>Монетизация в Google Play недоступна с декабря 2024 года (<a href="https://vc.ru/dev/2924893-monetizaciya-prilozhenij-dlya-razrabotchikov-iz-rossii" target="_blank" rel="noopener noreferrer">vc.ru</a>); оплата Apple ID с мобильного баланса отключена с 01.04.2026 (<a href="https://www.computerra.ru/359749/app-store-i-google-play-v-rossii-v-2026-godu-kak-polzovatsya-i-gde-skachivat-udalennye-prilozheniya/" target="_blank" rel="noopener noreferrer">Computerra</a>); продукты VK и MAX исчезали из российских сегментов сторов (год <mark class="todo">нужно уточнить</mark>) (<a href="https://epochru.com/nauka-i-tehnology/tehnology-i-otkrutiya/rossijskie-prilozheniya-massovo-udalyayut-iz-tsifrovyh-magazinov-kak-teper-ih-ustanovit-238449/" target="_blank" rel="noopener noreferrer">Epoch Times</a>)</td>
+<td>PWA плюс RuStore; оплата только на сайте</td>
+</tr>
+<tr>
+<td><strong>Неточная автосмета из 3D подорвёт доверие</strong></td>
+<td>Жалобы на Remplanner: не посчитал пол и потолок, шаблон не редактируется (<a href="https://otzovik.com/reviews/remplanner_ru-onlayn-planirovschik_kvartir/" target="_blank" rel="noopener noreferrer">otzovik.com</a>, <a href="https://irecommend.ru/content/remplanner-otlichiya-platnoi-i-besplatnoi-versii" target="_blank" rel="noopener noreferrer">irecommend.ru</a>)</td>
+<td>Смета всегда редактируемая и считается по прайсу компании; объёмы из 3D помечать как черновые до контрольного замера</td>
+</tr>
+<tr>
+<td><strong>Нехватка времени у основателя</strong></td>
+<td>Допущение: автор одновременно ведёт ремонтную компанию</td>
+<td>Узкий MVP (без новых крупных модулей в 90 дней); выделенный человек на онбординг — бюджет <mark class="todo">нужно уточнить</mark></td>
+</tr>
+<tr>
+<td><strong>Комиссии и НДС на эквайринг</strong></td>
+<td>Ставки 2,6–4,8% (раздел 4); НДС 22% на комиссию интернет-эквайринга с 2026 года — по данным Т-Банка (<a href="https://www.tbank.ru/business/payments/online-cashbox/ip/" target="_blank" rel="noopener noreferrer">tbank.ru</a>)</td>
+<td>Годовая оплата по счёту для ООО; сравнение ставок у менеджеров ЮKassa и Т-Кассы</td>
+</tr>
+<tr>
+<td><strong>Штраф за немаркированную рекламу</strong></td>
+<td>81% штрафов — за отсутствие erid (<a href="https://www.sostav.ru/blogs/239662/55258" target="_blank" rel="noopener noreferrer">Sostav</a>)</td>
+<td>Реклама только через ОРД площадок; договор и erid для каждого посева</td>
+</tr>
+<tr>
+<td><strong>Отток после пилота</strong></td>
+<td>Российских данных об оттоке нет</td>
+<td>Метрики использования с первого дня; годовая предоплата со скидкой; контрольная встреча на 21–25-й день</td>
+</tr>
+<tr>
+<td><strong>Устаревшие или неверные цены в этом отчёте</strong></td>
+<td>Сниппеты, четыре версии сетки Сметтера, расхождения по Gectaro (раздел 1)</td>
+<td>Перепроверить цены вручную до публикации тарифов (раздел 9)</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="9-что-нужно-уточнить-вручную">9. Что <mark class="todo">нужно уточнить</mark> вручную</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Область</th>
+<th>Что уточнить</th>
+<th>Где или как</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Конкуренты</strong></td>
+<td>Какая из четырёх сеток Сметтера действует сейчас; дата и актуальность цен Gectaro (21 166 ₽ на сайте против 17 000 ₽ у 1С-БИТ)</td>
+<td>smetter.ru/tariffs, gectaro.com/pricing, звонок в отдел продаж</td>
+</tr>
+<tr>
+<td></td>
+<td>Платные тарифы Reparo, Сметы Просто, Сметеры, «Прораба 360», Daocrm, OneBox, SMpro (период оплаты)</td>
+<td>сайты продуктов</td>
+</tr>
+<tr>
+<td></td>
+<td>Есть ли у WorkAB, «101», Kabbi.NET, 1С:РемонтКвартир онлайн-оплата этапов заказчиком (эквайринг или СБП), встроенный чат, офлайн-режим приложения</td>
+<td>демо-доступы, триалы</td>
+</tr>
+<tr>
+<td></td>
+<td>Есть ли приложение Gectaro в RuStore; рублёвые цены Planoplan «База» и «Ремонт» и наличие сметы; может ли подрядчик подставить свой прайс в Smart Plan</td>
+<td>RuStore, csd.ru, СтройБиржа</td>
+</tr>
+<tr>
+<td></td>
+<td>Независимые отзывы в RuStore и Google Play о Gectaro.Прораб, «101», Сметтере; обсуждения на FORUMHOUSE и в Telegram</td>
+<td>ручной поиск</td>
+</tr>
+<tr>
+<td><strong>Рынок и покупатель</strong></td>
+<td>Число ремонтных компаний и ИП по ОКВЭД 43.3x в Краснодарском крае и Краснодаре; распределение по численности</td>
+<td>реестр МСП (rmsp.nalog.ru, ofd.nalog.ru), Контур.Фокус, СПАРК</td>
+</tr>
+<tr>
+<td></td>
+<td>Независимый средний чек ремонта в Краснодаре</td>
+<td>опрос, данные платформ</td>
+</tr>
+<tr>
+<td></td>
+<td>Реальные боли и готовность платить владельцев</td>
+<td>20 custdev-интервью (раздел 6)</td>
+</tr>
+<tr>
+<td></td>
+<td>Частотность запросов в Wordstat и прогнозная цена клика</td>
+<td>wordstat.yandex.ru, «Прогноз бюджета» Директа</td>
+</tr>
+<tr>
+<td></td>
+<td>Российские бенчмарки trial→paid, оттока и цикла сделки</td>
+<td>собственные данные пилотов</td>
+</tr>
+<tr>
+<td><strong>Каналы</strong></td>
+<td>Локальные краснодарские Telegram- и VK-чаты прорабов; YouTube-каналы о ремонтном бизнесе</td>
+<td>TGStat, поиск VK</td>
+</tr>
+<tr>
+<td></td>
+<td>Условия pro-программ «Петровича», «Лемана ПРО», OBI; витрины SaaS у СберБизнеса, Т-Бизнеса, Альфы</td>
+<td>B2B-отделы, менеджеры банков</td>
+</tr>
+<tr>
+<td></td>
+<td>Комиссия amoMarket; модерация и стоимость подписки на Битрикс24 Маркет</td>
+<td>документация разработчика</td>
+</tr>
+<tr>
+<td></td>
+<td>Даты YugBuild 2027 (последний день — 4 или 5 марта); очереди ФСИ «Старт» и ФРИИ на 2027 год</td>
+<td>yugbuild.com, fasie.ru, iidf.ru</td>
+</tr>
+<tr>
+<td></td>
+<td>Официальные ставки ЮKassa, CloudPayments, Т-Кассы, Робокассы с датой</td>
+<td>менеджеры провайдеров</td>
+</tr>
+<tr>
+<td></td>
+<td>Можно ли законно писать компаниям по публичным профилям (законы о рекламе и ПДн)</td>
+<td>юрист</td>
+</tr>
+<tr>
+<td><strong>Право</strong></td>
+<td>Минимум оборотного штрафа (15, 20 или 25 млн ₽); штраф за неопубликованную политику (ч. 3 ст. 13.11); нижняя граница по локализации</td>
+<td>текст ст. 13.11 КоАП (pravo.gov.ru, consultant.ru)</td>
+</tr>
+<tr>
+<td></td>
+<td>Исключения для B2B-чатов из статуса ОРИ; штрафы по ст. 13.31; судьба проекта Минцифры 2024 года о принудительном включении в реестр</td>
+<td>юрист, РКН</td>
+</tr>
+<tr>
+<td></td>
+<td>Текст 199-ФЗ: повторное нарушение и «до 1,4 млн»; считаются ли Яндекс ID, VK ID, Сбер ID «иной системой»</td>
+<td>юрист</td>
+</tr>
+<tr>
+<td></td>
+<td>Требования ПП № 1236 к SaaS (хостинг и поддержка в РФ), сроки включения в реестр; не исключает ли пп. 26 ПО с функцией поиска контрагентов (важно для будущего «найти прораба»)</td>
+<td>Минцифры, юрист</td>
+</tr>
+<tr>
+<td></td>
+<td>Судебная практика по актам бытового подряда, подписанным по SMS; применение ЗоЗПП к прорабам-физлицам</td>
+<td>юрист</td>
+</tr>
+<tr>
+<td></td>
+<td>Push-уведомления через APNs и FCM с ПДн; нужны ли сертифицированные СКЗИ (приказ ФСБ № 378)</td>
+<td>юрист или лицензиат ФСТЭК</td>
+</tr>
+<tr>
+<td></td>
+<td>Официальные датированные прайсы аттестованных сегментов Yandex Cloud, Selectel, Cloud.ru</td>
+<td>сайты провайдеров</td>
+</tr>
+<tr>
+<td><strong>Собственные данные автора</strong></td>
+<td>Аудит приложения: хостинг, SDK, способ входа, чат, мультиарендность, права на код</td>
+<td>неделя 1 плана</td>
+</tr>
+<tr>
+<td></td>
+<td>Метрики собственной компании до и после внедрения приложения</td>
+<td>данные автора</td>
+</tr>
+<tr>
+<td></td>
+<td>Бюджет на юриста, рекламу и человека для онбординга</td>
+<td>решение автора</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="заключение">Заключение</h2>
+<p>Исследование меняет постановку задачи. Автор продаёт не «ещё одну CRM для ремонта» — таких десятки, и клиентская ссылка у них уже стандарт. Его продукт — инструмент, который помогает ремонтной компании выигрывать и удерживать заказчика. Самые измеримые боли рынка лежат на стороне клиента: недоверие, споры об объёме, страх переплатить. Сам рынок платит за лиды тысячи рублей в месяц. Поэтому главный аргумент продаж — «прозрачный ремонт продаёт ваши услуги», а внутренний контроль прорабов — второй. Существующее приложение и собственная компания дают автору то, чего нет у Reparo или «Прораба 360»: живой объект для демонстрации и честные цифры «до и после». Их нужно собрать в первые же недели.</p>
+<p>Второй неочевидный вывод: в России 2026 года юридические требования определяют архитектуру продукта. Вход только по телефону, комментарии к этапам вместо чата, журнал ПЭП, все данные в российском облаке, отдельное юрлицо для IT-льгот — это не бумажная работа после запуска, а условия, без которых нельзя брать первый платёж. Тарифная сетка автора в целом угадана по цене. Ошибки в ней — в лимитах и упаковке: слишком скупой вход, 3D заперт в верхнем тарифе, нет бесплатного шага. Их дешевле исправить до первых пилотов, чем после. Через 90 дней решающим будет не число клиентов, а то, какие лимиты упирались и за что клиенты отказывались платить: именно это превратит гипотетическую сетку в проверенную.</p>
+</article>
+</div>
+<footer class="bottom"><div class="in">Отчёт подготовлен с помощью Claude. Это не юридическая и не финансовая консультация: юридические выводы проверить у юриста, цены — на страницах источников.</div></footer>
+</body>
+</html>
