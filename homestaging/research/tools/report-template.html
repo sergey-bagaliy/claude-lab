@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>$title$</title>
+<meta name="description" content="Исследование рынка и бизнес-план семейного хоумстейджинга в Краснодаре: рынок, исследования, конкуренты, пакеты, партнёрство с риелторами, план на 90 дней, риски.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232F5D50'/%3E%3Cpath d='M8 16l8-7 8 7v8H8z' fill='none' stroke='%23fff' stroke-width='2.2' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+:root {
+  --bg: #FAF8F5; --surface: #FFFFFF; --text: #1F1D1A; --muted: #6B655D;
+  --line: #E6E1D9; --accent: #2F5D50; --accent-soft: #E3EEEA; --warn: #B4532A;
+  --code-bg: #F2EEE8;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #151412; --surface: #1E1C19; --text: #F2EEE8; --muted: #A9A298;
+    --line: #34302B; --accent: #7FB8A4; --accent-soft: #1F2E29; --warn: #E08A5F;
+    --code-bg: #2A2723;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #151412; --surface: #1E1C19; --text: #F2EEE8; --muted: #A9A298;
+  --line: #34302B; --accent: #7FB8A4; --accent-soft: #1F2E29; --warn: #E08A5F;
+  --code-bg: #2A2723;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-padding-top: 16px; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  font-size: 17px; line-height: 1.6;
+}
+.layout { max-width: 1180px; margin: 0 auto; padding: 0 16px 64px; display: grid; gap: 40px; }
+@media (min-width: 1100px) { .layout { grid-template-columns: 260px minmax(0, 1fr); padding: 0 32px 80px; } }
+.masthead { grid-column: 1 / -1; padding: 40px 0 8px; border-bottom: 1px solid var(--line); }
+.eyebrow { margin: 0 0 8px; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+.masthead h1 { margin: 0 0 12px; font-size: clamp(28px, 4.2vw, 42px); line-height: 1.15; letter-spacing: -.01em; }
+.masthead p.meta { margin: 0 0 24px; color: var(--muted); font-size: 15px; }
+.badge { display: inline-block; padding: 2px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-size: 13px; font-weight: 600; margin-right: 8px; }
+nav.toc { font-size: 14px; line-height: 1.45; }
+@media (min-width: 1100px) { nav.toc { position: sticky; top: 24px; align-self: start; max-height: calc(100vh - 48px); overflow: auto; padding-top: 32px; } }
+nav.toc details { border: 1px solid var(--line); border-radius: 14px; background: var(--surface); padding: 12px 16px; }
+@media (min-width: 1100px) { nav.toc details { border: 0; background: none; padding: 0; } nav.toc summary { display: none; } }
+nav.toc summary { cursor: pointer; font-weight: 600; min-height: 32px; }
+nav.toc ul { list-style: none; margin: 8px 0 0; padding: 0; }
+nav.toc ul ul { margin: 2px 0 6px 12px; }
+nav.toc ul ul ul { display: none; }
+nav.toc a { display: block; padding: 4px 0; color: var(--muted); text-decoration: none; }
+nav.toc a:hover, nav.toc a:focus-visible { color: var(--accent); }
+main { min-width: 0; max-width: 780px; padding-top: 24px; }
+main h1 { display: none; }
+main h2 { font-size: 26px; line-height: 1.25; margin: 56px 0 16px; padding-top: 16px; border-top: 1px solid var(--line); letter-spacing: -.005em; }
+main h2:first-of-type { border-top: 0; margin-top: 24px; }
+main h3 { font-size: 20px; margin: 36px 0 12px; line-height: 1.3; }
+main h4 { font-size: 17px; margin: 28px 0 8px; }
+p, ul, ol { margin: 0 0 16px; }
+li { margin: 4px 0; }
+li > p { margin: 0 0 6px; }
+a { color: var(--accent); text-underline-offset: 2px; text-decoration-thickness: 1px; overflow-wrap: anywhere; }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+strong { font-weight: 650; }
+blockquote { margin: 20px 0; padding: 12px 18px; border-left: 4px solid var(--accent); background: var(--accent-soft); border-radius: 0 12px 12px 0; }
+blockquote p:last-child { margin-bottom: 0; }
+code { font-family: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace; font-size: .88em; background: var(--code-bg); padding: 1px 5px; border-radius: 5px; }
+pre { background: var(--code-bg); padding: 14px 16px; border-radius: 12px; overflow-x: auto; }
+pre code { background: none; padding: 0; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 40px 0; }
+.table-wrap { overflow-x: auto; margin: 0 0 20px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 15px; line-height: 1.45; }
+th, td { text-align: left; vertical-align: top; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+th { background: var(--accent-soft); font-weight: 600; white-space: nowrap; }
+tr:last-child td { border-bottom: 0; }
+td { min-width: 120px; }
+footer.doc-foot { grid-column: 1 / -1; border-top: 1px solid var(--line); padding-top: 20px; color: var(--muted); font-size: 14px; }
+.theme-toggle { float: right; margin-top: 4px; min-height: 36px; padding: 6px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--text); font: inherit; font-size: 14px; cursor: pointer; }
+@media print {
+  body { background: #fff; color: #000; font-size: 11pt; }
+  nav.toc, .theme-toggle { display: none; }
+  .layout { display: block; padding: 0; }
+  main { max-width: none; }
+  a { color: #000; }
+  .table-wrap { overflow: visible; border: 0; }
+  th { background: #eee; }
+  h2, h3 { break-after: avoid; }
+  tr, blockquote { break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+<div class="layout">
+  <header class="masthead">
+    <button class="theme-toggle" type="button" id="themeToggle" aria-label="Переключить тему">Тема</button>
+    <p class="eyebrow">Хоумстейджинг · Краснодар</p>
+    <h1>$title$</h1>
+    <p class="meta"><span class="badge">Внутренний документ</span>$if(date)$Версия от $date$. $endif$Все цифры — со ссылками на источники; предложения и допущения помечены отдельно.</p>
+  </header>
+  <nav class="toc" aria-label="Содержание">
+    <details open>
+      <summary>Содержание</summary>
+$toc$
+    </details>
+  </nav>
+  <main id="content">
+$body$
+  </main>
+  <footer class="doc-foot">
+    Источник текста — <code>README.md</code> в этой же папке. HTML собирается командой <code>bash homestaging/research/tools/build-report.sh</code>.
+  </footer>
+</div>
+<script>
+(function () {
+  document.querySelectorAll('main table').forEach(function (t) {
+    var w = document.createElement('div'); w.className = 'table-wrap';
+    t.parentNode.insertBefore(w, t); w.appendChild(t);
+  });
+  document.querySelectorAll('main a[href^="http"]').forEach(function (a) {
+    a.target = '_blank'; a.rel = 'noopener noreferrer';
+  });
+  var root = document.documentElement, btn = document.getElementById('themeToggle');
+  try { var s = localStorage.getItem('hs-report-theme'); if (s) root.setAttribute('data-theme', s); } catch (e) {}
+  btn.addEventListener('click', function () {
+    var cur = root.getAttribute('data-theme') ||
+      (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    var next = cur === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    try { localStorage.setItem('hs-report-theme', next); } catch (e) {}
+  });
+  if (matchMedia('(max-width: 1099px)').matches) {
+    var d = document.querySelector('nav.toc details'); if (d) d.removeAttribute('open');
+  }
+})();
+</script>
+</body>
+</html>
