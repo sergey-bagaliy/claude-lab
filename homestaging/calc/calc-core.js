@@ -62,7 +62,7 @@
   };
 
   function fmtLimit(n) {
-    return String(n).replace(".", ",");
+    return String(n).replace(".", ",").replace("-", "−");
   }
 
   /**

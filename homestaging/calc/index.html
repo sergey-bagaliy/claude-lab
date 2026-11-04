@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Калькулятор подготовки квартиры к продаже — смета и сравнение сценариев</title>
+  <meta name="description" content="Соберите смету подготовки квартиры к продаже и сравните, сколько останется на руках при продаже «как есть» и после подготовки — с вашими цифрами и допущениями.">
+  <meta name="theme-color" content="#FAF8F5" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#151412" media="(prefers-color-scheme: dark)">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="ru_RU">
+  <meta property="og:site_name" content="Хоумстейджинг Краснодар">
+  <meta property="og:title" content="Калькулятор подготовки квартиры к продаже">
+  <meta property="og:description" content="Смета подготовки и сравнение «как есть» / «после подготовки» на ваших допущениях.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232F5D50'/%3E%3Cpath d='M7 15.5 16 8l9 7.5M9.5 14v10h13V14M13.5 24v-5h5v5' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="../shared/base.css">
+  <link rel="stylesheet" href="calc.css">
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <defs>
+      <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20h14V9.5"/><path d="M9.5 20v-5.5h5V20"/></symbol>
+      <symbol id="i-printer" viewBox="0 0 24 24"><path d="M7 9V3h10v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/></symbol>
+      <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1"/></symbol>
+      <symbol id="i-reset" viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.4-5.7L4 8.5"/><path d="M4 4v4.5h4.5"/></symbol>
+      <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 9.5h8M8 12.5h5"/></symbol>
+      <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h0"/></symbol>
+      <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3.5 2.5 20h19z"/><path d="M12 10v4.5M12 17.2h0"/></symbol>
+      <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+      <symbol id="i-back" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></symbol>
+      <symbol id="i-scale" viewBox="0 0 24 24"><path d="M12 3v18M7 21h10"/><path d="M5 7h14"/><path d="m5 7-3 7a3 3 0 0 0 6 0zM19 7l-3 7a3 3 0 0 0 6 0z"/></symbol>
+      <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></symbol>
+    </defs>
+  </svg>
+
+  <a class="skip-link" href="#main">Перейти к калькулятору</a>
+
+  <header class="site-header">
+    <div class="container site-header__inner">
+      <a class="brand" href="../site/">
+        <span class="brand__mark"><svg class="icon" aria-hidden="true"><use href="#i-home"/></svg></span>
+        <span class="brand__name" data-hs-text="brand.name">Хоумстейджинг Краснодар</span>
+      </a>
+      <nav class="calc-nav" aria-label="Навигация">
+        <a class="btn btn-ghost btn-sm calc-nav__site" href="../site/"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-back"/></svg> На сайт</a>
+        <a class="btn btn-primary btn-sm" href="../site/#zayavka" data-discuss>Заявка</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="calc">
+    <div class="container">
+      <div class="calc-intro">
+        <p class="eyebrow">Калькулятор</p>
+        <h1>Смета подготовки и сравнение сценариев</h1>
+        <p class="lead">Соберите смету подготовки и сравните, сколько останется на руках при продаже «как есть» и после подготовки — на ваших цифрах и допущениях.</p>
+        <div class="notice notice-warn" id="prices-notice" hidden>
+          <svg class="icon" aria-hidden="true"><use href="#i-info"/></svg>
+          <div>Цены пока уточняются — поля цен пустые и подсвечены. Введите известные вам цены вручную или <a href="../site/#zayavka" data-discuss>запросите смету</a>.</div>
+        </div>
+      </div>
+
+      <form id="calc-form" novalidate autocomplete="off">
+        <!-- ========== ШАГ 1. СМЕТА ========== -->
+        <section class="calc-step" aria-labelledby="step1-title">
+          <h2 class="calc-step__title" id="step1-title"><span class="calc-step__num">1</span> Смета подготовки</h2>
+          <div class="calc-grid">
+            <div class="calc-inputs">
+              <!-- A. КВАРТИРА -->
+              <fieldset class="card group">
+                <legend class="group__title">Квартира</legend>
+                <div class="grid-2">
+                  <div class="field">
+                    <label for="c-area">Площадь</label>
+                    <div class="input-wrap"><input class="input" id="c-area" inputmode="decimal" data-kind="area" aria-describedby="c-area-err"><span class="suffix">м²</span></div>
+                    <span class="field-error" id="c-area-err"></span>
+                  </div>
+                  <div class="field">
+                    <label for="c-rooms">Комнат</label>
+                    <div class="input-wrap"><input class="input" id="c-rooms" inputmode="numeric" data-kind="rooms" aria-describedby="c-rooms-err"></div>
+                    <span class="field-error" id="c-rooms-err"></span>
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="c-cond">Состояние</label>
+                  <select class="select" id="c-cond" aria-describedby="c-cond-hint">
+                    <option value="lived">Жилая, с мебелью</option>
+                    <option value="empty">Пустая</option>
+                    <option value="cosmetic">Нужна косметика</option>
+                  </select>
+                  <span class="hint" id="c-cond-hint">Подскажем подходящий пакет — его можно поменять.</span>
+                </div>
+                <div class="field">
+                  <label for="c-price">Цена в объявлении «как есть»</label>
+                  <div class="input-wrap"><input class="input" id="c-price" inputmode="decimal" data-kind="price" data-money aria-describedby="c-price-hint c-price-err"><span class="suffix">₽</span></div>
+                  <span class="hint" id="c-price-hint">Ориентируйтесь на похожие объявления (ЦИАН, Авито, Домклик) или оценку вашего риелтора.</span>
+                  <span class="field-error" id="c-price-err"></span>
+                </div>
+              </fieldset>
+
+              <!-- B. ПОДГОТОВКА -->
+              <fieldset class="card group">
+                <legend class="group__title">Подготовка</legend>
+                <div class="field">
+                  <label for="c-pkg">Пакет</label>
+                  <select class="select" id="c-pkg">
+                    <option value="">Без пакета — только отдельные работы</option>
+                  </select>
+                  <span class="hint" id="c-pkg-desc"></span>
+                </div>
+                <div class="field" id="c-pkg-price-field">
+                  <label for="c-pkg-price">Цена пакета <span class="muted" id="c-pkg-unit">за объект</span></label>
+                  <div class="input-wrap"><input class="input" id="c-pkg-price" inputmode="decimal" data-kind="money" data-money placeholder="введите цену" aria-describedby="c-pkg-price-hint c-pkg-price-err"><span class="suffix" id="c-pkg-price-suffix">₽</span></div>
+                  <span class="hint" id="c-pkg-price-hint">Подставляется из прайса, можно изменить.</span>
+                  <span class="field-error" id="c-pkg-price-err"></span>
+                </div>
+                <div class="field">
+                  <label for="c-rent-months">Аренда мебели и декора сверх пакета</label>
+                  <div class="input-wrap"><input class="input" id="c-rent-months" inputmode="decimal" data-kind="months" aria-describedby="c-rent-hint c-rent-months-err"><span class="suffix">мес</span></div>
+                  <span class="hint" id="c-rent-hint">Связано со строкой «Аренда мебели и декора — продление» ниже.</span>
+                  <span class="field-error" id="c-rent-months-err"></span>
+                </div>
+
+                <div class="extras">
+                  <p class="extras__title">Отдельные работы</p>
+                  <p class="hint extras__hint">Отметьте нужное, поправьте количество и цену за единицу.</p>
+                  <div id="extras-list" class="extras__list"></div>
+                </div>
+              </fieldset>
+            </div>
+
+            <!-- РЕЗУЛЬТАТ: СМЕТА -->
+            <aside class="calc-results" aria-labelledby="estimate-title">
+              <div class="card result-card" aria-live="polite">
+                <h3 id="estimate-title">Смета</h3>
+                <div class="table-wrap">
+                  <table class="table estimate-table">
+                    <thead><tr><th scope="col">Позиция</th><th scope="col" class="num">Сумма</th></tr></thead>
+                    <tbody id="estimate-body"></tbody>
+                  </table>
+                </div>
+                <div class="estimate-total">
+                  <span>Итого</span>
+                  <strong class="num" id="estimate-total">0&nbsp;₽</strong>
+                </div>
+                <p class="small estimate-missing" id="estimate-missing" hidden></p>
+                <p class="small muted">Предварительный расчёт. Точная смета — после осмотра квартиры.</p>
+              </div>
+            </aside>
+          </div>
+        </section>
+
+        <!-- ========== ШАГ 2. СРАВНЕНИЕ ========== -->
+        <section class="calc-step" aria-labelledby="step2-title">
+          <h2 class="calc-step__title" id="step2-title"><span class="calc-step__num">2</span> Как есть или после подготовки</h2>
+          <div class="calc-grid">
+            <div class="calc-inputs">
+              <!-- C. ДОПУЩЕНИЯ -->
+              <fieldset class="card group group--assumptions">
+                <legend class="group__title">Ваши допущения — не обещание</legend>
+                <div class="notice">
+                  <svg class="icon" aria-hidden="true"><use href="#i-info"/></svg>
+                  <div>По умолчанию подготовка <strong>ничего не меняет</strong>: та же цена, тот же торг, тот же срок продажи. Меняйте значения, только если у вас есть основания — например, мнение вашего риелтора или похожие объявления. Это ваши допущения, а не наше обещание.</div>
+                </div>
+
+                <div class="grid-2">
+                  <div class="field">
+                    <label for="c-ta">Срок продажи «как есть»</label>
+                    <div class="input-wrap"><input class="input" id="c-ta" inputmode="decimal" data-kind="months" aria-describedby="c-ta-hint c-ta-err"><span class="suffix">мес</span></div>
+                    <span class="hint" id="c-ta-hint">Нужен для сравнения.</span>
+                    <span class="field-error" id="c-ta-err"></span>
+                  </div>
+                  <div class="field">
+                    <label for="c-tb">Срок после подготовки</label>
+                    <div class="input-wrap"><input class="input" id="c-tb" inputmode="decimal" data-kind="months" aria-describedby="c-tb-hint c-tb-err"><span class="suffix">мес</span></div>
+                    <span class="hint" id="c-tb-hint">Пусто — как «как есть».</span>
+                    <span class="field-error" id="c-tb-err"></span>
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label for="c-up">Цена объявления после подготовки: изменение относительно «как есть»</label>
+                  <div class="input-wrap input-wrap--narrow"><input class="input" id="c-up" data-kind="priceChange" aria-describedby="c-up-hint c-up-err"><span class="suffix">%</span></div>
+                  <span class="hint" id="c-up-hint">0 — цена та же. Можно указать и отрицательное значение.</span>
+                  <span class="field-error" id="c-up-err"></span>
+                </div>
+
+                <div class="grid-2">
+                  <div class="field">
+                    <label for="c-da">Торг при сделке «как есть»</label>
+                    <div class="input-wrap"><input class="input" id="c-da" inputmode="decimal" data-kind="discount" aria-describedby="c-da-err"><span class="suffix">%</span></div>
+                    <span class="field-error" id="c-da-err"></span>
+                  </div>
+                  <div class="field">
+                    <label for="c-db">Торг после подготовки</label>
+                    <div class="input-wrap"><input class="input" id="c-db" inputmode="decimal" data-kind="discount" aria-describedby="c-db-hint c-db-err"><span class="suffix">%</span></div>
+                    <span class="hint" id="c-db-hint">Пусто — как «как есть».</span>
+                    <span class="field-error" id="c-db-err"></span>
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label for="c-com">Комиссия риелтора, от цены сделки</label>
+                  <div class="input-wrap input-wrap--narrow"><input class="input" id="c-com" inputmode="decimal" data-kind="commission" aria-describedby="c-com-err"><span class="suffix">%</span></div>
+                  <span class="field-error" id="c-com-err"></span>
+                </div>
+
+                <fieldset class="subgroup">
+                  <legend class="field-label">Ежемесячные расходы, пока квартира не продана</legend>
+                  <div class="grid-2">
+                    <div class="field">
+                      <label for="c-h-mortgage">Ипотека / проценты</label>
+                      <div class="input-wrap"><input class="input" id="c-h-mortgage" inputmode="decimal" data-kind="money" data-money aria-describedby="c-h-mortgage-err"><span class="suffix">₽/мес</span></div>
+                      <span class="field-error" id="c-h-mortgage-err"></span>
+                    </div>
+                    <div class="field">
+                      <label for="c-h-utilities">Коммуналка и взносы</label>
+                      <div class="input-wrap"><input class="input" id="c-h-utilities" inputmode="decimal" data-kind="money" data-money aria-describedby="c-h-utilities-err"><span class="suffix">₽/мес</span></div>
+                      <span class="field-error" id="c-h-utilities-err"></span>
+                    </div>
+                    <div class="field">
+                      <label for="c-h-rent">Аренда другого жилья</label>
+                      <div class="input-wrap"><input class="input" id="c-h-rent" inputmode="decimal" data-kind="money" data-money aria-describedby="c-h-rent-err"><span class="suffix">₽/мес</span></div>
+                      <span class="field-error" id="c-h-rent-err"></span>
+                    </div>
+                    <div class="field">
+                      <label for="c-h-other">Прочее</label>
+                      <div class="input-wrap"><input class="input" id="c-h-other" inputmode="decimal" data-kind="money" data-money aria-describedby="c-h-other-err"><span class="suffix">₽/мес</span></div>
+                      <span class="field-error" id="c-h-other-err"></span>
+                    </div>
+                  </div>
+                  <p class="subgroup__sum">Итого в месяц: <strong class="num" id="c-h-total">0&nbsp;₽</strong></p>
+                </fieldset>
+
+                <div class="field">
+                  <label for="c-rate">Упущенный доход на деньги</label>
+                  <div class="input-wrap input-wrap--narrow"><input class="input" id="c-rate" inputmode="decimal" data-kind="rate" aria-describedby="c-rate-hint c-rate-err"><span class="suffix">% год.</span></div>
+                  <span class="hint" id="c-rate-hint">Например, если бы деньги от продажи лежали на вкладе. 0 — не учитывать.</span>
+                  <span class="field-error" id="c-rate-err"></span>
+                </div>
+              </fieldset>
+            </div>
+
+            <!-- РЕЗУЛЬТАТ: СРАВНЕНИЕ -->
+            <aside class="calc-results" aria-labelledby="compare-title">
+              <div class="card result-card" aria-live="polite">
+                <h3 id="compare-title">Сколько останется на руках</h3>
+                <p class="compare-empty" id="compare-empty">Чтобы сравнить сценарии, укажите <a href="#c-price">цену в объявлении</a> и <a href="#c-ta">срок продажи «как есть»</a>.</p>
+                <div id="compare-result" hidden>
+                  <div class="table-wrap">
+                    <table class="table compare-table">
+                      <thead>
+                        <tr><th scope="col"><span class="visually-hidden">Показатель</span></th><th scope="col" class="num">Как есть</th><th scope="col" class="num">После подготовки</th></tr>
+                      </thead>
+                      <tbody id="compare-body"></tbody>
+                      <tfoot>
+                        <tr class="compare-net"><th scope="row">Чистыми на руках</th><td class="num" id="net-a"></td><td class="num" id="net-b"></td></tr>
+                        <tr class="compare-diff"><th scope="row">Разница</th><td class="num muted">—</td><td class="num" id="net-diff"></td></tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                  <p class="verdict" id="verdict"></p>
+                </div>
+              </div>
+
+              <div class="card result-card" id="breakeven-card" hidden>
+                <h3><svg class="icon" aria-hidden="true"><use href="#i-target"/></svg> Точка окупаемости</h3>
+                <div class="be-item">
+                  <p class="be-item__label">По цене</p>
+                  <p id="be-price"></p>
+                </div>
+                <div class="be-item">
+                  <p class="be-item__label">По сроку, если цена и торг не меняются</p>
+                  <p id="be-time"></p>
+                </div>
+                <p class="small muted">Это не прогноз, а порог: какие условия нужны, чтобы подготовка окупилась при ваших расходах.</p>
+              </div>
+            </aside>
+          </div>
+        </section>
+      </form>
+
+      <!-- ДЕЙСТВИЯ -->
+      <section class="calc-actions card" aria-label="Действия с расчётом">
+        <div class="btn-row">
+          <button class="btn" type="button" id="btn-print"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-printer"/></svg> Сохранить / распечатать</button>
+          <button class="btn" type="button" id="btn-share"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-link"/></svg> Поделиться расчётом</button>
+          <button class="btn btn-ghost" type="button" id="btn-reset"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-reset"/></svg> Сбросить</button>
+          <a class="btn btn-primary" id="btn-discuss" href="../site/#zayavka" data-discuss><svg class="icon icon-sm" aria-hidden="true"><use href="#i-chat"/></svg> Обсудить смету</a>
+        </div>
+        <div class="share-box" id="share-box" hidden>
+          <label class="field-label" for="share-url">Ссылка на расчёт</label>
+          <input class="input" id="share-url" readonly>
+          <p class="small share-status" id="share-status" role="status" aria-live="polite"></p>
+        </div>
+      </section>
+
+      <!-- КАК СЧИТАЕТСЯ -->
+      <details class="card how" id="how">
+        <summary><span>Как считается</span><svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></summary>
+        <div class="how__body">
+          <p>Обозначения: <b>P</b> — цена в объявлении, <b>d</b> — торг при сделке, <b>c</b> — комиссия риелтора, <b>H</b> — ежемесячные расходы, <b>T</b> — срок продажи в месяцах, <b>r</b> — упущенный доход в процентах годовых, <b>S</b> — смета подготовки.</p>
+          <ul class="formulas">
+            <li><span>Смета</span><code>S = Σ количество × цена за единицу</code></li>
+            <li><span>Цена после подготовки</span><code>P<sub>B</sub> = P<sub>A</sub> × (1 + изменение)</code></li>
+            <li><span>Цена сделки</span><code>Сделка = P × (1 − d)</code></li>
+            <li><span>Комиссия</span><code>Сделка × c</code></li>
+            <li><span>Расходы на владение</span><code>H × T</code></li>
+            <li><span>Упущенный доход</span><code>Сделка × r × T / 12</code></li>
+            <li><span>Чистыми на руках</span><code>Сделка − комиссия − H×T − упущенный доход − S</code> (для «как есть» S = 0)</li>
+            <li><span>Окупаемость по цене</span><code>Сделка<sub>B</sub>* = (На руках<sub>A</sub> + H × T<sub>B</sub> + S) / (1 − c − r × T<sub>B</sub> / 12)</code></li>
+            <li><span>Окупаемость по сроку</span><code>ΔT = S / (H + Сделка<sub>A</sub> × r / 12)</code></li>
+          </ul>
+          <p class="muted small">Налоги, расходы на сделку (нотариус, госпошлина, банк) и стоимость переезда не учитываются — добавьте их в «Прочее», если нужно.</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <footer class="site-footer calc-footer">
+    <div class="container small muted">
+      <p>© <span id="year"></span> <span data-hs-text="brand.name">Хоумстейджинг Краснодар</span>. Расчёт ориентировочный и не является публичной офертой.</p>
+      <p><a href="../site/">Сайт</a> · <a href="../site/privacy.html">Политика обработки персональных данных</a> · <a href="../checklist/checklist.pdf" download>Чек-лист (PDF)</a></p>
+    </div>
+  </footer>
+
+  <!-- Краткие итоги на телефоне -->
+  <div class="mobile-summary" aria-hidden="true">
+    <a href="#estimate-title" tabindex="-1"><span>Смета</span><strong class="num" id="ms-est">0&nbsp;₽</strong></a>
+    <a href="#compare-title" tabindex="-1"><span>Разница</span><strong class="num" id="ms-diff">—</strong></a>
+  </div>
+
+  <!-- Лист для печати (заполняется скриптом) -->
+  <div id="print-sheet" class="print-sheet" aria-hidden="true"></div>
+
+  <script src="../shared/config.js"></script>
+  <script src="calc-core.js"></script>
+  <script src="calc-ui.js"></script>
+</body>
+</html>

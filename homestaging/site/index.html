@@ -79,7 +79,7 @@
       </nav>
 
       <div class="header-actions">
-        <a class="btn btn-primary btn-sm header-cta" href="#zayavka">Оставить заявку</a>
+        <a class="btn btn-primary btn-sm header-cta" href="#zayavka"><span class="header-cta__long">Оставить заявку</span><span class="header-cta__short" aria-hidden="true">Заявка</span></a>
         <button class="btn btn-sm nav-toggle" type="button" aria-controls="site-nav" aria-expanded="false">
           <svg class="icon nav-toggle__open" aria-hidden="true"><use href="#i-menu"/></svg>
           <svg class="icon nav-toggle__close" aria-hidden="true"><use href="#i-close"/></svg>
@@ -324,7 +324,7 @@
           <h2 id="realtors-title">Подготовим объект к вашим показам</h2>
           <p class="lead">Вы занимаетесь сделкой, мы — тем, как квартира выглядит на фото и вживую.</p>
           <div class="btn-row">
-            <a class="btn btn-primary" href="../checklist/checklist.pdf" download>
+            <a class="btn btn-primary btn-download" href="../checklist/checklist.pdf" download>
               <svg class="icon icon-sm" aria-hidden="true"><use href="#i-download"/></svg>
               Скачать чек-лист подготовки к фотосъёмке (PDF)
             </a>
@@ -429,7 +429,7 @@
                 <legend class="field-label">Задача</legend>
                 <div class="segmented__options">
                   <label class="segmented__opt"><input type="radio" name="type" value="sale" checked><span>Продажа</span></label>
-                  <label class="segmented__opt"><input type="radio" name="type" value="rent"><span>Сдача в аренду</span></label>
+                  <label class="segmented__opt"><input type="radio" name="type" value="rent"><span>Сдача</span></label>
                 </div>
               </fieldset>
 
@@ -446,7 +446,7 @@
               <div class="field field--full">
                 <label for="f-package">Пакет</label>
                 <select class="select" id="f-package" name="package">
-                  <option value="">Пока не знаю — нужна консультация</option>
+                  <option value="">Пока не знаю</option>
                 </select>
               </div>
 
@@ -510,7 +510,7 @@
         <p class="muted" data-hs-text="brand.tagline">Подготовка квартир к продаже и сдаче под ключ</p>
         <p class="muted small" id="footer-hours" hidden></p>
       </div>
-      <div>
+      <div id="footer-info" hidden>
         <ul class="footer-contacts" id="footer-contacts" hidden></ul>
         <div class="footer-legal small muted" id="footer-legal" hidden></div>
       </div>
@@ -522,9 +522,11 @@
         </ul>
       </nav>
     </div>
-    <div class="container footer-bottom small muted">
-      <p>© <span id="year"></span> <span data-hs-text="brand.name">Хоумстейджинг Краснодар</span>. Информация на сайте не является публичной офертой.</p>
-      <p id="metrika-note" hidden>Сайт использует cookies и сервис Яндекс Метрика — подробнее в <a href="privacy.html#cookies">политике</a>.</p>
+    <div class="container small muted">
+      <div class="footer-bottom">
+        <p>© <span id="year"></span> <span data-hs-text="brand.name">Хоумстейджинг Краснодар</span>. Информация на сайте не является публичной офертой.</p>
+        <p id="metrika-note" hidden>Сайт использует cookies и сервис Яндекс Метрика — подробнее в <a href="privacy.html#cookies">политике</a>.</p>
+      </div>
     </div>
   </footer>
 

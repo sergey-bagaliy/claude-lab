@@ -170,6 +170,9 @@
       legalBox.hidden = rows.length === 0;
     }
 
+    var info = $("#footer-info");
+    if (info) info.hidden = CHANNELS.length === 0 && (!legalBox || legalBox.hidden);
+
     var notice = $("#config-notice");
     if (notice) notice.hidden = CHANNELS.length > 0 || !!ENDPOINT;
   }
@@ -374,26 +377,35 @@
     return !msg;
   }
 
+  /**
+   * Национальная часть российского номера (до 10 цифр):
+   *  «+7 918…» → 918…;  «8 918…» / «7 918…» → 918…;  «918…» → 918…
+   */
+  function nationalDigits(value) {
+    var raw = String(value || "").trim();
+    var d = raw.replace(/\D/g, "");
+    var national;
+    if (raw.charAt(0) === "+") national = d.slice(1);
+    else if (d.charAt(0) === "8" || d.charAt(0) === "7") national = d.slice(1);
+    else national = d;
+    return national.slice(0, 10);
+  }
+
   function formatPhoneInput(value) {
-    var d = value.replace(/\D/g, "");
-    if (!d) return "";
-    if (d.charAt(0) === "8") d = "7" + d.slice(1);
-    else if (d.charAt(0) !== "7") d = "7" + d;
-    d = d.slice(0, 11);
+    if (!/\d/.test(value)) return value.trim() === "+" ? "+" : "";
+    var n = nationalDigits(value);
     var out = "+7";
-    if (d.length > 1) out += " (" + d.slice(1, 4);
-    if (d.length >= 4) out += ")";
-    if (d.length > 4) out += " " + d.slice(4, 7);
-    if (d.length > 7) out += "-" + d.slice(7, 9);
-    if (d.length > 9) out += "-" + d.slice(9, 11);
+    if (n.length > 0) out += " (" + n.slice(0, 3);
+    else out += " ";
+    if (n.length >= 3) out += ")";
+    if (n.length > 3) out += " " + n.slice(3, 6);
+    if (n.length > 6) out += "-" + n.slice(6, 8);
+    if (n.length > 8) out += "-" + n.slice(8, 10);
     return out;
   }
 
   function phoneDigits(value) {
-    var d = value.replace(/\D/g, "");
-    if (d.length === 11 && d.charAt(0) === "8") d = "7" + d.slice(1);
-    if (d.length === 10 && d.charAt(0) === "9") d = "7" + d;
-    return d;
+    return "7" + nationalDigits(value);
   }
 
   function validatePhone() {
@@ -515,7 +527,7 @@
         external = false;
       } else if (ch.type === "phone") {
         href = ch.href;
-        label = "Позвонить " + ch.label;
+        label = "Позвонить";
         external = false;
       }
       var a = el("a", {
@@ -525,6 +537,7 @@
         rel: external ? "noopener" : null,
         "data-channel": ch.type
       }, [icon(ch.icon), el("span", null, [label, note ? el("span", { class: "visually-hidden", text: " (" + note + ")" }) : null])]);
+      if (ch.type === "phone") a.title = ch.label;
       if (ch.type === "telegram") {
         a.addEventListener("click", function () { copyText(message).then(setCopyStatus); });
         a.title = "Текст заявки скопируется в буфер обмена";
@@ -549,13 +562,15 @@
     }
     cfgNotice.hidden = CHANNELS.length > 0 || !!ENDPOINT;
 
-    $("#fallback-message").value = message;
+    var ta = $("#fallback-message");
+    ta.value = message;
+    ta.rows = Math.min(16, message.split("\n").length + 3);
     $("#copy-status").textContent = "";
     form.hidden = true;
     $("#form-success").hidden = true;
     box.hidden = false;
     box.focus({ preventScroll: true });
-    box.scrollIntoView({ block: "nearest" });
+    box.closest(".card").scrollIntoView({ block: "start" });
   }
 
   function showSuccess() {
@@ -564,7 +579,7 @@
     var s = $("#form-success");
     s.hidden = false;
     s.focus({ preventScroll: true });
-    s.scrollIntoView({ block: "nearest" });
+    s.closest(".card").scrollIntoView({ block: "start" });
   }
 
   function initForm() {
@@ -589,20 +604,27 @@
     fields.phone.addEventListener("input", function (e) {
       if (e.inputType && e.inputType.indexOf("delete") === 0) return;
       var input = fields.phone;
-      var atEnd = input.selectionStart === input.value.length;
+      var caret = input.selectionStart;
+      var atEnd = caret === input.value.length;
+      var digitsBefore = input.value.slice(0, caret).replace(/\D/g, "").length;
       var formatted = formatPhoneInput(input.value);
       if (formatted !== input.value) {
         input.value = formatted;
-        if (atEnd) input.setSelectionRange(formatted.length, formatted.length);
+        var pos = formatted.length;
+        if (!atEnd) {
+          // ставим курсор после того же количества цифр, что и до форматирования
+          for (var i = 0, seen = 0; i < formatted.length; i++) {
+            if (/\d/.test(formatted.charAt(i))) seen++;
+            if (seen >= digitsBefore) { pos = i + 1; break; }
+          }
+        }
+        input.setSelectionRange(pos, pos);
       }
       if (input.getAttribute("aria-invalid") === "true") validatePhone();
     });
-    fields.phone.addEventListener("focus", function () {
-      if (!fields.phone.value) fields.phone.value = "+7 ";
-    });
     fields.phone.addEventListener("blur", function () {
       var v = fields.phone.value.trim();
-      if (v === "+7" || v === "+") { fields.phone.value = ""; return; }
+      if (!/\d/.test(v.replace(/^\+7/, ""))) { fields.phone.value = ""; return; }
       fields.phone.value = formatPhoneInput(v);
       if (v) validatePhone();
     });

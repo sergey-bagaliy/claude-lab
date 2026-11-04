@@ -199,7 +199,7 @@ test("breakEven: недостижимо по цене, если знаменат
 test("validate: диапазоны и отрицательные значения", () => {
   assert.equal(C.validate("area", -5), "Допустимо от 1 до 1000");
   assert.equal(C.validate("area", 54), null);
-  assert.equal(C.validate("priceChange", 60), "Допустимо от -50 до 50");
+  assert.equal(C.validate("priceChange", 60), "Допустимо от −50 до 50");
   assert.equal(C.validate("priceChange", -10), null);
   assert.equal(C.validate("commission", 25), "Допустимо от 0 до 20");
   assert.equal(C.validate("discount", -1), "Значение не может быть отрицательным");
