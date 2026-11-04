@@ -1,0 +1,4 @@
+# Всё для бота + библиотеки для тестов
+-r requirements.txt
+pytest>=9
+pytest-asyncio>=1.4
