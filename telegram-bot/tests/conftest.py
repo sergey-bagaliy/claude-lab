@@ -193,10 +193,12 @@ class FakePhotos:
     def __init__(self, count: int = 3) -> None:
         self.count = count
         self.queries: list[str] = []
+        self.limits: list[int] = []
 
     async def search(self, query: str, limit: int = 6) -> list[Photo]:
         self.queries.append(query)
-        return [make_photo(n) for n in range(1, self.count + 1)]
+        self.limits.append(limit)
+        return [make_photo(n) for n in range(1, min(self.count, limit) + 1)]
 
 
 @pytest.fixture

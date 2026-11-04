@@ -31,6 +31,7 @@ BOT_COMMANDS = [
     BotCommand(command="vyhodnye", description="🌳 Идеи на выходные"),
     BotCommand(command="primery", description="🧮 Тренажёр умножения для Никиты"),
     BotCommand(command="skazka", description="📖 Сказка для Кати"),
+    BotCommand(command="settings", description="⚙️ Настройки: Haiku или Sonnet"),
     BotCommand(command="rashod", description="💰 Расходы на Claude"),
     BotCommand(command="sbros", description="🧹 Новый разговор"),
     BotCommand(command="help", description="❓ Что умеет бот"),

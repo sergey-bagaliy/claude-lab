@@ -161,34 +161,35 @@ CLIENT_TOOLS += [
         },
     },
     {
-        "name": "show_place_photos",
+        "name": "show_photos",
         "description": (
-            "Прислать настоящие фотографии места: курорта, города, пляжа, парка, достопримечательности "
-            "(бот берёт их из Wikimedia Commons). Вызывай, когда просят показать, как выглядит место, или "
-            "прислать фото. Для нескольких мест — отдельный вызов на каждое, не больше 3 за ответ. "
-            "После этого коротко расскажи о месте, не описывая сами фото."
+            "Прислать настоящие фотографии (бот берёт их из Wikimedia Commons): места — курорта, города, пляжа, "
+            "достопримечательности; животного, растения, природы, предмета. Вызывай, когда просят показать, "
+            "как что-то выглядит, прислать фото, и когда пишешь сказку — чтобы показать её героев. "
+            "Каждый вызов — отдельный альбом, не больше 3 за ответ. Сами фото потом не описывай."
         ),
         "input_schema": {
             "type": "object",
             "properties": {
-                "place": {
+                "title": {
                     "type": "string",
-                    "description": "Название по-русски — подпись к фото: «Геленджик».",
+                    "description": "Подпись по-русски: «Геленджик», «Герой сказки — ёжик».",
                 },
                 "search_query": {
                     "type": "string",
-                    "description": "Запрос на английском, как место называется в Википедии, можно с уточнением: "
-                    "«Gelendzhik embankment», «Abrau-Dyurso lake».",
+                    "description": "Запрос на английском, как в Википедии, можно с уточнением: "
+                    "«Gelendzhik embankment», «Abrau-Dyurso lake», «hedgehog», «squirrel in forest».",
                 },
+                "count": {"type": "integer", "description": "Сколько фото: от 1 до 6, обычно 4."},
             },
-            "required": ["place", "search_query"],
+            "required": ["title", "search_query"],
         },
     },
 ]
 
 SHOW_RECIPE = "show_recipe"
 SHOW_MEDIA = "show_media"
-SHOW_PLACE_PHOTOS = "show_place_photos"
+SHOW_PHOTOS = "show_photos"
 
 
 @dataclass(frozen=True)

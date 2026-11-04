@@ -37,6 +37,7 @@ from .family import (
     build_weekend_request,
 )
 from .media import PhotoAlbum, album_captions, render_media_html
+from .models import MODEL_CHOICES, model_label
 from .multiplication import QuizGame, format_examples, make_examples, new_game, question_text, result_text
 from .recipes import render_recipe_html
 from .storage import Storage
@@ -330,6 +331,30 @@ def create_router(deps: Deps, allowed_user_ids: frozenset[int]) -> Router:
         deps.quiz_games[chat_id] = game
         return game
 
+    def settings_view() -> tuple[str, InlineKeyboardMarkup]:
+        now = deps.clock()
+        current = assistant.model
+        today = storage.spent(now.strftime("%Y-%m-%d"))
+        month = storage.spent(now.strftime("%Y-%m"))
+        lines = ["⚙️ Настройки", "", f"🤖 Сейчас отвечает: {model_label(current)}", "", "Кто будет отвечать:"]
+        for choice in MODEL_CHOICES.values():
+            lines.append(f"{choice.label} — {choice.about} {choice.per_month}.")
+        spent = f"💰 Потрачено сегодня: ${today.cost_usd:.2f}"
+        if deps.daily_budget_usd > 0:
+            spent += f" из ${deps.daily_budget_usd:.2f} (дневной лимит)"
+        lines += [
+            "",
+            spent + f", за месяц: ${month.cost_usd:.2f}",
+            "Суммы в месяц — примерная оценка для обычного дня (20 вопросов и 2 рецепта).",
+            "Переключить можно в любой момент — история разговора сохранится.",
+        ]
+        return "\n".join(lines), kb.settings(current)
+
+    async def show_settings(message: Message, state: FSMContext) -> None:
+        await state.clear()
+        text, markup = settings_view()
+        await message.answer(text, reply_markup=markup)
+
     async def show_costs(message: Message, state: FSMContext) -> None:
         await state.clear()
         now = deps.clock()
@@ -337,6 +362,7 @@ def create_router(deps: Deps, allowed_user_ids: frozenset[int]) -> Router:
         month = storage.spent(now.strftime("%Y-%m"))
         lines = [
             "💰 Расходы на Claude (примерный подсчёт)",
+            f"Сейчас отвечает: {model_label(assistant.model)}",
             "",
             f"Сегодня: ${today.cost_usd:.2f} — запросов: {today.requests}",
             f"За этот месяц: ${month.cost_usd:.2f} — запросов: {month.requests}",
@@ -421,6 +447,10 @@ def create_router(deps: Deps, allowed_user_ids: frozenset[int]) -> Router:
         theme = f"про {command.args.strip()}" if command.args else STORY_THEMES["any"]
         await show_story(message, person, state, theme)
 
+    @router.message(Command("settings"))
+    async def cmd_settings(message: Message, state: FSMContext) -> None:
+        await show_settings(message, state)
+
     @router.message(Command("rashod"))
     async def cmd_rashod(message: Message, state: FSMContext) -> None:
         await show_costs(message, state)
@@ -459,9 +489,9 @@ def create_router(deps: Deps, allowed_user_ids: frozenset[int]) -> Router:
     async def btn_new(message: Message, state: FSMContext) -> None:
         await reset(message, state)
 
-    @router.message(F.text == texts.BTN_COSTS)
-    async def btn_costs(message: Message, state: FSMContext) -> None:
-        await show_costs(message, state)
+    @router.message(F.text == texts.BTN_SETTINGS)
+    async def btn_settings(message: Message, state: FSMContext) -> None:
+        await show_settings(message, state)
 
     # ================= ожидание ввода (после кнопок) =================
 
@@ -633,6 +663,30 @@ def create_router(deps: Deps, allowed_user_ids: frozenset[int]) -> Router:
         if message is not None:
             theme = STORY_THEMES.get(callback.data.split(":", 1)[1], STORY_THEMES["any"])
             await show_story(message, person, state, theme)
+
+    @router.callback_query(F.data.startswith("set:"))
+    async def cb_settings(callback: CallbackQuery, person: Person, state: FSMContext) -> None:
+        message = _message_of(callback)
+        parts = callback.data.split(":")
+        if message is None:
+            await callback.answer()
+            return
+        if parts[1] == "costs":
+            await callback.answer()
+            await show_costs(message, state)
+            return
+        choice = MODEL_CHOICES.get(parts[2]) if len(parts) > 2 else None
+        if choice is None:
+            await callback.answer("Такой модели нет.", show_alert=True)
+            return
+        if assistant.model == choice.model_id:
+            await callback.answer(f"Уже отвечает {choice.label}")
+            return
+        assistant.set_model(choice.model_id)
+        log.info("%s выбрал(а) модель %s", person.name, choice.model_id)
+        await callback.answer(f"Готово! Теперь отвечает {choice.label}")
+        text, markup = settings_view()
+        await _safe_edit(message, text, markup)
 
     @router.callback_query(F.data.startswith("media:"))
     async def cb_media(callback: CallbackQuery, person: Person, state: FSMContext) -> None:

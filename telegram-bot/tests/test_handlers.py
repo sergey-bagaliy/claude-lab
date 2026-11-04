@@ -90,7 +90,7 @@ async def test_start_shows_menu(env, fake_claude):
         texts.BTN_QUIZ,
         texts.BTN_STORY,
         texts.BTN_NEW,
-        texts.BTN_COSTS,
+        texts.BTN_SETTINGS,
     ]
     assert fake_claude.messages.calls == []
 
@@ -298,7 +298,7 @@ async def test_weekend_with_variants(env, fake_claude):
 async def test_costs(env, fake_claude):
     fake_claude.messages.queue.append(claude_message(text("ok"), searches=1))
     await env.send("Привет")
-    await env.send(texts.BTN_COSTS)
+    await env.send("/rashod")
     report = env.last().text
     assert "Сегодня: $0.01 — запросов: 1" in report
     assert "Разговор" in report
@@ -391,7 +391,7 @@ async def test_family_member_passes_and_is_remembered(assistant, storage, clock,
 async def test_place_photos_album(env, fake_claude):
     fake_claude.messages.queue += [
         claude_message(
-            tool_use("show_place_photos", {"place": "Геленджик", "search_query": "Gelendzhik"}),
+            tool_use("show_photos", {"title": "Геленджик", "search_query": "Gelendzhik"}),
             stop_reason="tool_use",
         ),
         claude_text("Геленджик — уютная бухта."),
@@ -420,7 +420,7 @@ async def test_album_falls_back_to_single_photos(env, fake_claude):
     env.session.make_request = make_request
     fake_claude.messages.queue += [
         claude_message(
-            tool_use("show_place_photos", {"place": "Сочи", "search_query": "Sochi"}), stop_reason="tool_use"
+            tool_use("show_photos", {"title": "Сочи", "search_query": "Sochi"}), stop_reason="tool_use"
         ),
         claude_text("Сочи."),
     ]
@@ -460,3 +460,67 @@ async def test_story_has_audio_and_video_buttons(env, fake_claude):
     assert buttons(env.last().reply_markup)[-2:] == ["🎧 Аудиосказки", "🎬 Мультфильмы"]
     await env.press("media:video")
     assert "мультфильмов" in fake_claude.messages.calls[1]["messages"][-1]["content"]
+
+
+# ---------- настройки: выбор модели ----------
+
+
+async def test_settings_switch_model(env, fake_claude, storage):
+    await env.send(texts.BTN_SETTINGS)
+    screen = env.last()
+    assert "Сейчас отвечает: 🧠 Sonnet 5.5" in screen.text  # в тестах по умолчанию Sonnet
+    assert "$1,5–2 в месяц" in screen.text and "$8 в месяц" in screen.text
+    assert buttons(screen.reply_markup) == [
+        "⚡ Haiku 5.5 — быстро и экономно",
+        "✅ 🧠 Sonnet 5.5 — умнее, но дороже",
+        "💰 Подробно о расходах",
+    ]
+
+    await env.press("set:model:haiku")
+    assert "Готово! Теперь отвечает ⚡ Haiku 5.5" in env.alerts()
+    edited = env.edits()[-1]
+    assert "Сейчас отвечает: ⚡ Haiku 5.5" in edited.text
+    assert buttons(edited.reply_markup)[0] == "✅ ⚡ Haiku 5.5 — быстро и экономно"
+    assert storage.get_setting("model") == "claude-haiku-5-5"
+
+    await env.send("Привет")
+    assert fake_claude.messages.calls[-1]["model"] == "claude-haiku-5-5"
+
+    await env.press("set:model:haiku")  # нажали ещё раз
+    assert "Уже отвечает ⚡ Haiku 5.5" in env.alerts()
+
+
+async def test_settings_command_and_costs_button(env):
+    await env.send("/settings")
+    assert env.last().text.startswith("⚙️ Настройки")
+    await env.press("set:costs")
+    assert env.last().text.startswith("💰 Расходы на Claude")
+    assert "Сейчас отвечает" in env.last().text
+
+
+async def test_bad_model_button(env):
+    await env.press("set:model:gpt")
+    assert "Такой модели нет." in env.alerts()
+
+
+async def test_stranger_cannot_switch_model(assistant, storage, clock):
+    env = BotEnv(assistant, storage, clock, allowed={100})
+    await env.press("set:model:haiku", user_id=999)
+    assert storage.get_setting("model") is None
+
+
+async def test_story_pictures_come_before_text(env, fake_claude):
+    fake_claude.messages.queue += [
+        claude_message(
+            tool_use("show_photos", {"title": "Ёжик", "search_query": "hedgehog"}), stop_reason="tool_use"
+        ),
+        claude_text("Жил-был ёжик…"),
+    ]
+    await env.send(texts.BTN_STORY)
+    order = [
+        type(r).__name__
+        for r in env.session.requests
+        if type(r).__name__ in ("SendMediaGroup", "SendMessage")
+    ]
+    assert order == ["SendMessage", "SendMediaGroup", "SendMessage"]  # «сочиняю…», картинки, сказка
+    assert env.last().text == "Жил-был ёжик…"

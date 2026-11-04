@@ -6,6 +6,8 @@ import anthropic
 import pytest
 
 from family_bot.assistant import FALLBACK_BETA, MAX_TOKENS, TRUNCATED_NOTE, AssistantError, FamilyAssistant
+from family_bot.family import build_story_request
+from family_bot.storage import Storage
 
 from .conftest import (
     RECIPE_INPUT,
@@ -53,7 +55,7 @@ async def test_request_parameters(assistant, fake_claude):
         "list_reminders",
         "show_recipe",
         "show_media",
-        "show_place_photos",
+        "show_photos",
     ]
     assert call["tools"][0]["type"] == "web_search_20260318"
 
@@ -366,8 +368,8 @@ async def test_recipe_link_must_come_from_search(assistant, fake_claude):
 async def test_place_photos(assistant, fake_claude, fake_photos, storage):
     fake_claude.messages.queue += [
         claude_message(
-            tool_use("show_place_photos", {"place": "Геленджик", "search_query": "Gelendzhik embankment"}),
-            tool_use("show_place_photos", {"place": "Анапа", "search_query": "Anapa beach"}),
+            tool_use("show_photos", {"title": "Геленджик", "search_query": "Gelendzhik embankment"}),
+            tool_use("show_photos", {"title": "Анапа", "search_query": "Anapa beach"}),
             stop_reason="tool_use",
         ),
         claude_text("Геленджик — бухта и набережная, Анапа — песчаные пляжи для малышей."),
@@ -386,7 +388,7 @@ async def test_place_photos_not_found(assistant, fake_claude, fake_photos):
     fake_photos.count = 0
     fake_claude.messages.queue += [
         claude_message(
-            tool_use("show_place_photos", {"place": "Х", "search_query": "xyz"}), stop_reason="tool_use"
+            tool_use("show_photos", {"title": "Х", "search_query": "xyz"}), stop_reason="tool_use"
         ),
         claude_text("Фото не нашлось."),
     ]
@@ -398,7 +400,7 @@ async def test_place_photos_not_found(assistant, fake_claude, fake_photos):
 async def test_photos_only_answer_is_ok(assistant, fake_claude):
     fake_claude.messages.queue += [
         claude_message(
-            tool_use("show_place_photos", {"place": "Сочи", "search_query": "Sochi"}), stop_reason="tool_use"
+            tool_use("show_photos", {"title": "Сочи", "search_query": "Sochi"}), stop_reason="tool_use"
         ),
         claude_message(thinking()),  # Claude ничего не написал — это нормально, фото уже есть
     ]
@@ -407,9 +409,7 @@ async def test_photos_only_answer_is_ok(assistant, fake_claude):
 
 
 async def test_no_more_than_three_albums(assistant, fake_claude):
-    calls = [
-        tool_use("show_place_photos", {"place": f"Место {n}", "search_query": f"Place {n}"}) for n in range(4)
-    ]
+    calls = [tool_use("show_photos", {"title": f"Место {n}", "search_query": f"Place {n}"}) for n in range(4)]
     fake_claude.messages.queue += [claude_message(*calls, stop_reason="tool_use"), claude_text("Вот места.")]
     reply = await assistant.ask(1, SERGEY, "4 курорта с фото")
     assert len(reply.albums) == 3
@@ -420,9 +420,98 @@ async def test_photos_unavailable(storage, fake_claude, clock):
     assistant = FamilyAssistant(fake_claude, storage, "claude-haiku-5-5", clock=clock, photos=None)
     fake_claude.messages.queue += [
         claude_message(
-            tool_use("show_place_photos", {"place": "Сочи", "search_query": "Sochi"}), stop_reason="tool_use"
+            tool_use("show_photos", {"title": "Сочи", "search_query": "Sochi"}), stop_reason="tool_use"
         ),
         claude_text("Фото сейчас недоступны."),
     ]
     reply = await assistant.ask(1, SERGEY, "фото Сочи")
     assert reply.albums == [] and reply.text == "Фото сейчас недоступны."
+
+
+# ---------- выбор модели в боте ----------
+
+
+async def test_switch_model_in_app(storage, fake_claude, clock):
+    assistant = FamilyAssistant(fake_claude, storage, "claude-haiku-5-5", clock=clock)
+    assert assistant.model == "claude-haiku-5-5"
+    await assistant.ask(1, SERGEY, "вопрос 1")
+
+    assistant.set_model("claude-sonnet-5-5")
+    await assistant.ask(1, SERGEY, "вопрос 2")
+
+    first, second = fake_claude.messages.calls
+    assert first["model"] == "claude-haiku-5-5" and "fallbacks" not in first
+    assert second["model"] == "claude-sonnet-5-5" and second["fallbacks"] == "default"
+    # история сохранилась — переключение не мешает разговору
+    assert second["messages"][1]["content"] == "Ответ Claude"
+    # расходы посчитаны по цене каждой модели
+    assert {row["model"] for row in storage.db.execute("SELECT model FROM usage")} == {
+        "claude-haiku-5-5",
+        "claude-sonnet-5-5",
+    }
+
+
+async def test_model_choice_survives_restart(tmp_path, fake_claude, clock):
+    path = str(tmp_path / "bot.db")
+    db = Storage(path)
+    FamilyAssistant(fake_claude, db, "claude-haiku-5-5", clock=clock).set_model("claude-sonnet-5-5")
+    db.close()
+    db = Storage(path)
+    assert FamilyAssistant(fake_claude, db, "claude-haiku-5-5", clock=clock).model == "claude-sonnet-5-5"
+    db.close()
+
+
+def test_unknown_model_is_rejected(assistant, storage):
+    with pytest.raises(ValueError):
+        assistant.set_model("gpt-something")
+    storage.set_setting("model", "испорчено")  # кто-то вручную испортил базу
+    assert assistant.model == assistant.default_model
+
+
+async def test_model_is_fixed_for_whole_answer(assistant, fake_claude):
+    """Если переключить модель, пока Claude думает, этот ответ закончится на прежней."""
+    fake_claude.messages.queue += [
+        claude_message(tool_use("get_shopping_list", {}), stop_reason="tool_use"),
+        claude_text("Список пуст."),
+    ]
+    original = fake_claude.messages.create
+
+    async def create(**kwargs):
+        response = await original(**kwargs)
+        assistant.set_model("claude-haiku-5-5")  # переключили посреди ответа
+        return response
+
+    fake_claude.messages.create = create
+    await assistant.ask(1, SERGEY, "что купить?")
+    assert [c["model"] for c in fake_claude.messages.calls] == ["claude-sonnet-5-5", "claude-sonnet-5-5"]
+
+
+# ---------- картинки к сказке ----------
+
+
+async def test_story_with_pictures(assistant, fake_claude, fake_photos):
+    fake_claude.messages.queue += [
+        claude_message(
+            tool_use("show_photos", {"title": "Герой сказки — ёжик", "search_query": "hedgehog", "count": 3}),
+            stop_reason="tool_use",
+        ),
+        claude_text("Жил-был ёжик…"),
+    ]
+    reply = await assistant.ask(1, SERGEY, build_story_request("про зверят"), kind="story")
+    assert "show_photos" in fake_claude.messages.calls[0]["messages"][-1]["content"]
+    assert fake_photos.limits == [3]
+    assert reply.albums[0].title == "Герой сказки — ёжик" and len(reply.albums[0].photos) == 3
+    assert reply.text == "Жил-был ёжик…"
+
+
+async def test_photo_count_is_limited(assistant, fake_claude, fake_photos):
+    fake_claude.messages.queue += [
+        claude_message(
+            tool_use("show_photos", {"title": "Сочи", "search_query": "Sochi", "count": 50}),
+            tool_use("show_photos", {"title": "Анапа", "search_query": "Anapa", "count": "много"}),
+            stop_reason="tool_use",
+        ),
+        claude_text("ok"),
+    ]
+    await assistant.ask(1, SERGEY, "фото")
+    assert fake_photos.limits == [6, 4]

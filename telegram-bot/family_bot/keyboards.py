@@ -5,6 +5,7 @@ from __future__ import annotations
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton, ReplyKeyboardMarkup
 
 from . import texts
+from .models import MODEL_CHOICES
 from .storage import Reminder, ShoppingItem
 
 
@@ -22,7 +23,7 @@ def main_menu() -> ReplyKeyboardMarkup:
         [texts.BTN_RECIPE, texts.BTN_SHOPPING],
         [texts.BTN_REMINDERS, texts.BTN_WEEKEND],
         [texts.BTN_QUIZ, texts.BTN_STORY],
-        [texts.BTN_NEW, texts.BTN_COSTS],
+        [texts.BTN_NEW, texts.BTN_SETTINGS],
     ]
     return ReplyKeyboardMarkup(
         keyboard=[[KeyboardButton(text=t) for t in row] for row in rows],
@@ -30,6 +31,23 @@ def main_menu() -> ReplyKeyboardMarkup:
         is_persistent=True,
         input_field_placeholder="Спросите что угодно или нажмите кнопку",
     )
+
+
+# ---------- настройки ----------
+
+
+def settings(current_model: str) -> InlineKeyboardMarkup:
+    rows = [
+        [
+            _button(
+                ("✅ " if choice.model_id == current_model else "") + f"{choice.label} — {choice.summary}",
+                f"set:model:{choice.key}",
+            )
+        ]
+        for choice in MODEL_CHOICES.values()
+    ]
+    rows.append([_button("💰 Подробно о расходах", "set:costs")])
+    return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
 # ---------- рецепты ----------

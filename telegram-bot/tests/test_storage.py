@@ -103,3 +103,10 @@ def test_group_message_does_not_move_private_chat(storage):
     assert storage.find_member("Вика").chat_id == 200
     storage.touch_user(300, "Бабушка", -500, 10, private_chat=False)  # знаем её только по группе
     assert storage.find_member("Бабушка").chat_id == -500
+
+
+def test_settings(storage, tmp_path):
+    assert storage.get_setting("model") is None
+    storage.set_setting("model", "claude-sonnet-5-5")
+    storage.set_setting("model", "claude-haiku-5-5")
+    assert storage.get_setting("model") == "claude-haiku-5-5"

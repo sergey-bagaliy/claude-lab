@@ -30,6 +30,7 @@ from .media import (
     normalize_url,
     parse_media,
 )
+from .models import KNOWN_MODEL_IDS
 from .pricing import estimate_cost, usage_from_response
 from .recipes import Recipe, parse_recipe, recipe_as_text
 from .storage import Storage
@@ -37,7 +38,7 @@ from .timeutil import now_local
 from .tools import (
     CLIENT_TOOLS,
     SHOW_MEDIA,
-    SHOW_PLACE_PHOTOS,
+    SHOW_PHOTOS,
     SHOW_RECIPE,
     WEB_SEARCH_TOOL,
     ToolContext,
@@ -56,12 +57,15 @@ MAX_STEPS = 6
 EFFORT_BY_KIND = {"chat": "low", "story": "low", "recipe": "medium", "weekend": "medium", "media": "medium"}
 # Не больше стольких альбомов с фото мест за один ответ.
 MAX_ALBUMS = 3
+DEFAULT_PHOTOS = 4  # сколько фото в альбоме, если Claude не сказал
 
 # Если модель откажется отвечать из-за ложного срабатывания защитных фильтров,
 # сервер Anthropic сам повторит запрос на подходящей модели (fallbacks: "default").
 # Для Claude Haiku 5.5 такой возможности нет — для неё параметр не отправляем.
 FALLBACK_MODELS = {"claude-sonnet-5-5", "claude-opus-5-5", "claude-opus-5", "claude-fable-5-1"}
 FALLBACK_BETA = "server-side-fallback-2026-07-01"
+
+MODEL_SETTING = "model"  # ключ в таблице настроек
 
 TRUNCATED_NOTE = "\n\n(Ответ получился длинным и обрезан. Напишите «продолжи».)"
 
@@ -108,7 +112,8 @@ class FamilyAssistant:
         self.client = client
         self.photos = photos
         self.storage = storage
-        self.model = model
+        # Модель по умолчанию (из CLAUDE_MODEL). Выбор в «⚙️ Настройках» бота важнее.
+        self.default_model = model
         self.memory_size = memory_size
         self.daily_budget_usd = daily_budget_usd
         self.web_search = web_search
@@ -136,6 +141,18 @@ class FamilyAssistant:
     def reset(self, chat_id: int) -> None:
         self.storage.clear_history(chat_id)
 
+    @property
+    def model(self) -> str:
+        """Модель, которая сейчас отвечает: выбранная в настройках бота или по умолчанию."""
+        chosen = self.storage.get_setting(MODEL_SETTING)
+        return chosen if chosen in KNOWN_MODEL_IDS else self.default_model
+
+    def set_model(self, model_id: str) -> None:
+        if model_id not in KNOWN_MODEL_IDS:
+            raise ValueError(f"Неизвестная модель: {model_id}")
+        self.storage.set_setting(MODEL_SETTING, model_id)
+        log.info("Модель переключена на %s", model_id)
+
     # ---------- внутреннее ----------
 
     def _check_budget(self) -> None:
@@ -159,9 +176,13 @@ class FamilyAssistant:
     ) -> Reply:
         ctx = ToolContext(chat_id=chat_id, person_name=person.name)
         turn = _Turn()
+        # Модель фиксируем на весь ответ: если кто-то переключит её в настройках прямо сейчас,
+        # этот ответ спокойно закончится на прежней, а следующий пойдёт на новой.
+        # Историю разговора бот хранит обычным текстом, поэтому смена модели между ответами безопасна.
+        model = self.model
 
         for _ in range(MAX_STEPS):
-            response = await self._create(messages, EFFORT_BY_KIND.get(kind, "low"), kind)
+            response = await self._create(messages, EFFORT_BY_KIND.get(kind, "low"), kind, model)
             turn.observe(response)
 
             if response.stop_reason == "refusal":
@@ -230,8 +251,8 @@ class FamilyAssistant:
                     content, is_error = "Подборка показана пользователю.", False
                 except ValueError as error:
                     content, is_error = str(error), True
-            elif block.name == SHOW_PLACE_PHOTOS:
-                content, is_error = await self._place_photos(data, turn)
+            elif block.name == SHOW_PHOTOS:
+                content, is_error = await self._photos(data, turn)
             else:
                 result = self.tools.run(block.name, data, ctx)
                 content, is_error = result.content, result.is_error
@@ -241,16 +262,20 @@ class FamilyAssistant:
             )
         return results
 
-    async def _place_photos(self, data: dict[str, Any], turn: _Turn) -> tuple[str, bool]:
+    async def _photos(self, data: dict[str, Any], turn: _Turn) -> tuple[str, bool]:
         if self.photos is None:
-            return "Фото мест сейчас недоступны. Скажи об этом пользователю.", True
+            return "Фото сейчас недоступны. Скажи об этом пользователю.", True
         if len(turn.albums) >= MAX_ALBUMS:
-            return f"За один ответ — фото не больше {MAX_ALBUMS} мест.", True
-        place = " ".join(str(data.get("place", "")).split())[:80]
+            return f"За один ответ — не больше {MAX_ALBUMS} альбомов с фото.", True
+        place = " ".join(str(data.get("title", "")).split())[:80]
         query = " ".join(str(data.get("search_query", "")).split())[:100]
         if not place or not query:
-            return "Нужны place и search_query.", True
-        photos = await self.photos.search(query)
+            return "Нужны title и search_query.", True
+        try:
+            count = min(max(int(data.get("count") or DEFAULT_PHOTOS), 1), 6)
+        except (TypeError, ValueError):
+            count = DEFAULT_PHOTOS
+        photos = await self.photos.search(query, limit=count)
         if not photos:
             return (
                 f"Фото по запросу «{query}» не нашлось. Попробуй другой запрос на английском "
@@ -260,10 +285,10 @@ class FamilyAssistant:
         turn.albums.append(PhotoAlbum(title=place, photos=photos))
         return f"Пользователю отправлено фото: {len(photos)} шт. ({place}).", False
 
-    async def _create(self, messages: list[dict[str, Any]], effort: str, kind: str) -> Any:
+    async def _create(self, messages: list[dict[str, Any]], effort: str, kind: str, model: str) -> Any:
         tools = ([WEB_SEARCH_TOOL] if self.web_search else []) + CLIENT_TOOLS
         params: dict[str, Any] = {
-            "model": self.model,
+            "model": model,
             "max_tokens": MAX_TOKENS,
             "system": self.system_prompt,
             "messages": messages,
@@ -273,7 +298,7 @@ class FamilyAssistant:
             # в следующий раз обходится примерно в 20 раз дешевле.
             "cache_control": {"type": "ephemeral"},
         }
-        if self.model in FALLBACK_MODELS:
+        if model in FALLBACK_MODELS:
             params["betas"] = [FALLBACK_BETA]
             params["fallbacks"] = "default"
 
@@ -290,9 +315,9 @@ class FamilyAssistant:
                 "У API-ключа нет доступа к Claude. Проверьте ключ в Claude Console."
             ) from None
         except anthropic.NotFoundError:
-            log.error("Модель %s не найдена (404)", self.model)
+            log.error("Модель %s не найдена (404)", model)
             raise AssistantError(
-                f"Модель {self.model} не найдена. Проверьте переменную CLAUDE_MODEL."
+                f"Модель {model} не найдена. Выберите другую в «⚙️ Настройках» или проверьте CLAUDE_MODEL."
             ) from None
         except anthropic.RateLimitError:
             log.warning("Превышен лимит запросов к Claude (429)")
@@ -305,7 +330,7 @@ class FamilyAssistant:
                 # Поиск отключён администратором в Claude Console — работаем без него.
                 log.warning("Поиск в интернете недоступен, продолжаю без него: %s", error.message)
                 self.web_search = False
-                return await self._create(messages, effort, kind)
+                return await self._create(messages, effort, kind, model)
             log.error("Claude отклонил запрос (400): %s", error.message)
             if "credit balance" in message:
                 raise AssistantError(
@@ -325,13 +350,13 @@ class FamilyAssistant:
                 "Не получилось связаться с Claude. Проверьте интернет и попробуйте снова."
             ) from None
 
-        self._record_usage(response, kind)
+        self._record_usage(response, kind, model)
         return response
 
-    def _record_usage(self, response: Any, kind: str) -> None:
+    def _record_usage(self, response: Any, kind: str, model: str) -> None:
         counts = usage_from_response(getattr(response, "usage", None))
-        cost = estimate_cost(self.model, counts)
-        self.storage.add_usage(self.clock().strftime("%Y-%m-%d"), kind, self.model, counts, cost)
+        cost = estimate_cost(model, counts)
+        self.storage.add_usage(self.clock().strftime("%Y-%m-%d"), kind, model, counts, cost)
         log.info(
             "Claude (%s): вход %s, кэш %s, выход %s, поисков %s ≈ $%.4f",
             kind,

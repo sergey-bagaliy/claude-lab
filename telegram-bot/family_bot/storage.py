@@ -55,6 +55,10 @@ CREATE TABLE IF NOT EXISTS usage (
     web_searches INTEGER NOT NULL,
     cost_usd REAL NOT NULL
 );
+CREATE TABLE IF NOT EXISTS settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+);
 CREATE TABLE IF NOT EXISTS recipes (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     chat_id INTEGER NOT NULL,
@@ -295,6 +299,19 @@ class Storage:
             (day_prefix + "%",),
         ).fetchall()
         return {r["kind"]: Spending(float(r["cost"]), int(r["n"])) for r in rows}
+
+    # ---------- настройки (например, выбранная модель Claude) ----------
+
+    def get_setting(self, key: str) -> str | None:
+        row = self.db.execute("SELECT value FROM settings WHERE key=?", (key,)).fetchone()
+        return row["value"] if row else None
+
+    def set_setting(self, key: str, value: str) -> None:
+        self.db.execute(
+            "INSERT INTO settings(key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+            (key, value),
+        )
+        self.db.commit()
 
     # ---------- рецепты (для кнопок «в покупки» и «другой рецепт») ----------
 
