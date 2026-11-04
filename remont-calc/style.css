@@ -202,13 +202,16 @@ input.invalid { border-color: var(--danger); background: var(--danger-soft); }
 .subhead { font-size: 14px; font-weight: 700; margin: 14px 0 6px; }
 .subhead .small { font-weight: 400; }
 
-.opening {
+.opening { padding: 8px 0 10px; border-bottom: 1px dashed var(--line); margin-bottom: 8px; }
+.opening-main {
   display: grid;
   grid-template-columns: 92px 1fr 1fr 48px 44px;
   gap: 6px;
   align-items: end;
-  margin-bottom: 8px;
 }
+.opening-extra { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 8px; }
+.inline-select { display: flex; align-items: center; gap: 8px; flex: 1 1 100%; font-size: 14px; color: var(--muted); }
+.inline-select .select { flex: 1; min-height: 40px; font-size: 16px; }
 .opening .field > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .opening .field input, .opening .field select { padding: 0 8px; }
 .opening .field select { padding-right: 22px; background-position: calc(100% - 13px) 50%, calc(100% - 8px) 50%; }
@@ -221,6 +224,7 @@ input.invalid { border-color: var(--danger); background: var(--danger-soft); }
 .surface-row { display: grid; grid-template-columns: 76px 1fr; align-items: center; gap: 8px; }
 .surface-row b { font-size: 15px; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 0 84px; }
+.chips.chips-wide { margin-left: 0; }
 
 .chip { position: relative; display: inline-flex; }
 .chip input { position: absolute; opacity: 0; width: 1px; height: 1px; }
@@ -250,7 +254,75 @@ input.invalid { border-color: var(--danger); background: var(--danger-soft); }
 .room.collapsed .room-summary { margin-top: 0; }
 .room-summary .warn, .error { color: var(--danger); }
 
+/* ---------- Разделы карточки комнаты ---------- */
+.sec { border-top: 1px solid var(--line); margin-top: 12px; }
+.sec > summary {
+  list-style: none;
+  cursor: pointer;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 4px 0;
+}
+.sec > summary::-webkit-details-marker { display: none; }
+.sec > summary::after { content: "▾"; color: var(--muted); transition: transform .15s; }
+.sec:not([open]) > summary::after { transform: rotate(-90deg); }
+.sec-title { font-weight: 700; font-size: 15px; }
+.sec-sum { font-size: 13px; color: var(--muted); text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.sec[open] .sec-sum { visibility: hidden; }
+.sec-body { padding-bottom: 6px; }
+.sec-body > .grid3 + .small { margin: 8px 0 0; }
+
+.rooms-toolbar { display: flex; justify-content: space-between; align-items: center; margin: 0 2px 8px; }
+.link-btn { border: 0; background: none; color: var(--accent); font-weight: 600; min-height: 40px; padding: 0 4px; cursor: pointer; }
+
+.add-room .preset-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 8px; }
+.preset { padding: 0 6px; font-size: 15px; }
+
 /* ---------- Материалы ---------- */
+.seg {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: var(--chip-bg);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 3px;
+  margin-bottom: 4px;
+}
+.seg button {
+  min-height: 42px;
+  border: 0;
+  border-radius: 9px;
+  background: none;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+}
+.seg button span { font-weight: 400; font-size: 13px; }
+.seg button.active { background: var(--card); color: var(--text); box-shadow: 0 1px 3px rgba(0, 0, 0, .12); }
+.cat-title { font-size: 15px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 18px 4px 8px; }
+.cat-title .small { text-transform: none; letter-spacing: 0; font-weight: 400; display: block; margin-top: 2px; }
+.field.wide { grid-column: 1 / -1; }
+.check-field.enable { margin-top: 8px; min-height: 40px; border-bottom: 1px dashed var(--line); }
+.material:not([open]) .check-field.enable { display: none; }
+.small-head { font-size: 13px; margin-top: 12px; }
+.danger-text { color: var(--danger); }
+.quick-group { margin-bottom: 12px; }
+.quick-group .chips { margin-top: 6px; }
+.chip-btn {
+  min-height: 38px;
+  padding: 0 12px;
+  border-radius: 19px;
+  border: 1px dashed var(--accent);
+  background: var(--card);
+  color: var(--text);
+  font-size: 14px;
+  cursor: pointer;
+}
+.chip-btn:active { background: var(--accent-soft); }
+
 .material summary {
   list-style: none;
   cursor: pointer;
@@ -285,8 +357,58 @@ input.invalid { border-color: var(--danger); background: var(--danger-soft); }
 .typical { font-size: 11px; color: var(--muted); }
 
 /* ---------- Итог ---------- */
-.result-row { padding: 12px 0; border-top: 1px solid var(--line); }
-.result-row:first-of-type { border-top: 0; padding-top: 0; }
+.cat-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 16px -14px 0;
+  padding: 8px 14px;
+  background: var(--chip-bg);
+  font-weight: 700;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+}
+.cat-head span:last-child { font-variant-numeric: tabular-nums; text-transform: none; }
+.result-row { display: grid; grid-template-columns: 40px 1fr; gap: 6px; padding: 12px 0; border-top: 1px solid var(--line); }
+.cat-head + .result-row { border-top: 0; }
+.result-main { min-width: 0; }
+.buy-check { position: relative; display: block; width: 40px; height: 40px; cursor: pointer; }
+.buy-check input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.buy-check span {
+  position: absolute;
+  inset: 4px;
+  border: 2px solid var(--line);
+  border-radius: 9px;
+  background: var(--card);
+}
+.buy-check input:checked + span { background: var(--accent); border-color: var(--accent); }
+.buy-check input:checked + span::after {
+  content: "";
+  position: absolute;
+  left: 10px;
+  top: 4px;
+  width: 8px;
+  height: 15px;
+  border: solid var(--accent-text);
+  border-width: 0 3px 3px 0;
+  transform: rotate(45deg);
+}
+.buy-check input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+.result-row.bought .result-main { opacity: .55; }
+.result-row.bought .result-buy { text-decoration: line-through; }
+.result-row.bought .result-lines { display: none; }
+.progress {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--accent-soft);
+  font-size: 14px;
+  margin-bottom: 4px;
+}
 .result-head { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
 .result-head b { font-size: 16px; }
 .result-cost { font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
@@ -368,6 +490,17 @@ input.invalid { border-color: var(--danger); background: var(--danger-soft); }
   max-width: calc(100% - 32px);
 }
 #toast.show { opacity: 1; transform: translate(-50%, 0); }
+#toast.with-action { pointer-events: auto; display: flex; align-items: center; gap: 14px; padding-right: 8px; }
+.toast-btn {
+  border: 0;
+  background: none;
+  color: #fdba74;
+  font-weight: 700;
+  min-height: 36px;
+  padding: 0 8px;
+  cursor: pointer;
+}
+@media (prefers-color-scheme: dark) { .toast-btn { color: #9a3412; } }
 
 /* ---------- Узкие телефоны (до 360 px) ---------- */
 @media (max-width: 360px) {
@@ -375,7 +508,7 @@ input.invalid { border-color: var(--danger); background: var(--danger-soft); }
   .card { padding: 12px; }
   .surface-row { grid-template-columns: 64px 1fr; }
   .chips { margin-left: 0; }
-  .opening { grid-template-columns: 78px 1fr 1fr 40px 40px; gap: 4px; }
+  .opening-main { grid-template-columns: 78px 1fr 1fr 40px 40px; gap: 4px; }
   .opening .field > span { font-size: 12px; text-overflow: clip; }
   .opening .field input, .opening .field select { font-size: 16px; padding: 0 6px; }
   .opening .field select { padding-right: 20px; }
@@ -398,9 +531,11 @@ input.invalid { border-color: var(--danger); background: var(--danger-soft); }
   #print th { background: #eee; font-weight: 700; }
   #print td.num, #print th.num { text-align: right; white-space: nowrap; }
   #print .calc { font-size: 9pt; color: #333; }
+  #print tfoot { display: table-row-group; } /* итог только в конце таблицы, а не внизу каждой страницы */
   #print tfoot td { font-weight: 700; font-size: 12pt; }
   #print tr { page-break-inside: avoid; }
   #print .footnote { font-size: 9pt; color: #333; margin-top: 4mm; }
+  #print .cat-row td { background: #f3f3f3; font-weight: 700; text-transform: uppercase; font-size: 9.5pt; }
   #print .mat-table th:nth-child(1) { width: 17%; }
   #print .mat-table th:nth-child(2) { width: 43%; }
   #print .mat-table th:nth-child(3) { width: 16%; }

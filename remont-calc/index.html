@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Калькулятор материалов для ремонта</title>
-  <meta name="description" content="Расчёт плитки, ламината, краски, обоев, штукатурки, грунта и шпаклёвки по размерам комнат.">
+  <meta name="description" content="Расчёт материалов для ремонта квартиры по размерам комнат: отделка, черновые работы, окна и двери, электрика, отопление.">
   <meta name="theme-color" content="#c2410c">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
@@ -26,9 +26,13 @@
   <main class="container">
     <!-- Вкладка 1: комнаты -->
     <section class="panel" id="tab-rooms" data-panel="rooms">
-      <p class="hint">Размеры — в метрах, дробь можно через запятую: <b>2,7</b>. Для каждой комнаты выберите отделку пола, стен и потолка.</p>
+      <p class="hint">Размеры — в метрах, дробь через запятую: <b>2,7</b>. Окна и двери, отделка, электрика и отопление — в разделах карточки.</p>
       <div id="rooms"></div>
-      <button type="button" class="btn btn-primary btn-wide" data-action="add-room">+ Добавить комнату</button>
+      <div class="card add-room">
+        <h2 class="card-title">Добавить помещение</h2>
+        <div class="preset-grid" id="presets"></div>
+        <p class="small muted">Шаблон заполняет отделку — её можно поменять. Высота потолка берётся из предыдущей комнаты.</p>
+      </div>
     </section>
 
     <!-- Вкладка 2: материалы, нормы и цены -->
@@ -36,6 +40,10 @@
       <div class="notice">
         <b>Нормы расхода — типовые значения.</b> Сверьте с упаковкой своего материала и исправьте.
         Цены вводите свои — по ним считается стоимость.
+      </div>
+      <div class="seg" role="group" aria-label="Какие материалы показать">
+        <button type="button" data-filter="used" class="active" aria-pressed="true">Нужные <span id="count-used">0</span></button>
+        <button type="button" data-filter="all" aria-pressed="false">Все <span id="count-all">0</span></button>
       </div>
       <div id="materials"></div>
       <button type="button" class="btn btn-wide" data-action="reset-norms">Вернуть типовые нормы (цены останутся)</button>
