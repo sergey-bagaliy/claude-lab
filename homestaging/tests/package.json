@@ -1,0 +1,10 @@
+{
+  "name": "homestaging-tests",
+  "private": true,
+  "type": "commonjs",
+  "description": "Позволяет запускать `node --test homestaging/tests/` (Node 22 воспринимает каталог как модуль).",
+  "main": "calc-core.test.js",
+  "scripts": {
+    "test": "node --test calc-core.test.js"
+  }
+}
