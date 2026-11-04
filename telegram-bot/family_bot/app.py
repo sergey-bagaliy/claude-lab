@@ -17,6 +17,7 @@ from aiogram.utils.token import TokenValidationError
 from .assistant import FamilyAssistant
 from .config import ConfigError, Settings, load_settings
 from .handlers import Deps, create_router
+from .media import WikimediaPhotos
 from .reminders import ReminderService
 from .storage import Storage
 from .timeutil import now_local
@@ -41,7 +42,8 @@ BOT_DESCRIPTION = (
     "• рецепты с фото и продукты сразу в список покупок\n"
     "• общий список покупок для всей семьи\n"
     "• напоминания обычной фразой — себе и близким\n"
-    "• тренажёр умножения для Никиты и сказки для Кати\n"
+    "• тренажёр умножения для Никиты, сказки, аудиосказки и мультфильмы для Кати\n"
+    "• фото курортов и интересных мест\n"
     "• идеи на выходные с учётом погоды в Краснодаре"
 )
 BOT_SHORT_DESCRIPTION = "Рецепты, покупки, напоминания и помощь с детьми для нашей семьи"
@@ -78,6 +80,7 @@ async def run(settings: Settings) -> None:
 
     storage = Storage(settings.db_path)
     client = anthropic.AsyncAnthropic(api_key=settings.anthropic_api_key)
+    photos = WikimediaPhotos()
     assistant = FamilyAssistant(
         client=client,
         storage=storage,
@@ -86,6 +89,7 @@ async def run(settings: Settings) -> None:
         daily_budget_usd=settings.daily_budget_usd,
         web_search=settings.web_search,
         clock=now_local,
+        photos=photos,
     )
     deps = Deps(
         assistant=assistant, storage=storage, clock=now_local, daily_budget_usd=settings.daily_budget_usd
@@ -123,6 +127,7 @@ async def run(settings: Settings) -> None:
                 await reminders_task
         await bot.session.close()
         await client.close()
+        await photos.close()
         storage.close()
 
 

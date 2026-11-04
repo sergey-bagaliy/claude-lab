@@ -21,11 +21,28 @@ from typing import Any
 import anthropic
 
 from .family import build_context, build_system_prompt
+from .media import (
+    MediaCard,
+    PhotoAlbum,
+    WikimediaPhotos,
+    is_known_url,
+    media_as_text,
+    normalize_url,
+    parse_media,
+)
 from .pricing import estimate_cost, usage_from_response
 from .recipes import Recipe, parse_recipe, recipe_as_text
 from .storage import Storage
 from .timeutil import now_local
-from .tools import CLIENT_TOOLS, SHOW_RECIPE, WEB_SEARCH_TOOL, ToolContext, ToolExecutor
+from .tools import (
+    CLIENT_TOOLS,
+    SHOW_MEDIA,
+    SHOW_PLACE_PHOTOS,
+    SHOW_RECIPE,
+    WEB_SEARCH_TOOL,
+    ToolContext,
+    ToolExecutor,
+)
 
 log = logging.getLogger(__name__)
 
@@ -35,8 +52,10 @@ MAX_TOKENS = 16000
 MAX_STEPS = 6
 
 # Уровень «старания»: low — быстро и дёшево (чат, сказки),
-# medium — для задач с поиском в интернете (рецепты, выходные).
-EFFORT_BY_KIND = {"chat": "low", "story": "low", "recipe": "medium", "weekend": "medium"}
+# medium — для задач с поиском в интернете (рецепты, выходные, видео и аудио).
+EFFORT_BY_KIND = {"chat": "low", "story": "low", "recipe": "medium", "weekend": "medium", "media": "medium"}
+# Не больше стольких альбомов с фото мест за один ответ.
+MAX_ALBUMS = 3
 
 # Если модель откажется отвечать из-за ложного срабатывания защитных фильтров,
 # сервер Anthropic сам повторит запрос на подходящей модели (fallbacks: "default").
@@ -62,6 +81,8 @@ class Reply:
     text: str
     recipe: Recipe | None = None
     recipe_id: int | None = None
+    media: MediaCard | None = None  # подборка видео / аудио / ссылок
+    albums: list[PhotoAlbum] = field(default_factory=list)  # фото мест
     sources: list[tuple[str, str]] = field(default_factory=list)  # (название, ссылка)
 
     def display_text(self) -> str:
@@ -82,8 +103,10 @@ class FamilyAssistant:
         daily_budget_usd: float = 0.0,
         web_search: bool = True,
         clock: Callable[[], datetime] = now_local,
+        photos: WikimediaPhotos | None = None,
     ) -> None:
         self.client = client
+        self.photos = photos
         self.storage = storage
         self.model = model
         self.memory_size = memory_size
@@ -135,11 +158,11 @@ class FamilyAssistant:
         recipe_query: str,
     ) -> Reply:
         ctx = ToolContext(chat_id=chat_id, person_name=person.name)
-        searched = False
+        turn = _Turn()
 
         for _ in range(MAX_STEPS):
             response = await self._create(messages, EFFORT_BY_KIND.get(kind, "low"), kind)
-            searched = searched or _did_search(response)
+            turn.observe(response)
 
             if response.stop_reason == "refusal":
                 category = response.stop_details.category if response.stop_details else None
@@ -153,13 +176,10 @@ class FamilyAssistant:
 
             tool_uses = [b for b in response.content if b.type == "tool_use"]
             if response.stop_reason == "tool_use" and tool_uses:
-                results, recipe = self._run_tools(tool_uses, ctx, searched)
-                if recipe is not None:
-                    recipe_id = self.storage.save_recipe(
-                        chat_id, recipe.title, recipe.ingredients, recipe_query
-                    )
-                    self.storage.add_exchange(chat_id, user_content, recipe_as_text(recipe), self.memory_size)
-                    return Reply(text=_text_of(response), recipe=recipe, recipe_id=recipe_id)
+                results = await self._run_tools(tool_uses, ctx, turn)
+                if turn.recipe is not None or turn.media is not None:
+                    # Карточка готова — Claude больше не вызываем (экономия).
+                    return self._finish_card(chat_id, user_content, turn, recipe_query)
                 # Важно: ответ Claude возвращаем целиком и без изменений.
                 messages = messages + [
                     {"role": "assistant", "content": response.content},
@@ -168,36 +188,77 @@ class FamilyAssistant:
                 continue
 
             text = _text_of(response)
-            if not text:
+            if not text and not turn.albums:
                 log.warning("Пустой ответ от Claude, stop_reason=%s", response.stop_reason)
                 raise AssistantError("Claude прислал пустой ответ. Попробуйте спросить иначе.")
             if response.stop_reason == "max_tokens":
                 text += TRUNCATED_NOTE
-            self.storage.add_exchange(chat_id, user_content, text, self.memory_size)
-            return Reply(text=text, sources=_sources_of(response))
+            memory = text
+            if turn.albums:
+                memory += "\n(Отправлены фото: " + ", ".join(a.title for a in turn.albums) + ")"
+            self.storage.add_exchange(chat_id, user_content, memory.strip(), self.memory_size)
+            return Reply(text=text, sources=_sources_of(response), albums=turn.albums)
 
         raise AssistantError("Запрос оказался слишком сложным. Попробуйте разбить его на части.")
 
-    def _run_tools(
-        self, tool_uses: list[Any], ctx: ToolContext, searched: bool
-    ) -> tuple[list[dict[str, Any]], Recipe | None]:
+    def _finish_card(self, chat_id: int, user_content: str, turn: _Turn, recipe_query: str) -> Reply:
+        if turn.recipe is not None:
+            recipe = turn.recipe
+            recipe_id = self.storage.save_recipe(chat_id, recipe.title, recipe.ingredients, recipe_query)
+            self.storage.add_exchange(chat_id, user_content, recipe_as_text(recipe), self.memory_size)
+            return Reply(text="", recipe=recipe, recipe_id=recipe_id, albums=turn.albums)
+        assert turn.media is not None
+        self.storage.add_exchange(chat_id, user_content, media_as_text(turn.media), self.memory_size)
+        return Reply(text="", media=turn.media, albums=turn.albums)
+
+    async def _run_tools(self, tool_uses: list[Any], ctx: ToolContext, turn: _Turn) -> list[dict[str, Any]]:
         results: list[dict[str, Any]] = []
-        recipe: Recipe | None = None
         for block in tool_uses:
-            if block.name == SHOW_RECIPE:
+            data = block.input
+            if not isinstance(data, dict):
+                content, is_error = "Входные данные должны быть объектом JSON.", True
+            elif block.name == SHOW_RECIPE:
                 try:
-                    recipe = parse_recipe(block.input, allow_url=searched)
+                    allow_url = is_known_url(data.get("source_url"), turn.found_urls, turn.searched)
+                    turn.recipe = parse_recipe(data, allow_url=allow_url)
                     content, is_error = "Карточка рецепта показана пользователю.", False
                 except ValueError as error:
                     content, is_error = str(error), True
+            elif block.name == SHOW_MEDIA:
+                try:
+                    turn.media = parse_media(data, turn.found_urls, turn.searched)
+                    content, is_error = "Подборка показана пользователю.", False
+                except ValueError as error:
+                    content, is_error = str(error), True
+            elif block.name == SHOW_PLACE_PHOTOS:
+                content, is_error = await self._place_photos(data, turn)
             else:
-                result = self.tools.run(block.name, block.input, ctx)
+                result = self.tools.run(block.name, data, ctx)
                 content, is_error = result.content, result.is_error
             log.info("Инструмент %s → %s", block.name, "ошибка" if is_error else "ок")
             results.append(
                 {"type": "tool_result", "tool_use_id": block.id, "content": content, "is_error": is_error}
             )
-        return results, recipe
+        return results
+
+    async def _place_photos(self, data: dict[str, Any], turn: _Turn) -> tuple[str, bool]:
+        if self.photos is None:
+            return "Фото мест сейчас недоступны. Скажи об этом пользователю.", True
+        if len(turn.albums) >= MAX_ALBUMS:
+            return f"За один ответ — фото не больше {MAX_ALBUMS} мест.", True
+        place = " ".join(str(data.get("place", "")).split())[:80]
+        query = " ".join(str(data.get("search_query", "")).split())[:100]
+        if not place or not query:
+            return "Нужны place и search_query.", True
+        photos = await self.photos.search(query)
+        if not photos:
+            return (
+                f"Фото по запросу «{query}» не нашлось. Попробуй другой запрос на английском "
+                "или скажи пользователю, что фото не нашлось.",
+                True,
+            )
+        turn.albums.append(PhotoAlbum(title=place, photos=photos))
+        return f"Пользователю отправлено фото: {len(photos)} шт. ({place}).", False
 
     async def _create(self, messages: list[dict[str, Any]], effort: str, kind: str) -> Any:
         tools = ([WEB_SEARCH_TOOL] if self.web_search else []) + CLIENT_TOOLS
@@ -298,6 +359,34 @@ def _sources_of(response: Any, limit: int = 3) -> list[tuple[str, str]]:
             if url and url not in sources:
                 sources[url] = getattr(citation, "title", None) or url
     return [(title, url) for url, title in list(sources.items())[:limit]]
+
+
+@dataclass
+class _Turn:
+    """Что накопилось за один ответ: был ли поиск, какие адреса нашлись, что показать."""
+
+    searched: bool = False
+    found_urls: set[str] = field(default_factory=set)
+    recipe: Recipe | None = None
+    media: MediaCard | None = None
+    albums: list[PhotoAlbum] = field(default_factory=list)
+
+    def observe(self, response: Any) -> None:
+        self.searched = self.searched or _did_search(response)
+        self.found_urls |= _found_urls(response)
+
+
+def _found_urls(response: Any) -> set[str]:
+    """Адреса из результатов поиска и цитат — только им бот доверяет."""
+    urls: set[str] = set()
+    for block in response.content:
+        if block.type == "web_search_tool_result" and isinstance(block.content, list):
+            urls |= {normalize_url(r.url) for r in block.content if getattr(r, "url", None)}
+        elif block.type == "text":
+            for citation in getattr(block, "citations", None) or []:
+                if getattr(citation, "url", None):
+                    urls.add(normalize_url(citation.url))
+    return urls
 
 
 def _did_search(response: Any) -> bool:

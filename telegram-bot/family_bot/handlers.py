@@ -10,13 +10,14 @@ from typing import Any
 
 from aiogram import BaseMiddleware, Bot, F, Router
 from aiogram.enums import ParseMode
-from aiogram.exceptions import TelegramBadRequest
+from aiogram.exceptions import TelegramBadRequest, TelegramNetworkError
 from aiogram.filters import Command, CommandObject, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import (
     CallbackQuery,
     InlineKeyboardMarkup,
+    InputMediaPhoto,
     LinkPreviewOptions,
     Message,
     TelegramObject,
@@ -30,10 +31,12 @@ from .assistant import AssistantError, FamilyAssistant, Person, Reply
 from .family import (
     RECIPE_PRESETS,
     STORY_THEMES,
+    build_media_request,
     build_recipe_request,
     build_story_request,
     build_weekend_request,
 )
+from .media import PhotoAlbum, album_captions, render_media_html
 from .multiplication import QuizGame, format_examples, make_examples, new_game, question_text, result_text
 from .recipes import render_recipe_html
 from .storage import Storage
@@ -42,7 +45,13 @@ from .timeutil import format_when, from_ts
 log = logging.getLogger(__name__)
 
 NO_PREVIEW = LinkPreviewOptions(is_disabled=True)
-KIND_LABELS = {"chat": "Разговор", "recipe": "Рецепты", "weekend": "Выходные", "story": "Сказки"}
+KIND_LABELS = {
+    "chat": "Разговор",
+    "recipe": "Рецепты",
+    "weekend": "Выходные",
+    "story": "Сказки",
+    "media": "Видео и аудио",
+}
 
 
 class Forms(StatesGroup):
@@ -168,7 +177,43 @@ def create_router(deps: Deps, allowed_user_ids: frozenset[int]) -> Router:
             return
         await send_reply(message, reply, markup)
 
+    async def send_album(message: Message, album: PhotoAlbum) -> None:
+        """Фото места альбомом. Если Telegram не смог скачать какое-то фото — шлём по одному."""
+        captions = album_captions(album)
+        media = [
+            InputMediaPhoto(media=photo.url, caption=caption, parse_mode=ParseMode.HTML)
+            for photo, caption in zip(album.photos, captions, strict=True)
+        ]
+        try:
+            await message.answer_media_group(media)
+            return
+        except (TelegramBadRequest, TelegramNetworkError) as error:
+            log.warning("Альбом «%s» не отправился целиком: %s", album.title, error)
+        sent = 0
+        for photo, caption in zip(album.photos, captions, strict=True):
+            try:
+                await message.answer_photo(photo.url, caption=caption, parse_mode=ParseMode.HTML)
+                sent += 1
+            except (TelegramBadRequest, TelegramNetworkError):
+                continue
+        if not sent:
+            links = "\n".join(f"• {p.page_url}" for p in album.photos)
+            await message.answer(f"{texts.PHOTOS_FAILED}\n{links}", link_preview_options=NO_PREVIEW)
+
     async def send_reply(message: Message, reply: Reply, markup: InlineKeyboardMarkup | None) -> None:
+        for album in reply.albums:
+            await send_album(message, album)
+        if reply.media is not None:
+            first = reply.media.items[0].url
+            await message.answer(
+                render_media_html(reply.media),
+                parse_mode=ParseMode.HTML,
+                link_preview_options=LinkPreviewOptions(
+                    url=first, prefer_large_media=True, show_above_text=True
+                ),
+                reply_markup=markup,
+            )
+            return
         if reply.recipe is not None and reply.recipe_id is not None:
             recipe = reply.recipe
             preview = (
@@ -183,6 +228,8 @@ def create_router(deps: Deps, allowed_user_ids: frozenset[int]) -> Router:
                 reply_markup=kb.recipe_actions(reply.recipe_id),
             )
             return
+        if not reply.text:
+            return  # только фото, без текста
         parts = texts.split_message(reply.display_text())
         for number, part in enumerate(parts, start=1):
             await message.answer(
@@ -586,6 +633,23 @@ def create_router(deps: Deps, allowed_user_ids: frozenset[int]) -> Router:
         if message is not None:
             theme = STORY_THEMES.get(callback.data.split(":", 1)[1], STORY_THEMES["any"])
             await show_story(message, person, state, theme)
+
+    @router.callback_query(F.data.startswith("media:"))
+    async def cb_media(callback: CallbackQuery, person: Person, state: FSMContext) -> None:
+        await callback.answer()
+        message = _message_of(callback)
+        kind = callback.data.split(":", 1)[1]
+        if message is None or kind not in texts.MEDIA_SEARCHING:
+            return
+        await state.clear()
+        await ask_claude(
+            message,
+            person,
+            build_media_request(kind),
+            "media",
+            status=texts.MEDIA_SEARCHING[kind],
+            markup=kb.story(),
+        )
 
     @router.callback_query(F.data.startswith("wk:"))
     async def cb_weekend(callback: CallbackQuery, person: Person, state: FSMContext) -> None:

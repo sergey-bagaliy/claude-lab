@@ -21,8 +21,8 @@ WEB_SEARCH_TOOL: dict[str, Any] = {
     "type": "web_search_20260318",
     "name": "web_search",
     "max_uses": 3,  # не больше 3 поисков на один ответ — бережём деньги
-    # Промежуточные результаты фильтрации не нужны в ответе — так он короче и дешевле.
-    "response_inclusion": "excluded",
+    # Результаты поиска приходят в ответе целиком: по ним бот проверяет,
+    # что ссылки на рецепты, видео и аудио настоящие, а не придуманные.
     "user_location": {
         "type": "approximate",
         "city": "Krasnodar",
@@ -122,7 +122,73 @@ CLIENT_TOOLS: list[dict[str, Any]] = [
     },
 ]
 
+CLIENT_TOOLS += [
+    {
+        "name": "show_media",
+        "description": (
+            "Показать подборку ссылок с превью: видео (мультфильмы, ролики), аудио (аудиосказки, песни, "
+            "подкасты) или полезные страницы. Вызывай, когда просят найти мультфильм, видео, аудиосказку, "
+            "песню или ссылки. Перед этим найди их через web_search; url — только точные адреса из результатов "
+            "поиска, ничего не придумывай. Предпочитай официальные каналы и легальные сайты."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "kind": {
+                    "type": "string",
+                    "enum": ["video", "audio", "links"],
+                    "description": "Что в подборке.",
+                },
+                "title": {"type": "string", "description": "Заголовок подборки: «Мультфильмы для Кати»."},
+                "items": {
+                    "type": "array",
+                    "description": "От 1 до 5 ссылок.",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "title": {"type": "string", "description": "Название."},
+                            "url": {"type": "string", "description": "Точный адрес из результатов поиска."},
+                            "note": {
+                                "type": "string",
+                                "description": "Коротко: длительность, для какого возраста, чем хорошо.",
+                            },
+                        },
+                        "required": ["title", "url"],
+                    },
+                },
+            },
+            "required": ["kind", "title", "items"],
+        },
+    },
+    {
+        "name": "show_place_photos",
+        "description": (
+            "Прислать настоящие фотографии места: курорта, города, пляжа, парка, достопримечательности "
+            "(бот берёт их из Wikimedia Commons). Вызывай, когда просят показать, как выглядит место, или "
+            "прислать фото. Для нескольких мест — отдельный вызов на каждое, не больше 3 за ответ. "
+            "После этого коротко расскажи о месте, не описывая сами фото."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "place": {
+                    "type": "string",
+                    "description": "Название по-русски — подпись к фото: «Геленджик».",
+                },
+                "search_query": {
+                    "type": "string",
+                    "description": "Запрос на английском, как место называется в Википедии, можно с уточнением: "
+                    "«Gelendzhik embankment», «Abrau-Dyurso lake».",
+                },
+            },
+            "required": ["place", "search_query"],
+        },
+    },
+]
+
 SHOW_RECIPE = "show_recipe"
+SHOW_MEDIA = "show_media"
+SHOW_PLACE_PHOTOS = "show_place_photos"
 
 
 @dataclass(frozen=True)

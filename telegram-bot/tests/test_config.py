@@ -16,7 +16,7 @@ def test_reads_keys_and_defaults():
     settings = load_settings(KEYS)
     assert settings.telegram_token == "123:abc"
     assert settings.anthropic_api_key == "sk-ant-test"
-    assert settings.model == DEFAULT_MODEL == "claude-sonnet-5-5"
+    assert settings.model == DEFAULT_MODEL == "claude-haiku-5-5"
     assert settings.memory_size == DEFAULT_MEMORY_SIZE
     assert settings.allowed_user_ids == frozenset()
     assert settings.daily_budget_usd == DEFAULT_DAILY_BUDGET_USD == 1.0
@@ -55,7 +55,7 @@ def test_optional_settings():
     settings = load_settings(
         {
             **KEYS,
-            "CLAUDE_MODEL": "claude-haiku-5-5",
+            "CLAUDE_MODEL": "claude-sonnet-5-5",
             "MEMORY_SIZE": "10",
             "ALLOWED_USER_IDS": "111, 222;333,",
             "DAILY_BUDGET_USD": "2,5",
@@ -63,7 +63,7 @@ def test_optional_settings():
             "WEB_SEARCH": "0",
         }
     )
-    assert settings.model == "claude-haiku-5-5"
+    assert settings.model == "claude-sonnet-5-5"
     assert settings.memory_size == 10
     assert settings.allowed_user_ids == frozenset({111, 222, 333})
     assert settings.daily_budget_usd == 2.5

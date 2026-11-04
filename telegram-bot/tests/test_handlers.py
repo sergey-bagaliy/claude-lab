@@ -6,7 +6,15 @@ Telegram подменён FakeTelegramSession, Claude — FakeClaude.
 import pytest
 from aiogram import Bot
 from aiogram.enums import ParseMode
-from aiogram.methods import AnswerCallbackQuery, EditMessageReplyMarkup, EditMessageText, SendChatAction
+from aiogram.exceptions import TelegramBadRequest
+from aiogram.methods import (
+    AnswerCallbackQuery,
+    EditMessageReplyMarkup,
+    EditMessageText,
+    SendChatAction,
+    SendMediaGroup,
+    SendPhoto,
+)
 from aiogram.types import PhotoSize, ReplyKeyboardMarkup
 
 from family_bot import texts
@@ -22,6 +30,8 @@ from .conftest import (
     make_callback,
     make_update,
     recipe_turn,
+    search_results,
+    server_search,
     text,
     tool_use,
 )
@@ -373,3 +383,80 @@ async def test_family_member_passes_and_is_remembered(assistant, storage, clock,
     assert env.last().text == "Ответ Claude"
     assert "Пишет: Вика" in fake_claude.messages.calls[0]["messages"][-1]["content"]
     assert storage.find_member("Вика").chat_id == 200
+
+
+# ---------- фото мест, видео и аудио ----------
+
+
+async def test_place_photos_album(env, fake_claude):
+    fake_claude.messages.queue += [
+        claude_message(
+            tool_use("show_place_photos", {"place": "Геленджик", "search_query": "Gelendzhik"}),
+            stop_reason="tool_use",
+        ),
+        claude_text("Геленджик — уютная бухта."),
+    ]
+    await env.send("Покажи фото Геленджика")
+
+    [album] = env.session.of_type(SendMediaGroup)
+    assert [m.media for m in album.media] == [
+        f"https://upload.wikimedia.org/thumb/{n}.jpg" for n in (1, 2, 3)
+    ]
+    assert album.media[0].caption.startswith("📸 <b>Геленджик</b>")
+    assert "© Автор 1" in album.media[0].caption
+    assert env.last().text == "Геленджик — уютная бухта."  # текст — после фото
+
+
+async def test_album_falls_back_to_single_photos(env, fake_claude):
+    original = env.session.make_request
+
+    async def make_request(bot, method, timeout=None):
+        if isinstance(method, SendMediaGroup):
+            raise TelegramBadRequest(method=method, message="Bad Request: failed to get HTTP URL content")
+        if isinstance(method, SendPhoto) and method.photo.endswith("2.jpg"):
+            raise TelegramBadRequest(method=method, message="Bad Request: wrong file")
+        return await original(bot, method, timeout)
+
+    env.session.make_request = make_request
+    fake_claude.messages.queue += [
+        claude_message(
+            tool_use("show_place_photos", {"place": "Сочи", "search_query": "Sochi"}), stop_reason="tool_use"
+        ),
+        claude_text("Сочи."),
+    ]
+    await env.send("фото Сочи")
+    assert [p.photo.rsplit("/", 1)[1] for p in env.session.of_type(SendPhoto)] == ["1.jpg", "3.jpg"]
+
+
+async def test_media_card_with_preview(env, fake_claude):
+    fake_claude.messages.queue.append(
+        claude_message(
+            server_search(),
+            search_results("https://www.youtube.com/watch?v=real1"),
+            tool_use(
+                "show_media",
+                {
+                    "kind": "audio",
+                    "title": "Аудиосказки",
+                    "items": [{"title": "Колобок", "url": "https://www.youtube.com/watch?v=real1"}],
+                },
+            ),
+            stop_reason="tool_use",
+            searches=1,
+        )
+    )
+    await env.press("media:audio")
+    assert env.texts()[0] == texts.MEDIA_SEARCHING["audio"]
+    assert "аудиосказок" in fake_claude.messages.calls[0]["messages"][-1]["content"]
+
+    card = env.last()
+    assert card.parse_mode == ParseMode.HTML and card.text.startswith("🎧 <b>Аудиосказки</b>")
+    assert card.link_preview_options.url == "https://www.youtube.com/watch?v=real1"
+    assert "🎬 Мультфильмы" in buttons(card.reply_markup)
+
+
+async def test_story_has_audio_and_video_buttons(env, fake_claude):
+    await env.send(texts.BTN_STORY)
+    assert buttons(env.last().reply_markup)[-2:] == ["🎧 Аудиосказки", "🎬 Мультфильмы"]
+    await env.press("media:video")
+    assert "мультфильмов" in fake_claude.messages.calls[1]["messages"][-1]["content"]

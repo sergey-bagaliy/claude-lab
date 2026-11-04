@@ -17,6 +17,7 @@ from .conftest import (
     claude_message,
     claude_text,
     recipe_turn,
+    search_results,
     server_search,
     text,
     thinking,
@@ -51,6 +52,8 @@ async def test_request_parameters(assistant, fake_claude):
         "create_reminder",
         "list_reminders",
         "show_recipe",
+        "show_media",
+        "show_place_photos",
     ]
     assert call["tools"][0]["type"] == "web_search_20260318"
 
@@ -293,3 +296,133 @@ async def test_api_errors_become_clear_messages(assistant, fake_claude, storage,
     with pytest.raises(AssistantError, match=expected):
         await assistant.ask(1, SERGEY, "второй вопрос")
     assert len(storage.history(1, 20)) == 2  # неудачный вопрос не попал в историю
+
+
+# ---------- видео, аудио и фото мест ----------
+
+
+async def test_media_card_after_search(assistant, fake_claude, storage):
+    fake_claude.messages.queue.append(
+        claude_message(
+            server_search("мультфильмы"),
+            search_results("https://www.youtube.com/watch?v=real1", "https://multiki.example/ezhik"),
+            tool_use(
+                "show_media",
+                {
+                    "kind": "video",
+                    "title": "Мультфильмы для Кати",
+                    "items": [
+                        {"title": "Ёжик в тумане", "url": "https://youtu.be/real1"},
+                        {"title": "Про ёжика", "url": "https://multiki.example/ezhik/"},
+                    ],
+                },
+            ),
+            stop_reason="tool_use",
+            searches=1,
+        )
+    )
+    reply = await assistant.ask(1, SERGEY, "мультфильмы", kind="media")
+    assert len(fake_claude.messages.calls) == 1
+    assert [i.title for i in reply.media.items] == ["Ёжик в тумане", "Про ёжика"]
+    assert "youtu.be/real1" in storage.history(1, 20)[-1]["content"]
+    assert fake_claude.messages.calls[0]["output_config"] == {"effort": "medium"}
+
+
+async def test_invented_links_go_back_to_claude(assistant, fake_claude):
+    bad = tool_use(
+        "show_media",
+        {"kind": "video", "title": "Мультики", "items": [{"title": "X", "url": "https://youtu.be/fake9"}]},
+    )
+    good = tool_use(
+        "show_media",
+        {"kind": "video", "title": "Мультики", "items": [{"title": "Y", "url": "https://youtu.be/real1"}]},
+    )
+    fake_claude.messages.queue += [
+        claude_message(
+            server_search(), search_results("https://youtu.be/real1"), bad, stop_reason="tool_use", searches=1
+        ),
+        claude_message(good, stop_reason="tool_use"),
+    ]
+    reply = await assistant.ask(1, SERGEY, "мультики", kind="media")
+    [result] = fake_claude.messages.calls[1]["messages"][-1]["content"]
+    assert result["is_error"] is True and "fake9" in result["content"]
+    assert reply.media.items[0].url == "https://youtu.be/real1"
+
+
+async def test_recipe_link_must_come_from_search(assistant, fake_claude):
+    fake_claude.messages.queue.append(
+        claude_message(
+            server_search(),
+            search_results("https://other.ru/recipe"),
+            tool_use("show_recipe", RECIPE_INPUT),
+            stop_reason="tool_use",
+            searches=1,
+        )
+    )
+    reply = await assistant.ask(1, SERGEY, "рецепт", kind="recipe")
+    assert reply.recipe.url is None  # адреса нет среди найденных — без фото, но рецепт показан
+
+
+async def test_place_photos(assistant, fake_claude, fake_photos, storage):
+    fake_claude.messages.queue += [
+        claude_message(
+            tool_use("show_place_photos", {"place": "Геленджик", "search_query": "Gelendzhik embankment"}),
+            tool_use("show_place_photos", {"place": "Анапа", "search_query": "Anapa beach"}),
+            stop_reason="tool_use",
+        ),
+        claude_text("Геленджик — бухта и набережная, Анапа — песчаные пляжи для малышей."),
+    ]
+    reply = await assistant.ask(1, SERGEY, "Покажи фото Геленджика и Анапы")
+
+    assert fake_photos.queries == ["Gelendzhik embankment", "Anapa beach"]
+    assert [a.title for a in reply.albums] == ["Геленджик", "Анапа"]
+    assert len(reply.albums[0].photos) == 3
+    results = fake_claude.messages.calls[1]["messages"][-1]["content"]
+    assert [r["is_error"] for r in results] == [False, False]
+    assert "Отправлены фото: Геленджик, Анапа" in storage.history(1, 20)[-1]["content"]
+
+
+async def test_place_photos_not_found(assistant, fake_claude, fake_photos):
+    fake_photos.count = 0
+    fake_claude.messages.queue += [
+        claude_message(
+            tool_use("show_place_photos", {"place": "Х", "search_query": "xyz"}), stop_reason="tool_use"
+        ),
+        claude_text("Фото не нашлось."),
+    ]
+    reply = await assistant.ask(1, SERGEY, "фото Х")
+    assert reply.albums == []
+    assert fake_claude.messages.calls[1]["messages"][-1]["content"][0]["is_error"] is True
+
+
+async def test_photos_only_answer_is_ok(assistant, fake_claude):
+    fake_claude.messages.queue += [
+        claude_message(
+            tool_use("show_place_photos", {"place": "Сочи", "search_query": "Sochi"}), stop_reason="tool_use"
+        ),
+        claude_message(thinking()),  # Claude ничего не написал — это нормально, фото уже есть
+    ]
+    reply = await assistant.ask(1, SERGEY, "фото Сочи")
+    assert reply.text == "" and len(reply.albums) == 1
+
+
+async def test_no_more_than_three_albums(assistant, fake_claude):
+    calls = [
+        tool_use("show_place_photos", {"place": f"Место {n}", "search_query": f"Place {n}"}) for n in range(4)
+    ]
+    fake_claude.messages.queue += [claude_message(*calls, stop_reason="tool_use"), claude_text("Вот места.")]
+    reply = await assistant.ask(1, SERGEY, "4 курорта с фото")
+    assert len(reply.albums) == 3
+    assert fake_claude.messages.calls[1]["messages"][-1]["content"][3]["is_error"] is True
+
+
+async def test_photos_unavailable(storage, fake_claude, clock):
+    assistant = FamilyAssistant(fake_claude, storage, "claude-haiku-5-5", clock=clock, photos=None)
+    fake_claude.messages.queue += [
+        claude_message(
+            tool_use("show_place_photos", {"place": "Сочи", "search_query": "Sochi"}), stop_reason="tool_use"
+        ),
+        claude_text("Фото сейчас недоступны."),
+    ]
+    reply = await assistant.ask(1, SERGEY, "фото Сочи")
+    assert reply.albums == [] and reply.text == "Фото сейчас недоступны."

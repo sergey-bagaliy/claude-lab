@@ -134,3 +134,52 @@ async def test_real_sdk_shopping_tool_loop(storage, clock):
     assert second[-2]["content"][0]["id"] == "toolu_9"  # ответ Claude вернули как есть
     assert second[-1]["content"][0]["tool_use_id"] == "toolu_9"
     assert [i.text for i in storage.shopping()] == ["молоко"]
+
+
+async def test_real_sdk_search_results_validate_links(storage, clock):
+    """Настоящий SDK разбирает блок результатов поиска, и бот сверяет по нему ссылки."""
+    seen: list[dict] = []
+    responses = [
+        message(
+            [
+                {
+                    "type": "server_tool_use",
+                    "id": "srvtoolu_1",
+                    "name": "web_search",
+                    "input": {"query": "мультики"},
+                },
+                {
+                    "type": "web_search_tool_result",
+                    "tool_use_id": "srvtoolu_1",
+                    "content": [
+                        {
+                            "type": "web_search_result",
+                            "url": "https://www.youtube.com/watch?v=real1",
+                            "title": "Ёжик в тумане",
+                            "encrypted_content": "e",
+                            "page_age": None,
+                        }
+                    ],
+                },
+                {
+                    "type": "tool_use",
+                    "id": "toolu_2",
+                    "name": "show_media",
+                    "input": {
+                        "kind": "video",
+                        "title": "Мультики",
+                        "items": [
+                            {"title": "Ёжик", "url": "https://youtu.be/real1"},
+                            {"title": "Выдумка", "url": "https://youtu.be/fake9"},
+                        ],
+                    },
+                },
+            ],
+            stop_reason="tool_use",
+            searches=1,
+        )
+    ]
+    client, assistant = make_assistant(storage, clock, responses, seen)
+    reply = await assistant.ask(1, SERGEY, "мультики", kind="media")
+    await client.close()
+    assert [i.url for i in reply.media.items] == ["https://youtu.be/real1"]

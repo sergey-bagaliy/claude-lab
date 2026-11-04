@@ -9,10 +9,10 @@ import os
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 
-# Claude Sonnet 5.5 — умнее Haiku и хорошо работает с поиском и инструментами.
+# Claude Haiku 5.5 — быстрая и экономная модель, для семейных задач её хватает.
 # Можно поменять без правки кода через CLAUDE_MODEL, например на
-# "claude-haiku-5-5" (примерно в 20 раз дешевле, но проще).
-DEFAULT_MODEL = "claude-sonnet-5-5"
+# "claude-sonnet-5-5" (умнее, но токены примерно в 20 раз дороже).
+DEFAULT_MODEL = "claude-haiku-5-5"
 
 # Сколько последних сообщений бот помнит в каждом чате
 # (20 = 10 ваших вопросов + 10 ответов бота).

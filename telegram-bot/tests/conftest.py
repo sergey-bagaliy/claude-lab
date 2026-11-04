@@ -21,6 +21,7 @@ from aiogram.types import CallbackQuery, Chat, Message, Update, User
 from anthropic.types.beta import BetaMessage
 
 from family_bot.assistant import FamilyAssistant, Person
+from family_bot.media import Photo
 from family_bot.storage import Storage
 from family_bot.timeutil import TZ
 
@@ -82,6 +83,18 @@ def server_search(query: str = "рецепт") -> dict[str, Any]:
         "id": f"srvtoolu_{next(_ids)}",
         "name": "web_search",
         "input": {"query": query},
+    }
+
+
+def search_results(*urls: str) -> dict[str, Any]:
+    """Блок с результатами поиска, как его присылает API."""
+    return {
+        "type": "web_search_tool_result",
+        "tool_use_id": f"srvtoolu_{next(_ids)}",
+        "content": [
+            {"type": "web_search_result", "url": url, "title": f"Страница {n}", "encrypted_content": "e"}
+            for n, url in enumerate(urls, start=1)
+        ],
     }
 
 
@@ -165,6 +178,32 @@ class FakeClaude:
         self.beta = self  # бот вызывает client.beta.messages.create
 
 
+def make_photo(n: int) -> Photo:
+    return Photo(
+        url=f"https://upload.wikimedia.org/thumb/{n}.jpg",
+        page_url=f"https://commons.wikimedia.org/wiki/File:{n}.jpg",
+        author=f"Автор {n}",
+        license="CC BY-SA 4.0",
+    )
+
+
+class FakePhotos:
+    """Подмена поиска фото в Wikimedia Commons."""
+
+    def __init__(self, count: int = 3) -> None:
+        self.count = count
+        self.queries: list[str] = []
+
+    async def search(self, query: str, limit: int = 6) -> list[Photo]:
+        self.queries.append(query)
+        return [make_photo(n) for n in range(1, self.count + 1)]
+
+
+@pytest.fixture
+def fake_photos() -> FakePhotos:
+    return FakePhotos()
+
+
 @pytest.fixture
 def fake_claude() -> FakeClaude:
     return FakeClaude()
@@ -178,7 +217,9 @@ def storage() -> Storage:
 
 
 @pytest.fixture
-def assistant(fake_claude: FakeClaude, storage: Storage, clock: FakeClock) -> FamilyAssistant:
+def assistant(
+    fake_claude: FakeClaude, storage: Storage, clock: FakeClock, fake_photos: FakePhotos
+) -> FamilyAssistant:
     storage.touch_user(SERGEY.user_id, SERGEY.name, SERGEY.user_id, 0)
     return FamilyAssistant(
         client=fake_claude,  # type: ignore[arg-type]
@@ -187,6 +228,7 @@ def assistant(fake_claude: FakeClaude, storage: Storage, clock: FakeClock) -> Fa
         memory_size=20,
         daily_budget_usd=0,
         clock=clock,
+        photos=fake_photos,  # type: ignore[arg-type]
     )
 
 

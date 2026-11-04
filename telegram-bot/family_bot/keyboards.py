@@ -127,6 +127,7 @@ def story() -> InlineKeyboardMarkup:
         inline_keyboard=[
             [_button("🔄 Другая сказка", "story:any"), _button("🐰 Про зверят", "story:animals")],
             [_button("🚀 Про космос", "story:space"), _button("🧚 Про волшебство", "story:magic")],
+            [_button("🎧 Аудиосказки", "media:audio"), _button("🎬 Мультфильмы", "media:video")],
         ]
     )
 
