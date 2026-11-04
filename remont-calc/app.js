@@ -1,59 +1,29 @@
 /*
- * app.js — интерфейс калькулятора: комнаты, материалы, итог, сохранение, печать.
- * Все расчёты — в formulas.js.
+ * app.js — интерфейс калькулятора: помещения, материалы, сравнение вариантов, итог,
+ * сохранение, смета для заказчика (PDF), выгрузка в Excel (CSV).
+ * Расчёты — в formulas.js, тексты сметы — в estimate.js, PDF — в pdf.js.
  */
 (function () {
   'use strict';
 
   var F = window.RemontFormulas;
+  var E = window.RemontEstimate;
+  var PDF = window.RemontPdf;
   var CURRENT_KEY = 'remontCalc.current.v1';
   var SAVED_KEY = 'remontCalc.saved.v1';
-  // Встроенный просмотр (страница на claude.ai): там нет печати, скачивания файлов,
-  // «Поделиться» и работы без интернета — эти кнопки скрываются.
+  var SETTINGS_KEY = 'remontCalc.settings.v1';
+  // Встроенный просмотр (страница на claude.ai): нет печати и работы без интернета,
+  // файлы сохраняются через разрешение на скачивание.
   var EMBED = !!window.REMONT_EMBED;
 
-  /* ================================================================== *
-   * Склонения и подписи
-   * ================================================================== */
-
-  var FORMS = {
-    pack: ['упаковка', 'упаковки', 'упаковок'],
-    can: ['банка', 'банки', 'банок'],
-    roll: ['рулон', 'рулона', 'рулонов'],
-    bag: ['мешок', 'мешка', 'мешков'],
-    canister: ['канистра', 'канистры', 'канистр'],
-    bucket: ['ведро', 'ведра', 'вёдер'],
-    plank: ['планка', 'планки', 'планок'],
-    profile: ['профиль', 'профиля', 'профилей'],
-    sheet: ['лист', 'листа', 'листов'],
-    panel: ['панель', 'панели', 'панелей'],
-    cut: ['отрез', 'отреза', 'отрезов'],
-    section: ['секция', 'секции', 'секций'],
-    radiator: ['радиатор', 'радиатора', 'радиаторов'],
-    coil: ['бухта', 'бухты', 'бухт'],
-    packet: ['пачка', 'пачки', 'пачек'],
-    coat: ['слой', 'слоя', 'слоёв'],
-    room: ['комната', 'комнаты', 'комнат'],
-    strip: ['полоса', 'полосы', 'полос'],
-    piece: ['шт.', 'шт.', 'шт.'],
-    door: ['дверь', 'двери', 'дверей']
-  };
-
-  // Единицы своих позиций, которые нужно склонять.
-  var UNIT_FORMS = {
-    'баллон': ['баллон', 'баллона', 'баллонов'],
-    'тюбик': ['тюбик', 'тюбика', 'тюбиков'],
-    'рулон': FORMS.roll,
-    'рейс': ['рейс', 'рейса', 'рейсов'],
-    'мешок': FORMS.bag,
-    'банка': FORMS.can,
-    'пачка': FORMS.packet,
-    'лист': FORMS.sheet,
-    'упаковка': FORMS.pack
-  };
+  var fmt = E.fmt;
+  var money = E.money;
+  var plural = E.plural;
+  var count = E.count;
+  var FORMS = E.FORMS;
 
   /* ================================================================== *
-   * Описание материалов для формы: поля, цена, упаковка, подсказка
+   * Описание материалов для формы: поля, цена, подсказка
    * ================================================================== */
 
   function f(key, label, unit, typical) { return { key: key, label: label, unit: unit, typical: !!typical }; }
@@ -248,9 +218,87 @@
       priceLabel: 'Цена за метр кабеля', pricePer: 'метр',
       hint: 'Кабель укладывают в стяжку. Секции продаются фиксированной длины — возьмите ближайшую по мощности; цену секции разделите на её длину.' },
     thermostat: { fields: [], priceLabel: 'Цена терморегулятора', pricePer: 'шт.', pack: FORMS.piece, hint: 'По одному на каждую комнату с тёплым полом.' }
-  };
+    };
 
-  /* ---------- Варианты отделки в комнате ---------- */
+  function countUI(hint, label) {
+    return { fields: [], priceLabel: label || 'Цена за шт.', pricePer: 'шт.', hint: hint };
+  }
+  function pipeUI(hint) {
+    return { fields: [f('toRiser', 'До стояка (коллектора), в среднем', 'м', true)], priceLabel: 'Цена за метр', hint: hint };
+  }
+  var ORIENT_FIELD = { key: 'orientation', label: 'Раскладка', select: [['horizontal', 'Длинной стороной по горизонтали'], ['vertical', 'Длинной стороной по вертикали']] };
+  var LAYOUT_HINT = ' Считается раскладкой по рядам: неполная плитка у стены, окна или двери считается целой — подрезка учтена, поэтому запас только на бой.';
+
+  Object.assign(UI, {
+    // --- Электрика: новые виды ---
+    cableUTP: { fields: [f('toPanel', 'От роутера (щита) до комнаты', 'м', true), f('coilLength', 'Метров в коробке', 'м')], priceUnits: PRICE_M_COIL,
+      hint: 'Отдельная линия к каждой интернет-розетке. Витая пара обычно продаётся коробками по 305 м.' },
+    cableCoax: { fields: [f('toPanel', 'От щита до комнаты', 'м', true), f('coilLength', 'Длина бухты', 'м')], priceUnits: PRICE_M_COIL,
+      hint: 'Отдельная линия к каждой ТВ-розетке.' },
+    elSocketDouble: countUI('Двойная розетка в одной рамке — один подрозетник.'),
+    elSocketIP44: countUI('Для ванной, зоны у мойки, балкона.'),
+    elSocketUSB: countUI('Розетка со встроенными USB-разъёмами.'),
+    elSwitch2: countUI('Две клавиши — две группы светильников.'),
+    elSwitchPass: countUI('Проходные выключатели ставят парами (например, у входа и у кровати).'),
+    elDimmer: countUI('Регулятор яркости — проверьте, что светильники его поддерживают.'),
+    elSpot: countUI('Точечные светильники — в натяжной или гипсокартонный потолок.'),
+    elSconce: countUI('Настенные светильники.'),
+    elLedStrip: { fields: [], priceLabel: 'Цена за метр', hint: 'Длина ленты вводится в помещении, в метрах. Блок питания добавляется сам — один на помещение.' },
+    elLedDriver: countUI('По одному на помещение с лентой. Мощность подберите по длине и мощности ленты.'),
+    elInternet: countUI('Интернет-розетка RJ45. Кабель — витая пара, своя линия.'),
+    elTV: countUI('Телевизионная розетка. Кабель — коаксиальный, своя линия.'),
+    elBreaker: countUI('Один автомат на линию света каждого помещения и на каждый мощный прибор (плита, духовка, бойлер).'),
+    elRCBO: countUI('Дифавтомат на розеточную линию каждого помещения: по ПУЭ п. 7.1.79 розеточные группы защищают УЗО до 30 мА.'),
+    elMainBreaker: countUI('Один на квартиру. Номинал — по выделенной мощности.', 'Цена автомата'),
+    elPanel: { fields: [f('breakerModules', 'Автомат занимает', 'мод.'), f('rcboModules', 'Дифавтомат занимает', 'мод.'),
+        f('mainModules', 'Вводной автомат занимает', 'мод.'), f('moduleReserve', 'Запас свободных мест', '%', true),
+        { key: 'sizes', label: 'Размеры щитов в продаже (через «;»)', unit: 'мод.', text: true, wide: true }],
+      priceLabel: 'Цена щита', hint: 'Число модулей = вводной + автоматы + дифавтоматы. Щит выбирается наименьший, где хватает мест с запасом.' },
+
+    // --- Сантехника ---
+    toiletFloor: countUI('Напольный унитаз-компакт. Подводка воды и канализация 110 мм считаются сами.'),
+    toiletWall: countUI('Подвесной унитаз вместе с инсталляцией и кнопкой.'),
+    hygienicShower: countUI('Гигиенический душ со скрытым смесителем.'),
+    sinkVanity: countUI('Раковина с тумбой. Смеситель, сифон и подводка добавятся сами.'),
+    sinkWall: countUI('Подвесная раковина или на пьедестале. Смеситель, сифон и подводка добавятся сами.'),
+    kitchenSink: countUI('Кухонная мойка. Смеситель для кухни, сифон и подводка добавятся сами.'),
+    bathAcrylic: countUI('Акриловая ванна. Смеситель и слив-перелив добавятся сами; размеры ванны — в помещении (для плитки).'),
+    bathSteel: countUI('Стальная ванна.'),
+    bathCastIron: countUI('Чугунная ванна.'),
+    showerTray: countUI('Душевой поддон с ограждением. Душевая система добавится сама.'),
+    showerCabin: countUI('Душевая кабина со смесителем.'),
+    showerDrain: countUI('Душевой трап (душ без поддона). Душевая система добавится сама; не забудьте гидроизоляцию.'),
+    washingMachine: countUI('Подключение: кран на холодную воду и сифон с отводом.', 'Цена подключения'),
+    dishwasher: countUI('Подключение: кран на холодную воду, слив — в сифон мойки.', 'Цена подключения'),
+    boiler: countUI('Накопительный водонагреватель. Для него нужна силовая розетка — добавьте в «Электрике».'),
+    towelWater: countUI('Водяной полотенцесушитель — подключается к стояку горячей воды.'),
+    towelElectric: countUI('Электрический полотенцесушитель — нужна влагозащищённая розетка.'),
+    filterSink: countUI('Фильтр для питьевой воды под мойку.'),
+    waterMeter: countUI('Счётчики холодной и горячей воды.'),
+    mixerSink: countUI('По одному на раковину.'),
+    mixerKitchen: countUI('По одному на кухонную мойку.'),
+    mixerBath: countUI('По одному на ванну.'),
+    mixerShower: countUI('Душевая система или смеситель с лейкой — для поддона и трапа.'),
+    siphon: countUI('Для раковин, мойки, ванны, поддона, кабины и стиральной машины.'),
+    flexHose: countUI('Гибкая подводка: по 2 на смеситель раковины, мойки и кабины, 1 на унитаз, 2 на бойлер.'),
+    ballValve: countUI('По шаровому крану на каждую подводку воды.'),
+    pipePP: pipeUI('Полипропиленовые трубы. Длина = число подводок × расстояние до стояка. Фитинги — в «Свои позиции».'),
+    pipePEX: pipeUI('Трубы из сшитого полиэтилена (PEX). Длина = число подводок × расстояние до стояка.'),
+    pipeMP: pipeUI('Металлопластиковые трубы. Длина = число подводок × расстояние до стояка.'),
+    pipeSewer50: pipeUI('Канализация 50 мм: от раковин, мойки, ванны, душа, стиральной и посудомоечной машин.'),
+    pipeSewer110: pipeUI('Канализация 110 мм: от унитазов.')
+  });
+
+  // Плитка — раскладкой; на стенах можно выбрать, как класть.
+  UI.tileWall.fields = TILE_FIELDS.concat([ORIENT_FIELD]);
+  UI.porcelainWall.fields = TILE_FIELDS.concat([ORIENT_FIELD]);
+  UI.tileFloor.hint = 'Керамическая плитка. Размер и штуки в упаковке — с этикетки.' + LAYOUT_HINT + ' Клей и затирка добавляются сами.';
+  UI.porcelainFloor.hint = 'Керамогранит. Размер и штуки в упаковке — с этикетки.' + LAYOUT_HINT;
+  UI.tileWall.hint = 'Керамическая плитка на стены.' + LAYOUT_HINT + ' Зона за ванной вычитается, экран ванны можно облицевать.';
+  UI.porcelainWall.hint = 'Керамогранит на стены.' + LAYOUT_HINT;
+  UI.mosaic.hint = 'Мозаика на сетке — листами.' + LAYOUT_HINT + ' Затирка считается по размеру чипа.';
+
+  /* ---------- Варианты в комнате ---------- */
 
   var FLOOR_OPTIONS = [['none', 'нет'], ['laminate', 'Ламинат'], ['vinyl', 'Кварцвинил замковый (SPC)'], ['vinylGlue', 'Кварцвинил клеевой'],
     ['parquet', 'Паркетная доска'], ['parquetBlock', 'Штучный паркет'], ['engineered', 'Инженерная доска'], ['solidWood', 'Массивная доска'],
@@ -270,6 +318,8 @@
     ['solid', 'Межкомнатная: массив'], ['hidden', 'Скрытого монтажа'], ['entrance', 'Входная']];
   var RADIATOR_OPTIONS = [['bimetal', 'Биметаллические'], ['alu', 'Алюминиевые'], ['castIron', 'Чугунные'], ['panel', 'Стальные панельные']];
   var FLOOR_HEAT_OPTIONS = [['mat', 'Нагревательный мат (под плитку)'], ['film', 'Инфракрасная плёнка'], ['cable', 'Кабель в стяжку']];
+  var WATER_PIPE_OPTIONS = [['none', 'не менять'], ['pp', 'Полипропилен'], ['pex', 'Сшитый полиэтилен (PEX)'], ['mp', 'Металлопластик']];
+  var BATH_PLACE_OPTIONS = [['corner', 'У стены в углу'], ['niche', 'В нише (между стенами)']];
 
   var FLOOR_CHIPS = [['screed', 'стяжка'], ['leveler', 'наливной пол'], ['waterproofing', 'гидроизоляция'], ['primer', 'грунт']];
   var WALL_CHIPS = [['drywall', 'гипсокартон'], ['plaster', 'штукатурка'], ['puttyStart', 'шпакл. старт'], ['putty', 'шпакл. финиш'],
@@ -277,44 +327,66 @@
   var CEILING_CHIPS = [['drywall', 'гипсокартон'], ['plaster', 'штукатурка'], ['puttyStart', 'шпакл. старт'], ['putty', 'шпакл. финиш'],
     ['primer', 'грунт'], ['plinth', 'плинтус']];
 
-  /* ---------- Шаблоны помещений ---------- */
+  // Штучные позиции в комнате (счётчики «−/+»).
+  var ELECTRIC_GROUPS = [
+    { title: 'Розетки', items: [['elSocket', 'Розетка'], ['elSocketDouble', 'Розетка двойная'], ['elSocketIP44', 'Розетка влагозащищённая'],
+      ['elSocketUSB', 'Розетка с USB'], ['elPowerSocket', 'Силовая (плита, духовка, бойлер)']] },
+    { title: 'Выключатели', items: [['elSwitch', 'Выключатель'], ['elSwitch2', 'Выключатель двухклавишный'], ['elSwitchPass', 'Выключатель проходной'],
+      ['elDimmer', 'Диммер']] },
+    { title: 'Свет', items: [['elLight', 'Люстра / светильник'], ['elSpot', 'Точечный светильник'], ['elSconce', 'Бра'], ['elLedStrip', 'Светодиодная лента, м']] },
+    { title: 'Интернет и ТВ', items: [['elInternet', 'Интернет-розетка'], ['elTV', 'ТВ-розетка']] }
+  ];
+  var PLUMBING_GROUPS = [
+    { title: 'Унитаз', items: [['toiletFloor', 'Унитаз напольный'], ['toiletWall', 'Унитаз подвесной + инсталляция'], ['hygienicShower', 'Гигиенический душ']] },
+    { title: 'Раковины', items: [['sinkVanity', 'Раковина с тумбой'], ['sinkWall', 'Раковина подвесная'], ['kitchenSink', 'Мойка кухонная']] },
+    { title: 'Ванна и душ', items: [['bathAcrylic', 'Ванна акриловая'], ['bathSteel', 'Ванна стальная'], ['bathCastIron', 'Ванна чугунная'],
+      ['showerTray', 'Душевой поддон с ограждением'], ['showerCabin', 'Душевая кабина'], ['showerDrain', 'Душевой трап']] },
+    { title: 'Техника и прочее', items: [['washingMachine', 'Стиральная машина'], ['dishwasher', 'Посудомоечная машина'], ['boiler', 'Водонагреватель'],
+      ['towelWater', 'Полотенцесушитель водяной'], ['towelElectric', 'Полотенцесушитель электрический'], ['filterSink', 'Фильтр под мойку'],
+      ['waterMeter', 'Счётчик воды']] }
+  ];
+  var ITEM_LABELS = {};
+  ELECTRIC_GROUPS.concat(PLUMBING_GROUPS).forEach(function (g) { g.items.forEach(function (it) { ITEM_LABELS[it[0]] = it[1]; }); });
+  var BATH_KEYS = ['bathAcrylic', 'bathSteel', 'bathCastIron'];
 
-  var PRESETS = [
-    { key: 'room', label: 'Комната', floor: 'laminate', walls: 'wallpaper', ceiling: 'paint',
-      prep: { walls: { putty: true, primer: true }, ceiling: { putty: true, primer: true } }, openings: [['window', '1,4', '1,5'], ['door', '0,9', '2,1']] },
-    { key: 'kitchen', label: 'Кухня', floor: 'porcelain', walls: 'paint', ceiling: 'paint',
-      prep: { walls: { putty: true, primer: true }, ceiling: { putty: true, primer: true }, floor: { primer: true } }, openings: [['window', '1,4', '1,5'], ['door', '0,9', '2,1']] },
-    { key: 'bath', label: 'Санузел', floor: 'porcelain', walls: 'tile', ceiling: 'stretch',
-      prep: { walls: { plaster: true, primer: true }, floor: { waterproofing: true, primer: true } }, openings: [['door', '0,7', '2,1']] },
-    { key: 'hall', label: 'Коридор', floor: 'laminate', walls: 'wallpaper', ceiling: 'paint',
-      prep: { walls: { putty: true, primer: true }, ceiling: { putty: true, primer: true } }, openings: [] },
-    { key: 'balcony', label: 'Балкон', floor: 'none', walls: 'panels', ceiling: 'panels', prep: {}, openings: [['window', '2,8', '1,4']] },
-    { key: 'empty', label: 'Пустое', floor: 'none', walls: 'none', ceiling: 'none', prep: {}, openings: [] }
+  var PRESET_ORDER = ['room', 'kitchen', 'bath', 'toilet', 'hall', 'balcony', 'empty'];
+
+  // Что можно сравнить: варианты без «нет».
+  var COMPARE_UI = [
+    ['floor', 'Покрытие пола', FLOOR_OPTIONS.slice(1)],
+    ['walls', 'Отделка стен', WALL_OPTIONS.slice(1)],
+    ['ceiling', 'Потолок', CEILING_OPTIONS.slice(1)],
+    ['window', 'Окна', WINDOW_REPLACE.slice(1)],
+    ['door', 'Межкомнатные двери', DOOR_REPLACE.slice(1, 6)],
+    ['radiator', 'Радиаторы', RADIATOR_OPTIONS],
+    ['floorHeat', 'Тёплый пол', FLOOR_HEAT_OPTIONS]
   ];
 
-  /* ---------- Быстрое добавление своих позиций («прочее») ---------- */
-
+  // Быстрое добавление своих позиций — то, чего нет в каталоге.
   var QUICK_ITEMS = [
-    { group: 'Сантехника', items: [['Унитаз', 'шт.'], ['Инсталляция', 'шт.'], ['Раковина', 'шт.'], ['Смеситель', 'шт.'], ['Ванна', 'шт.'],
-      ['Душевой поддон', 'шт.'], ['Полотенцесушитель', 'шт.'], ['Водонагреватель', 'шт.'], ['Труба водопроводная', 'м'], ['Труба канализационная', 'м']] },
-    { group: 'Электрика', items: [['Автоматический выключатель', 'шт.'], ['УЗО / дифавтомат', 'шт.'], ['Электрощит', 'шт.'],
-      ['Распаечная коробка', 'шт.'], ['Гофра для кабеля', 'м'], ['Кабель-канал', 'м']] },
+    { group: 'Сантехника', items: [['Коллектор', 'шт.'], ['Редуктор давления', 'шт.'], ['Фильтр магистральный', 'шт.'], ['Фитинги для труб', 'уп.'],
+      ['Ревизионный люк', 'шт.'], ['Насос', 'шт.']] },
+    { group: 'Электрика', items: [['Распаечная коробка', 'шт.'], ['Гофра для кабеля', 'м'], ['Кабель-канал', 'м'], ['Реле напряжения', 'шт.'],
+      ['Звонок', 'шт.'], ['Датчик протечки', 'шт.']] },
     { group: 'Окна и балкон', items: [['Отлив', 'м'], ['Москитная сетка', 'шт.'], ['Утепление балкона', 'м²']] },
     { group: 'Климат', items: [['Кондиционер', 'шт.'], ['Вытяжной вентилятор', 'шт.']] },
     { group: 'Расходники', items: [['Монтажная пена', 'баллон'], ['Герметик', 'тюбик'], ['Саморезы', 'уп.'], ['Дюбели', 'уп.'],
       ['Малярный скотч', 'рулон'], ['Мешки для мусора', 'уп.'], ['Вывоз мусора', 'рейс']] }
   ];
 
-  var CUSTOM_BASIS = [['count', 'Вручную'], ['floor', 'Пол, м²'], ['walls', 'Стены, м²'],
-    ['ceiling', 'Потолок, м²'], ['perimeter', 'Периметр, м']];
-  var BASIS_NAME = { floor: 'Площадь пола', walls: 'Площадь стен', ceiling: 'Площадь потолка', perimeter: 'Периметр' };
+  var CUSTOM_BASIS = [['count', 'Вручную'], ['floor', 'Пол, м²'], ['walls', 'Стены, м²'], ['ceiling', 'Потолок, м²'], ['perimeter', 'Периметр, м']];
   var BASIS_UNIT = { floor: 'м²', walls: 'м²', ceiling: 'м²', perimeter: 'м' };
 
   var ICONS = {
     copy: '<svg viewBox="0 0 24 24"><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg>',
     trash: '<svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 15h10l1-15M10 11v6M14 11v6"/></svg>',
     chevron: '<svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>',
-    close: '<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>'
+    close: '<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+    openings: '<svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="1"/><path d="M12 3v18M4 12h16"/></svg>',
+    finish: '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="14" height="6" rx="1"/><path d="M17 6h3v5h-8v3M12 14v7"/></svg>',
+    electric: '<svg viewBox="0 0 24 24"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg>',
+    plumbing: '<svg viewBox="0 0 24 24"><path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/></svg>',
+    heating: '<svg viewBox="0 0 24 24"><path d="M5 20V8M9.5 20V8M14 20V8M18.5 20V8M3 20h18M3 8h18"/></svg>'
   };
 
   /* ================================================================== *
@@ -323,8 +395,9 @@
 
   var state = null;          // текущий расчёт
   var calc = null;           // результат F.calculateProject(state)
+  var settings = null;       // реквизиты компании для сметы
   var openMaterials = {};    // карточки материалов, которые пользователь сам открыл/закрыл
-  var openCustoms = {};      // раскрытые карточки своих позиций
+  var openCustoms = {};
   var materialsFilter = 'used';
 
   function uid(prefix) {
@@ -333,71 +406,31 @@
 
   function clone(x) { return JSON.parse(JSON.stringify(x)); }
 
-  function newOpening(type, width, height) {
-    return {
-      id: uid('o'), type: type,
-      width: width || (type === 'door' ? '0,9' : '1,4'),
-      height: height || (type === 'door' ? '2,1' : '1,5'),
-      count: '1', replace: 'none', sill: false, slopes: false
-    };
-  }
-
-  function blankRoom() {
-    return {
-      id: uid('r'), name: '', length: '', width: '', height: '2,7', openings: [],
-      floor: 'none', underlay: 'none', plinth: 'none', walls: 'none', ceiling: 'none',
-      prep: {
-        floor: { screed: false, leveler: false, waterproofing: false, primer: false },
-        walls: { drywall: false, plaster: false, puttyStart: false, putty: false, fiberglass: false, primer: false },
-        ceiling: { drywall: false, plaster: false, puttyStart: false, putty: false, primer: false, plinth: false }
-      },
-      electric: { sockets: '', switches: '', lights: '', power: '' },
-      heating: { radiators: false, radiatorType: 'bimetal', floor: false, floorType: 'mat' },
-      open: { openings: true, finish: true, electric: false, heating: false },
-      collapsed: false
-    };
-  }
-
-  /** Имя без повторов: «Комната», «Комната 2», «Комната 3»… */
-  function uniqueName(base) {
-    var names = state ? state.rooms.map(function (r) { return r.name; }) : [];
+  /** Имя без повторов: «Комната», «Комната 2»… */
+  function uniqueName(base, rooms) {
+    var names = (rooms || (state ? state.rooms : [])).map(function (r) { return r.name; });
     if (names.indexOf(base) < 0) return base;
     for (var i = 2; ; i++) {
       if (names.indexOf(base + ' ' + i) < 0) return base + ' ' + i;
     }
   }
 
-  /** Подложка и плинтус по умолчанию для выбранного покрытия. */
-  function applyFloorDefaults(room) {
-    room.underlay = F.UNDERLAY_DEFAULT[room.floor] || 'none';
-    room.plinth = F.PLINTH_DEFAULT[room.floor] || 'none';
-  }
-
   function roomFromPreset(key, height) {
-    var p = PRESETS.find(function (x) { return x.key === key; }) || PRESETS[0];
-    var room = blankRoom();
-    room.name = uniqueName(p.key === 'empty' ? 'Помещение' : p.label);
-    room.height = height || '2,7';
-    room.floor = p.floor;
-    applyFloorDefaults(room);
-    room.walls = p.walls;
-    room.ceiling = p.ceiling;
-    ['floor', 'walls', 'ceiling'].forEach(function (s) { Object.assign(room.prep[s], (p.prep || {})[s]); });
-    room.openings = p.openings.map(function (o) { return newOpening(o[0], o[1], o[2]); });
+    var room = F.makeRoom(key, {}, uid);
+    room.name = uniqueName(key === 'empty' ? 'Помещение' : room.name);
+    if (height !== undefined) room.height = height;
     return room;
   }
 
   function exampleProject() {
-    var room = roomFromPreset('room');
-    room.length = '4';
-    room.width = '3';
-    return { id: uid('p'), name: '', rooms: [room], materials: clone(F.DEFAULT_MATERIALS), disabled: {}, custom: [], bought: {} };
+    var room = F.makeRoom('room', { length: 4, width: 3 }, uid);
+    return { id: uid('p'), name: '', customer: '', rooms: [room], materials: clone(F.DEFAULT_MATERIALS), disabled: {}, custom: [], bought: {}, compare: null };
   }
 
-  /** Приводит загруженный расчёт к нужному виду (старые версии, чужие файлы). */
   // Материалы первых версий, которые теперь разделены на виды.
   var RENAMED = { underlay: 'underlayXPS', floorPlinth: 'plinthPVC', doorInterior: 'doorEco', radiator: 'radiatorBimetal' };
 
+  /** Приводит загруженный расчёт к нужному виду (старые версии, чужие файлы). */
   function normalizeProject(p) {
     if (!p || typeof p !== 'object' || !Array.isArray(p.rooms)) return null;
     var oldMaterials = Object.assign({}, p.materials);
@@ -409,32 +442,37 @@
     var materials = {};
     F.MATERIAL_ORDER.forEach(function (key) { materials[key] = F.materialParams(oldMaterials, key); });
     var rooms = p.rooms.map(function (r) {
-      var base = blankRoom();
+      var base = F.blankRoom(uid);
       var room = Object.assign(base, r);
       room.id = r.id || uid('r');
       room.openings = Array.isArray(r.openings) ? r.openings.map(function (o) {
-        var opening = Object.assign(newOpening(o.type === 'door' ? 'door' : 'window'), o, { id: o.id || uid('o') });
+        var opening = Object.assign(F.makeOpening(o.type === 'door' ? 'door' : 'window', '', '', uid), o, { id: o.id || uid('o') });
         if (opening.replace === 'interior') opening.replace = 'eco';
         return opening;
       }) : [];
       if (r.underlay === undefined) room.underlay = F.roomUnderlay(r);
       if (r.plinth === undefined) room.plinth = F.roomPlinth(r);
+      var blank = F.blankRoom(uid);
       room.prep = {
-        floor: Object.assign(blankRoom().prep.floor, r.prep && r.prep.floor),
-        walls: Object.assign(blankRoom().prep.walls, r.prep && r.prep.walls),
-        ceiling: Object.assign(blankRoom().prep.ceiling, r.prep && r.prep.ceiling)
+        floor: Object.assign(blank.prep.floor, r.prep && r.prep.floor),
+        walls: Object.assign(blank.prep.walls, r.prep && r.prep.walls),
+        ceiling: Object.assign(blank.prep.ceiling, r.prep && r.prep.ceiling)
       };
-      room.electric = Object.assign(blankRoom().electric, r.electric);
-      room.heating = Object.assign(blankRoom().heating, r.heating);
-      room.open = Object.assign(blankRoom().open, r.open);
+      // счётчики: старые поля «Электрики» переносим в штучные позиции
+      room.counts = F.roomCounts(r);
+      room.electric = {};
+      room.pipes = Object.assign(blank.pipes, r.pipes);
+      room.bath = Object.assign(blank.bath, r.bath);
+      room.heating = Object.assign(blank.heating, r.heating);
+      room.open = Object.assign(blank.open, r.open);
       return room;
     });
     var custom = Array.isArray(p.custom) ? p.custom.map(function (c) {
       return Object.assign({ id: uid('c'), name: '', unit: 'шт.', basis: 'count', quantity: '', rate: '', packSize: '1', reserve: '0', price: '', rooms: null }, c);
     }) : [];
     return {
-      id: p.id || uid('p'), name: p.name || '', rooms: rooms, materials: materials,
-      disabled: oldDisabled, custom: custom, bought: Object.assign({}, p.bought)
+      id: p.id || uid('p'), name: p.name || '', customer: p.customer || '', rooms: rooms, materials: materials,
+      disabled: oldDisabled, custom: custom, bought: Object.assign({}, p.bought), compare: p.compare || null
     };
   }
 
@@ -468,26 +506,8 @@
   }
 
   /* ================================================================== *
-   * Форматирование
+   * Кусочки разметки
    * ================================================================== */
-
-  var nf = {};
-  function fmt(n, digits) {
-    var d = digits === undefined ? 2 : digits;
-    if (!nf[d]) nf[d] = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: d });
-    return nf[d].format(F.round(n, d));
-  }
-  function money(n) { return fmt(Math.round(n), 0) + ' ₽'; }
-
-  function plural(n, forms) {
-    var a = Math.abs(Math.round(n)) % 100;
-    var b = a % 10;
-    if (a > 10 && a < 20) return forms[2];
-    if (b > 1 && b < 5) return forms[1];
-    if (b === 1) return forms[0];
-    return forms[2];
-  }
-  function count(n, forms) { return fmt(n, 0) + ' ' + plural(n, forms); }
 
   function esc(s) {
     return String(s === undefined || s === null ? '' : s)
@@ -516,8 +536,6 @@
     return o ? o[1] : 'нет';
   }
 
-  /* ---------- Кусочки разметки ---------- */
-
   /** Поле ввода. opts: { mode: 'decimal'|'numeric', text: true, placeholder } */
   function inputHTML(attrs, value, opts) {
     opts = opts || {};
@@ -534,7 +552,7 @@
 
   function selectHTML(options, value, attrs) {
     return '<select class="select" ' + attrs + '>' + options.map(function (o) {
-      return '<option value="' + o[0] + '"' + (o[0] === value ? ' selected' : '') + '>' + o[1] + '</option>';
+      return '<option value="' + o[0] + '"' + (o[0] === value ? ' selected' : '') + '>' + esc(o[1]) + '</option>';
     }).join('') + '</select>';
   }
 
@@ -543,7 +561,7 @@
   }
 
   /* ================================================================== *
-   * Комнаты
+   * Помещения
    * ================================================================== */
 
   function findRoom(id) {
@@ -578,12 +596,77 @@
 
   function sectionHTML(room, key, title, body) {
     return '<details class="sec" data-sec="' + key + '"' + (room.open[key] ? ' open' : '') + '>' +
-      '<summary><span class="sec-title">' + title + '</span><span class="sec-sum" data-sec-sum="' + key + '"></span></summary>' +
+      '<summary><span class="sec-icon" aria-hidden="true">' + ICONS[key] + '</span><span class="sec-title">' + title + '</span>' +
+      '<span class="sec-sum" data-sec-sum="' + key + '"></span></summary>' +
       '<div class="sec-body">' + body + '</div></details>';
   }
 
+  /* ---------- Счётчики штучных позиций ---------- */
+
+  function itemRowHTML(key, value) {
+    var label = ITEM_LABELS[key] || F.MATERIAL_TITLES[key];
+    return '<div class="item-row" data-item="' + key + '"><span class="item-name">' + esc(label) + '</span>' +
+      '<div class="stepper">' +
+        '<button type="button" class="step" data-action="step" data-delta="-1" aria-label="Меньше: ' + esc(label) + '">−</button>' +
+        '<input type="text" inputmode="decimal" autocomplete="off" data-count="' + key + '" value="' + esc(inputValue(value)) + '" aria-label="' + esc(label) + ', количество">' +
+        '<button type="button" class="step" data-action="step" data-delta="1" aria-label="Больше: ' + esc(label) + '">+</button>' +
+      '</div></div>';
+  }
+
+  function itemsHTML(room, groups) {
+    var rows = [];
+    groups.forEach(function (g) {
+      g.items.forEach(function (it) {
+        if (F.toNumber(room.counts[it[0]]) > 0 || room.counts[it[0]] === '') rows.push(itemRowHTML(it[0], room.counts[it[0]]));
+      });
+    });
+    return rows.length ? rows.join('') : '<p class="items-empty">Пока ничего — добавьте кнопками ниже.</p>';
+  }
+
+  function adderHTML(groups, kind) {
+    return '<div class="adder" data-adder="' + kind + '">' + groups.map(function (g) {
+      return '<div class="adder-group"><div class="adder-title">' + g.title + '</div><div class="chips chips-wide">' +
+        g.items.map(function (it) {
+          return '<button type="button" class="chip-btn" data-action="add-item" data-key="' + it[0] + '">+ ' + esc(it[1]) + '</button>';
+        }).join('') + '</div></div>';
+    }).join('') + '</div>';
+  }
+
+  function hasBath(room) {
+    return BATH_KEYS.some(function (k) { return F.toNumber(room.counts[k]) > 0; });
+  }
+
+  function bathHTML(room) {
+    if (!hasBath(room)) return '';
+    var b = room.bath;
+    return '<div class="bath-box"><div class="subhead">Ванна <span class="muted small">— плитка за ней не кладётся</span></div>' +
+      '<div class="grid3">' +
+        fieldHTML('Длина, м', inputHTML('data-bath="length"', b.length)) +
+        fieldHTML('Ширина, м', inputHTML('data-bath="width"', b.width)) +
+        fieldHTML('Высота борта', inputHTML('data-bath="height"', b.height)) +
+      '</div><div class="heat-row">' +
+        selectHTML(BATH_PLACE_OPTIONS, b.place, 'data-bath="place" aria-label="Где стоит ванна"') +
+        chipHTML('экран в плитке', 'data-bath-screen="1"', b.screen) +
+      '</div></div>';
+  }
+
+  function plumbingBodyHTML(room) {
+    return '<div class="items" data-items="plumbing">' + itemsHTML(room, PLUMBING_GROUPS) + '</div>' +
+      '<div data-bath-box>' + bathHTML(room) + '</div>' +
+      adderHTML(PLUMBING_GROUPS, 'plumbing') +
+      '<div class="pipes-row"><label class="inline-select"><span>Водопровод</span>' +
+        selectHTML(WATER_PIPE_OPTIONS, room.pipes.water, 'data-pipe="water" aria-label="Трубы водопровода"') + '</label>' +
+        chipHTML('канализация', 'data-pipe-sewer="1"', room.pipes.sewer !== false) + '</div>' +
+      '<p class="small muted">Смесители, сифоны, подводка и краны добавятся сами. Трубы — по числу подводок и расстоянию до стояка.</p>';
+  }
+
+  function electricBodyHTML(room) {
+    return '<div class="items" data-items="electric">' + itemsHTML(room, ELECTRIC_GROUPS) + '</div>' +
+      adderHTML(ELECTRIC_GROUPS, 'electric') +
+      '<p class="small muted">Кабель, подрозетники, автоматы и щит посчитаются сами.</p>';
+  }
+
   function roomHTML(room) {
-    var el = room.electric;
     var openings = room.openings.map(openingHTML).join('') +
       '<div class="row-btns">' +
         '<button type="button" class="btn btn-small" data-action="add-window">+ Окно</button>' +
@@ -599,13 +682,6 @@
       surfaceHTML('Пол', FLOOR_OPTIONS, room.floor, 'floor', FLOOR_CHIPS, 'floor', room.prep.floor, floorExtra) +
       surfaceHTML('Стены', WALL_OPTIONS, room.walls, 'walls', WALL_CHIPS, 'walls', room.prep.walls) +
       surfaceHTML('Потолок', CEILING_OPTIONS, room.ceiling, 'ceiling', CEILING_CHIPS, 'ceiling', room.prep.ceiling);
-    var electric = '<div class="grid2">' +
-      fieldHTML('Розеток', inputHTML('data-efield="sockets"', el.sockets, { mode: 'numeric', placeholder: '0' })) +
-      fieldHTML('Выключателей', inputHTML('data-efield="switches"', el.switches, { mode: 'numeric', placeholder: '0' })) +
-      fieldHTML('Светильников', inputHTML('data-efield="lights"', el.lights, { mode: 'numeric', placeholder: '0' })) +
-      fieldHTML('Плита, духовка, бойлер', inputHTML('data-efield="power"', el.power, { mode: 'numeric', placeholder: '0' })) +
-      '</div><p class="small muted">Кабель и подрозетники посчитаются сами. Двойная розетка — считайте как две. ' +
-      'Для плиты, духовки и бойлера — отдельная линия и силовая розетка.</p>';
     var h = room.heating;
     var heating = '<div class="heat-row">' + chipHTML('радиаторы (по окнам)', 'data-heat="radiators"', h.radiators) +
         (h.radiators ? selectHTML(RADIATOR_OPTIONS, h.radiatorType, 'data-hfield="radiatorType" aria-label="Вид радиаторов"') : '') + '</div>' +
@@ -615,9 +691,10 @@
 
     return '<section class="card room' + (room.collapsed ? ' collapsed' : '') + '" data-room="' + room.id + '">' +
       '<div class="room-head">' +
-        '<input class="room-name" type="text" data-field="name" value="' + esc(room.name) + '" aria-label="Название комнаты" autocomplete="off" enterkeyhint="next">' +
-        '<button type="button" class="icon-btn" data-action="copy-room" aria-label="Копировать комнату" title="Копировать">' + ICONS.copy + '</button>' +
-        '<button type="button" class="icon-btn danger" data-action="delete-room" aria-label="Удалить комнату" title="Удалить">' + ICONS.trash + '</button>' +
+        '<input class="room-name" type="text" data-field="name" value="' + esc(room.name) + '" aria-label="Название помещения" autocomplete="off" enterkeyhint="next">' +
+        '<span class="area-badge" data-area></span>' +
+        '<button type="button" class="icon-btn" data-action="copy-room" aria-label="Копировать помещение" title="Копировать">' + ICONS.copy + '</button>' +
+        '<button type="button" class="icon-btn danger" data-action="delete-room" aria-label="Удалить помещение" title="Удалить">' + ICONS.trash + '</button>' +
         '<button type="button" class="icon-btn toggle" data-action="toggle-room" aria-label="Свернуть или развернуть" title="Свернуть">' + ICONS.chevron + '</button>' +
       '</div>' +
       '<div class="room-body">' +
@@ -628,7 +705,8 @@
         '</div>' +
         sectionHTML(room, 'openings', 'Окна и двери', openings) +
         sectionHTML(room, 'finish', 'Отделка', finish) +
-        sectionHTML(room, 'electric', 'Электрика', electric) +
+        sectionHTML(room, 'electric', 'Электрика', electricBodyHTML(room)) +
+        sectionHTML(room, 'plumbing', 'Сантехника', plumbingBodyHTML(room)) +
         sectionHTML(room, 'heating', 'Отопление', heating) +
       '</div>' +
       '<div class="room-summary" data-room-summary></div>' +
@@ -644,16 +722,20 @@
       : '';
     box.innerHTML = toolbar + (state.rooms.length
       ? state.rooms.map(roomHTML).join('')
-      : '<div class="card empty">Помещений пока нет — выберите шаблон ниже.</div>');
+      : '<div class="card empty">Помещений пока нет — выберите шаблон ниже или типовую квартиру.</div>');
   }
 
   function renderPresets() {
-    document.getElementById('presets').innerHTML = PRESETS.map(function (p) {
-      return '<button type="button" class="btn preset" data-action="add-room" data-preset="' + p.key + '">+ ' + p.label + '</button>';
+    document.getElementById('presets').innerHTML = PRESET_ORDER.map(function (k) {
+      return '<button type="button" class="btn preset" data-action="add-room" data-preset="' + k + '">+ ' + F.ROOM_PRESETS[k].label + '</button>';
+    }).join('');
+    document.getElementById('apartments').innerHTML = Object.keys(F.APARTMENTS).map(function (k) {
+      var a = F.APARTMENTS[k];
+      return '<button type="button" class="apt-btn" data-action="apartment" data-key="' + k + '"><b>' + a.title + '</b><span>' + a.note + '</span></button>';
     }).join('');
   }
 
-  /** Короткие подписи в заголовках разделов комнаты. */
+  /** Короткие подписи в заголовках разделов. */
   function sectionSummaries(room) {
     var openings = room.openings.map(function (o) {
       var c = F.toNumber(o.count);
@@ -662,12 +744,18 @@
       if (o.replace && o.replace !== 'none') s += ' (' + optionLabel(replace, o.replace).toLowerCase() + ')';
       return s;
     });
-    var e = room.electric;
-    var el = [];
-    if (F.toNumber(e.sockets)) el.push(count(F.toNumber(e.sockets), ['розетка', 'розетки', 'розеток']));
-    if (F.toNumber(e.switches)) el.push(count(F.toNumber(e.switches), ['выключатель', 'выключателя', 'выключателей']));
-    if (F.toNumber(e.lights)) el.push(count(F.toNumber(e.lights), ['светильник', 'светильника', 'светильников']));
-    if (F.toNumber(e.power)) el.push(count(F.toNumber(e.power), ['силовая линия', 'силовые линии', 'силовых линий']));
+    function itemsSummary(groups) {
+      var parts = [];
+      groups.forEach(function (g) {
+        g.items.forEach(function (it) {
+          var n = F.toNumber(room.counts[it[0]]);
+          if (n > 0) parts.push(it[1].toLowerCase().replace(', м', '') + ' ' + fmt(n) + (it[0] === 'elLedStrip' ? ' м' : ''));
+        });
+      });
+      return parts;
+    }
+    var el = itemsSummary(ELECTRIC_GROUPS);
+    var pl = itemsSummary(PLUMBING_GROUPS);
     var heat = [];
     if (room.heating.radiators) heat.push('радиаторы: ' + optionLabel(RADIATOR_OPTIONS, room.heating.radiatorType).toLowerCase());
     if (room.heating.floor) heat.push('тёплый пол: ' + optionLabel(FLOOR_HEAT_OPTIONS, room.heating.floorType).toLowerCase().replace(/ \(.*\)/, ''));
@@ -676,6 +764,7 @@
       finish: [optionLabel(FLOOR_OPTIONS, room.floor), optionLabel(WALL_OPTIONS, room.walls), optionLabel(CEILING_OPTIONS, room.ceiling)]
         .map(function (s) { return s.toLowerCase(); }).join(' · '),
       electric: el.length ? el.join(' · ') : 'не заполнено',
+      plumbing: pl.length ? pl.join(' · ') : 'нет',
       heating: heat.length ? heat.join(' · ') : 'не меняем'
     };
   }
@@ -683,11 +772,9 @@
   function roomSummaryHTML(r) {
     var g = r.geometry;
     var parts = [];
-    if (g.floorArea > 0) parts.push('Пол <b>' + fmt(g.floorArea) + ' м²</b>');
-    if (g.wallGross > 0) {
-      parts.push('Стены <b>' + fmt(g.wallNet) + ' м²</b>' + (g.openingsArea > 0 ? ' (без проёмов ' + fmt(g.openingsArea) + ' м²)' : ''));
-    }
+    if (g.wallGross > 0) parts.push('Стены <b>' + fmt(g.wallNet) + ' м²</b>' + (g.openingsArea > 0 ? ' (без проёмов ' + fmt(g.openingsArea) + ')' : ''));
     if (g.perimeter > 0) parts.push('Периметр ' + fmt(g.perimeter) + ' м');
+    if (r.cost > 0) parts.push('≈ <b>' + money(r.cost) + '</b>');
     var html = parts.join(' · ');
     if (g.warnings.length) html += (html ? '<br>' : '') + '<span class="warn">⚠ ' + esc(g.warnings.join('; ')) + '</span>';
     return html || '<span class="muted">Введите размеры</span>';
@@ -698,12 +785,21 @@
       var card = document.querySelector('[data-room="' + r.id + '"]');
       if (!card) return;
       card.querySelector('[data-room-summary]').innerHTML = roomSummaryHTML(r);
+      var area = card.querySelector('[data-area]');
+      area.textContent = r.geometry.floorArea > 0 ? fmt(r.geometry.floorArea) + ' м²' : '';
       var sums = sectionSummaries(findRoom(r.id));
       Object.keys(sums).forEach(function (k) {
         var el = card.querySelector('[data-sec-sum="' + k + '"]');
         if (el) el.textContent = sums[k];
       });
     });
+  }
+
+  /** Перерисовать только список штучных позиций (и блок ванны) — без потери открытых разделов. */
+  function renderItems(roomEl, room, kind) {
+    var box = roomEl.querySelector('[data-items="' + kind + '"]');
+    box.innerHTML = itemsHTML(room, kind === 'electric' ? ELECTRIC_GROUPS : PLUMBING_GROUPS);
+    if (kind === 'plumbing') roomEl.querySelector('[data-bath-box]').innerHTML = bathHTML(room);
   }
 
   /* ================================================================== *
@@ -715,6 +811,9 @@
     var attrs = 'data-mat="' + key + '" data-param="' + fd.key + '"';
     if (fd.checkbox) {
       return '<label class="check-field"><input type="checkbox" ' + attrs + (value ? ' checked' : '') + '>' + fd.label + '</label>';
+    }
+    if (fd.select) {
+      return '<label class="field"><span>' + fd.label + '</span>' + selectHTML(fd.select, value, attrs) + '</label>';
     }
     var label = fd.label + (fd.typical ? ' <i class="typical">типовое</i>' : '');
     return fieldHTML(label, inputHTML(attrs, value, { text: fd.text }), fd.unit, fd.wide ? 'wide' : '');
@@ -736,7 +835,8 @@
     var ui = UI[key];
     var fields = ui.fields.map(function (fd) { return materialFieldHTML(key, fd, params); }).join('');
     if ('reserve' in F.DEFAULT_MATERIALS[key]) {
-      fields += materialFieldHTML(key, f('reserve', 'Запас', '%', true), params);
+      var tile = F.MATERIALS[key].kind === 'tile';
+      fields += materialFieldHTML(key, f('reserve', tile ? 'Запас на бой' : 'Запас', '%', true), params);
     }
     return '<details class="card material" data-material="' + key + '">' +
       '<summary><span><span class="mat-title">' + esc(F.MATERIAL_TITLES[key]) + '</span><br>' +
@@ -752,7 +852,7 @@
     var roomChips = '';
     if (!isCount) {
       var all = !Array.isArray(c.rooms);
-      roomChips = '<div class="subhead small-head">В каких комнатах</div><div class="chips chips-wide">' +
+      roomChips = '<div class="subhead small-head">В каких помещениях</div><div class="chips chips-wide">' +
         state.rooms.map(function (r) {
           var on = all || c.rooms.indexOf(r.id) >= 0;
           return chipHTML(esc(r.name || 'без названия'), 'data-croom="' + r.id + '"', on);
@@ -763,7 +863,7 @@
       '<summary><span><span class="mat-title">' + esc(c.name || 'Новая позиция') + '</span><br>' +
       '<span class="mat-usage" data-custom-usage="' + c.id + '"></span></span></summary>' +
       '<div class="grid2">' +
-        fieldHTML('Название', inputHTML('data-cfield="name"', c.name, { text: true, placeholder: 'Например: смеситель' }), '', 'wide') +
+        fieldHTML('Название', inputHTML('data-cfield="name"', c.name, { text: true, placeholder: 'Например: коллектор' }), '', 'wide') +
         '<label class="field"><span>Считать от</span>' + selectHTML(CUSTOM_BASIS, c.basis, 'data-cfield="basis"') + '</label>' +
         fieldHTML('Единица', inputHTML('data-cfield="unit"', c.unit, { text: true, placeholder: 'шт.' })) +
         (isCount
@@ -809,17 +909,17 @@
       return '<h2 class="cat-title">' + cat.title + '</h2>' + keys.map(materialCardHTML).join('');
     }).join('');
     if (!html) {
-      html = '<div class="card empty">Пока ни один материал не нужен: выберите отделку в комнатах ' +
+      html = '<div class="card empty">Пока ни один материал не нужен: выберите отделку в помещениях ' +
         'или нажмите «Все», чтобы заранее ввести цены.</div>';
     }
-    html += '<h2 class="cat-title">Свои позиции <span class="muted small">сантехника, электрика, расходники — всё, чего нет выше</span></h2>' +
+    html += '<h2 class="cat-title">Свои позиции <span class="muted small">всё, чего нет выше</span></h2>' +
       state.custom.map(function (c) { return customCardHTML(c, c.id === newCustomId); }).join('') + quickAddHTML();
     document.getElementById('materials').innerHTML = html;
     updateMaterialUsage();
   }
 
-  /** Строки «сколько нужно» под названием материала. */
   function updateMaterialUsage() {
+    var t = E.texts(state, calc);
     F.MATERIAL_ORDER.forEach(function (key) {
       var details = document.querySelector('[data-material="' + key + '"]');
       if (!details) return;
@@ -827,229 +927,143 @@
       var rooms = calc.rooms.filter(function (r) { return r.areas[key] > 0; }).map(function (r) { return r.name || 'без названия'; });
       var usage = details.querySelector('[data-mat-usage]');
       if (state.disabled[key]) usage.textContent = 'выключен — в расчёт не входит';
-      else if (m) usage.textContent = buyText(m) + ' · ' + rooms.join(', ');
-      else usage.textContent = 'не выбран ни в одной комнате';
+      else if (m) usage.textContent = t.buy(m) + (rooms.length ? ' · ' + rooms.join(', ') : ' · на всю квартиру');
+      else usage.textContent = 'не выбран ни в одном помещении';
       details.classList.toggle('unused', !m);
-      var shouldOpen = openMaterials[key] !== undefined ? openMaterials[key] : !!m && materialsFilter === 'used';
+      var shouldOpen = openMaterials[key] !== undefined ? openMaterials[key] : !!m && materialsFilter === 'used' && !m.priced;
       if (details.open !== shouldOpen) details.open = shouldOpen;
     });
     state.custom.forEach(function (c) {
       var el = document.querySelector('[data-custom-usage="' + c.id + '"]');
       if (!el) return;
       var m = calc.materials.find(function (x) { return x.key === 'custom:' + c.id; });
-      el.textContent = m ? buyText(m) + (m.priced ? ' · ' + money(m.cost) : '') : 'количество не задано';
+      el.textContent = m ? t.buy(m) + (m.priced ? ' · ' + money(m.cost) : '') : 'количество не задано';
       var title = el.parentElement.querySelector('.mat-title');
       if (title) title.textContent = c.name || 'Новая позиция';
     });
   }
 
   /* ================================================================== *
-   * Тексты результатов
+   * Сравнение вариантов
    * ================================================================== */
 
-  function packForms(m) {
-    if (m.kind === 'custom') return null;
-    return UI[m.key].pack || FORMS.piece;
+  function compareSpec(field) {
+    return COMPARE_UI.find(function (x) { return x[0] === field; }) || COMPARE_UI[0];
   }
 
-  /** Главная строка «купить». */
-  function buyText(m) {
-    var p = m.kind === 'custom' ? null : state.materials[m.key];
-    switch (m.kind) {
-      case 'area':
-      case 'tile':
-        return count(m.packs, packForms(m)) + (p && p.priceUnit === 'm2' ? ' (' + fmt(m.boughtArea) + ' м²)' : '');
-      case 'roll':
-        return fmt(m.amount) + ' м² (' + count(m.packs, FORMS.cut) + ')';
-      case 'measured':
-        return fmt(m.amount) + ' ' + m.baseUnit;
-      case 'count':
-        return fmt(m.packs, 0) + ' шт.';
-      case 'cable':
-        return fmt(m.meters, 0) + ' м' + (m.coils ? ' (' + count(m.coils, FORMS.coil) + ' по ' + fmt(F.toNumber(p.coilLength)) + ' м)' : '');
-      case 'radiator':
-        if (m.key === 'radiatorPanel') return count(m.packs, FORMS.radiator) + ' по ' + fmt(F.toNumber(p.sectionPower), 0) + ' Вт';
-        return count(m.packs, FORMS.section) + ' (' + count(m.radiators, FORMS.radiator) + ')';
-      case 'heatingMat':
-        return fmt(m.amount) + ' м² (' + fmt(m.watts, 0) + ' Вт)';
-      case 'heatingCable':
-        return fmt(m.meters, 0) + ' м кабеля (' + fmt(m.watts, 0) + ' Вт)';
-      case 'custom':
-        if (m.packSize !== 1) return count(m.packs, FORMS.pack) + ' по ' + fmt(m.packSize) + ' ' + m.amountUnit;
-        return fmt(m.packs, 0) + ' ' + (UNIT_FORMS[m.amountUnit] ? plural(m.packs, UNIT_FORMS[m.amountUnit]) : m.amountUnit);
-      default:
-        return count(m.packs, packForms(m));
+  /** Настройки сравнения по умолчанию: текущий вариант в комнатах и два следующих. */
+  function defaultCompare(field) {
+    var spec = compareSpec(field);
+    var cf = F.COMPARE_FIELDS[spec[0]];
+    var rooms = state.rooms.filter(function (r) { return cf.current(r) !== 'none'; }).map(function (r) { return r.id; });
+    var current = rooms.length ? cf.current(findRoom(rooms[0])) : spec[2][0][0];
+    var values = spec[2].map(function (o) { return o[0]; });
+    var options = [current];
+    values.forEach(function (v) { if (options.length < 3 && options.indexOf(v) < 0) options.push(v); });
+    return { field: spec[0], rooms: rooms.length ? rooms : null, options: options };
+  }
+
+  function compareState() {
+    if (!state.compare || !compareSpec(state.compare.field)) state.compare = defaultCompare('floor');
+    // убираем удалённые комнаты
+    if (Array.isArray(state.compare.rooms)) {
+      state.compare.rooms = state.compare.rooms.filter(function (id) { return findRoom(id); });
+      if (!state.compare.rooms.length) state.compare.rooms = null;
     }
+    return state.compare;
   }
 
-  /** Пояснение «откуда взялись цифры». */
-  function materialLines(m) {
-    if (m.kind === 'custom') return customLines(m);
-    var p = state.materials[m.key];
-    var n = F.toNumber;
-    var r = n(p.reserve);
-    var res = r > 0 ? ' (+' + fmt(r, 1) + ' %)' : '';
-    var forms = packForms(m);
-    var L = [];
-    switch (m.kind) {
-      case 'area':
-        L.push('Площадь ' + fmt(m.area) + ' м²' + (r > 0 ? ', с запасом' + res + ' ' + fmt(m.amount) + ' м²' : ''));
-        L.push(count(m.packs, forms) + ' по ' + fmt(m.packArea, 3) + ' м² = ' + fmt(m.boughtArea, 3) + ' м²');
-        break;
-      case 'tile':
-        L.push('Площадь ' + fmt(m.area) + ' м², с запасом' + res + ' ' + fmt(m.amount) + ' м²');
-        L.push(m.pieces + ' шт. плитки ' + fmt(n(p.tileLength), 1) + '×' + fmt(n(p.tileWidth), 1) + ' см → ' +
-          count(m.packs, forms) + ' по ' + fmt(m.packArea, 3) + ' м²');
-        break;
-      case 'roll':
-        m.cuts.forEach(function (c) {
-          L.push((c.name || 'Комната') + ': рулон ' + fmt(c.rollWidth) + ' м, ' + count(c.strips, FORMS.strip) + ' × ' + fmt(c.cutLength) + ' м = ' + fmt(c.area) + ' м²');
-        });
-        L.push('Площадь пола ' + fmt(m.area) + ' м²' + (r > 0 ? ', с запасом' + res + ' ' + fmt(m.amount) + ' м²' : ''));
-        break;
-      case 'pieces':
-        L.push('Длина ' + fmt(m.area) + ' м, с запасом' + res + ' ' + fmt(m.amount) + ' м → ' + count(m.packs, forms) + ' по ' + fmt(m.pieceLength) + ' м');
-        break;
-      case 'paint':
-        L.push('Площадь ' + fmt(m.area) + ' м² × ' + count(n(p.coats), FORMS.coat) + ' ÷ ' + fmt(n(p.coverage)) + ' м²/л');
-        L.push('С запасом' + res + ' ' + fmt(m.amount) + ' л → ' + count(m.packs, forms) + ' по ' + fmt(n(p.canVolume)) + ' л');
-        break;
-      case 'wallpaper':
-        L.push('Стены ' + fmt(m.area) + ' м²; полос ' + m.strips + ', с запасом' + res + ' ' + m.stripsWithReserve);
-        m.groups.forEach(function (g) {
-          L.push('Полоса ' + fmt(g.stripLength) + ' м: ' + g.stripsPerRoll + ' из рулона → ' + count(g.rolls, forms));
-        });
-        break;
-      case 'glue':
-        L.push('Стены ' + fmt(m.area) + ' м², с запасом' + res + ' ' + fmt(m.amount) + ' м² ÷ ' + fmt(n(p.coverage)) + ' м² на ' +
-          (m.key === 'wallpaperGlue' ? 'пачку' : 'упаковку'));
-        break;
-      case 'perArea':
-        L.push('Площадь ' + fmt(m.area) + ' м² × ' + fmt(n(p.consumption), 2) + ' кг/м²');
-        L.push('С запасом' + res + ' ' + fmt(m.amount, 1) + ' кг → ' + count(m.packs, forms) + ' по ' + fmt(n(p.packWeight)) + ' кг');
-        break;
-      case 'heatingCable':
-        L.push(fmt(n(p.share), 0) + ' % площади пола = ' + fmt(m.area) + ' м² × ' + fmt(n(p.power), 0) + ' Вт/м² = ' + fmt(m.watts, 0) + ' Вт');
-        L.push('Кабель ' + fmt(n(p.linearPower)) + ' Вт/м → ' + fmt(m.meters, 0) + ' м');
-        break;
-      case 'adhesive':
-        L.push('Пол ' + fmt(m.floorArea) + ' м² × ' + fmt(n(p.floorThickness)) + ' мм + стены ' + fmt(m.wallArea) + ' м² × ' +
-          fmt(n(p.wallThickness)) + ' мм, × ' + fmt(n(p.consumptionPerMm)) + ' кг/м² на 1 мм');
-        L.push('С запасом' + res + ' ' + fmt(m.amount, 1) + ' кг → ' + count(m.packs, forms) + ' по ' + fmt(n(p.bagWeight)) + ' кг');
-        break;
-      case 'grout':
-        m.rates.forEach(function (x) {
-          L.push((x.title || 'Плитка') + ' ' + fmt(n(x.tileLength), 1) + '×' + fmt(n(x.tileWidth), 1) + ' см' +
-            (x.title === 'Мозаика' ? ' (чип)' : '') + ': ' + fmt(x.area) + ' м² × ' + fmt(x.rate, 3) + ' кг/м²');
-        });
-        L.push('Шов ' + fmt(n(p.jointWidth)) + ' мм, глубина ' + fmt(n(p.tileThickness)) + ' мм; с запасом' + res + ' ' +
-          fmt(m.amount, 2) + ' кг → ' + count(m.packs, forms) + ' по ' + fmt(n(p.packWeight)) + ' кг');
-        break;
-      case 'layered':
-        if (m.key === 'primer' || m.key === 'parquetLacquer') {
-          L.push('Площадь ' + fmt(m.area) + ' м² × ' + count(n(p.coats), FORMS.coat) + ' × ' + fmt(n(p.consumption), 3) + ' л/м²');
-          L.push('С запасом' + res + ' ' + fmt(m.amount) + ' л → ' + count(m.packs, forms) + ' по ' +
-            fmt(n(m.key === 'primer' ? p.canisterVolume : p.canVolume)) + ' л');
-        } else {
-          L.push('Пол и заход на стены ' + fmt(m.area) + ' м² × ' + count(n(p.coats), FORMS.coat) + ' × ' + fmt(n(p.consumption)) + ' кг/м²');
-          L.push('С запасом' + res + ' ' + fmt(m.amount, 1) + ' кг → ' + count(m.packs, forms) + ' по ' + fmt(n(p.bucketWeight)) + ' кг');
-        }
-        break;
-      case 'drymix':
-        L.push('Площадь ' + fmt(m.area) + ' м² × ' + fmt(n(p.thickness)) + ' мм × ' + fmt(n(p.consumptionPerMm)) + ' кг/м²');
-        L.push('С запасом' + res + ' ' + fmt(m.amount, 1) + ' кг → ' + count(m.packs, forms) + ' по ' + fmt(n(p.bagWeight)) + ' кг');
-        break;
-      case 'measured':
-        L.push((m.baseUnit === 'м' ? 'Длина ' : 'Площадь ') + fmt(m.area) + ' ' + m.baseUnit + (r > 0 ? ', с запасом' + res + ' ' + fmt(m.amount) : ''));
-        break;
-      case 'count':
-        L.push('По комнатам: ' + calc.rooms.filter(function (x) { return x.areas[m.key] > 0; }).map(function (x) {
-          return (x.name || 'без названия') + ' — ' + fmt(x.areas[m.key], 0);
-        }).join(', '));
-        break;
-      case 'cable':
-        L.push('Трассы ' + fmt(m.area, 1) + ' м (до щита, по комнате, спуски к точкам), с запасом' + res + ' ' + fmt(m.meters, 0) + ' м');
-        break;
-      case 'radiator': {
-        var panel = m.key === 'radiatorPanel';
-        m.rooms.forEach(function (x) {
-          L.push((x.name || 'Комната') + ': ' + fmt(x.watts, 0) + ' Вт → ' +
-            (panel ? count(x.sections, FORMS.radiator) : (x.radiators > 1 ? x.radiators + ' × ' : '') + count(x.perRadiator, FORMS.section)));
-        });
-        L.push(fmt(n(p.wattsPerM2), 0) + ' Вт/м², ' + (panel ? 'радиатор ' : 'секция ') + fmt(n(p.sectionPower), 0) + ' Вт' + (r > 0 ? ', запас' + res : ''));
-        break;
-      }
-      case 'heatingMat':
-        L.push(fmt(n(p.share), 0) + ' % площади пола, с шагом ' + fmt(n(p.matStep)) + ' м² × ' + fmt(n(p.power), 0) + ' Вт/м²');
-        break;
-    }
-    return L;
+  function renderCompare() {
+    var c = compareState();
+    var spec = compareSpec(c.field);
+    var roomsChips = state.rooms.map(function (r) {
+      var on = !Array.isArray(c.rooms) || c.rooms.indexOf(r.id) >= 0;
+      return chipHTML(esc(r.name || 'без названия'), 'data-cmp-room="' + r.id + '"', on);
+    }).join('');
+    var letters = ['A', 'B', 'C'];
+    var selects = [0, 1, 2].map(function (i) {
+      var opts = (i === 2 ? [['', '— без третьего —']] : []).concat(spec[2]);
+      return '<label class="field"><span>Вариант ' + letters[i] + '</span>' +
+        selectHTML(opts, c.options[i] || '', 'data-cmp-opt="' + i + '" aria-label="Вариант ' + letters[i] + '"') + '</label>';
+    }).join('');
+    document.getElementById('compare-form').innerHTML =
+      '<label class="field"><span>Что сравниваем</span>' +
+        selectHTML(COMPARE_UI.map(function (x) { return [x[0], x[1]]; }), c.field, 'data-cmp="field" aria-label="Что сравниваем"') + '</label>' +
+      '<div class="subhead small-head">В каких помещениях</div><div class="chips chips-wide">' + roomsChips + '</div>' +
+      '<div class="cmp-selects">' + selects + '</div>';
+    renderCompareResults();
   }
 
-  function customLines(m) {
-    var c = state.custom.find(function (x) { return 'custom:' + x.id === m.key; });
-    if (!c) return [];
-    var r = F.toNumber(c.reserve);
-    var res = r > 0 ? ', с запасом (+' + fmt(r, 1) + ' %) ' + fmt(m.amount) + ' ' + m.amountUnit : '';
-    if (c.basis === 'count') return ['Количество ' + fmt(m.area) + ' ' + m.amountUnit + res];
-    return [BASIS_NAME[c.basis] + ' ' + fmt(m.area) + ' ' + BASIS_UNIT[c.basis] + ' × ' +
-      fmt(F.toNumber(c.rate), 3) + ' ' + m.amountUnit + '/' + BASIS_UNIT[c.basis] + res];
-  }
-
-  function priceText(m) {
-    if (!m.priced) return 'цена не указана';
-    if (m.kind === 'custom') {
-      var c = state.custom.find(function (x) { return 'custom:' + x.id === m.key; });
-      return fmt(F.toNumber(c.price)) + ' ₽ за ' + (m.packSize !== 1 ? 'упаковку' : m.amountUnit);
-    }
-    var p = state.materials[m.key];
-    var ui = UI[m.key];
-    var per = ui.pricePer;
-    if (ui.priceUnits) {
-      per = p.priceUnit === 'pack' ? (m.kind === 'cable' ? 'бухту' : 'упаковку') : (m.kind === 'cable' ? 'метр' : 'м²');
-    }
-    return fmt(F.toNumber(p.price)) + ' ₽ за ' + per;
-  }
-
-  function categoryTitle(key) {
-    var c = F.CATEGORIES.find(function (x) { return x.key === key; });
-    return c ? c.title : key;
-  }
-
-  /** Материалы итога, сгруппированные по категориям. */
-  function grouped() {
-    return F.CATEGORIES.map(function (cat) {
-      var items = calc.materials.filter(function (m) { return m.category === cat.key; });
-      return { key: cat.key, title: cat.title, items: items, cost: items.reduce(function (s, m) { return s + m.cost; }, 0) };
-    }).filter(function (g) { return g.items.length; });
+  function renderCompareResults() {
+    var box = document.getElementById('compare-results');
+    if (!box) return;
+    var c = compareState();
+    var spec = compareSpec(c.field);
+    var options = c.options.filter(function (v, i) { return v && c.options.indexOf(v) === i; });
+    if (!state.rooms.length) { box.innerHTML = '<div class="card empty">Добавьте помещения — тогда будет что сравнивать.</div>'; return; }
+    var res = F.compareVariants(state, c.field, options, Array.isArray(c.rooms) ? c.rooms : null);
+    var priced = res.filter(function (r) { return !r.missingPrices; });
+    var min = priced.length ? Math.min.apply(null, priced.map(function (r) { return r.cost; })) : null;
+    var t = E.texts(state, calc);
+    box.innerHTML = res.map(function (r, i) {
+      var badge = '';
+      if (r.missingPrices) badge = '<span class="cmp-badge warn-badge">нет цен: ' + r.missingPrices + '</span>';
+      else if (priced.length > 1 && r.cost === min) badge = '<span class="cmp-badge best">дешевле всего</span>';
+      else if (min !== null) badge = '<span class="cmp-badge">+' + money(r.cost - min) + '</span>';
+      var items = r.items.map(function (x) {
+        var m = x.material;
+        return '<li><span>' + esc(m.title) + '<small>' + esc(t.buy(m)) + '</small></span><b>' + (m.priced ? (x.delta >= 0 ? '' : '−') + money(Math.abs(x.delta)) : '—') + '</b></li>';
+      }).join('');
+      return '<article class="cmp-card">' +
+        '<div class="cmp-letter">' + ['A', 'B', 'C'][i] + '</div>' +
+        '<h3>' + esc(optionLabel(spec[2], r.option)) + '</h3>' +
+        '<div class="cmp-cost">' + money(r.cost) + '</div>' + badge +
+        '<ul class="cmp-items">' + (items || '<li><span>Ничего не меняется</span></li>') + '</ul>' +
+        '<button type="button" class="btn btn-small" data-action="cmp-apply" data-option="' + r.option + '">Выбрать этот вариант</button>' +
+        '</article>';
+    }).join('');
   }
 
   /* ================================================================== *
    * Итог
    * ================================================================== */
 
+  function renderHero() {
+    var bought = state.bought;
+    var boughtCost = calc.materials.reduce(function (s, m) { return s + (bought[m.key] ? m.cost : 0); }, 0);
+    var share = calc.totalCost > 0 ? Math.min(100, Math.round(boughtCost / calc.totalCost * 100)) : 0;
+    var area = calc.rooms.reduce(function (s, r) { return s + r.geometry.floorArea; }, 0);
+    document.getElementById('hero').innerHTML =
+      '<div class="hero-label">Итого по смете</div>' +
+      '<div class="hero-total">' + money(calc.totalCost) + '</div>' +
+      '<div class="hero-meta">' + count(calc.materials.length, FORMS.item) + ' · ' + count(state.rooms.length, ['помещение', 'помещения', 'помещений']) +
+        (area > 0 ? ' · ' + fmt(area) + ' м²' : '') + (area > 0 && calc.totalCost > 0 ? ' · ' + money(calc.totalCost / area) + ' за м²' : '') + '</div>' +
+      '<div class="hero-bar" role="img" aria-label="Куплено на ' + share + ' %"><span style="width:' + share + '%"></span></div>' +
+      '<div class="hero-bought">Куплено на ' + money(boughtCost) + ' · осталось ' + money(calc.totalCost - boughtCost) + '</div>' +
+      (calc.missingPrices ? '<div class="hero-warn">Не указаны цены: ' + count(calc.missingPrices, FORMS.item) + ' — итог неполный</div>' : '');
+  }
+
   function renderSummary() {
+    renderHero();
     var box = document.getElementById('summary');
     if (!calc.materials.length) {
-      box.innerHTML = '<div class="card empty">Пока нечего считать: введите размеры комнат и выберите отделку.</div>';
+      box.innerHTML = '<div class="card empty">Пока нечего считать: введите размеры помещений и выберите отделку.</div>';
       return;
     }
+    var t = E.texts(state, calc);
     var bought = state.bought;
-    var boughtCount = calc.materials.filter(function (m) { return bought[m.key]; }).length;
-    var leftCost = calc.materials.reduce(function (s, m) { return s + (bought[m.key] ? 0 : m.cost); }, 0);
-
-    var groups = grouped().map(function (g) {
+    var groups = E.grouped(calc).map(function (g) {
       return '<div class="cat-head"><span>' + g.title + '</span><span>' + money(g.cost) + '</span></div>' +
         g.items.map(function (m) {
-          var lines = materialLines(m);
-          lines.push(priceText(m));
+          var lines = t.lines(m);
+          lines.push(t.price(m));
           var isBought = !!bought[m.key];
           return '<div class="result-row' + (isBought ? ' bought' : '') + '">' +
             '<label class="buy-check" title="Куплено"><input type="checkbox" data-bought="' + esc(m.key) + '"' + (isBought ? ' checked' : '') +
             ' aria-label="Куплено: ' + esc(m.title) + '"><span></span></label>' +
             '<div class="result-main">' +
               '<div class="result-head"><b>' + esc(m.title) + '</b><span class="result-cost">' + (m.priced ? money(m.cost) : '—') + '</span></div>' +
-              '<div class="result-buy">' + esc(buyText(m)) + '</div>' +
+              '<div class="result-buy">' + esc(t.buy(m)) + '</div>' +
               '<div class="result-lines">' + lines.map(function (l) { return '<div>' + esc(l) + '</div>'; }).join('') + '</div>' +
               (m.errors.length ? '<div class="error small">⚠ ' + esc(m.errors.join('; ')) + '</div>' : '') +
             '</div></div>';
@@ -1059,22 +1073,24 @@
     var missing = calc.materials.filter(function (m) { return !m.priced; }).map(function (m) { return m.title; });
     var skipped = calc.skipped.map(function (k) { return F.MATERIAL_TITLES[k]; });
 
-    var roomRows = calc.rooms.map(function (r) {
+    var roomCards = calc.rooms.map(function (r) {
       var g = r.geometry;
-      var needs = F.MATERIAL_ORDER.filter(function (k) { return r.areas[k] > 0; }).map(function (k) {
-        var unit = F.MATERIALS[k].baseUnit;
-        return F.MATERIAL_TITLES[k].toLowerCase() + ' ' + fmt(r.areas[k], unit === 'шт.' || unit === 'Вт' ? 0 : 2) + ' ' + unit;
-      });
-      return '<div class="room-break"><b>' + esc(r.name || 'Без названия') + '</b> — ' +
-        fmt(g.length) + ' × ' + fmt(g.width) + ' × ' + fmt(g.height) + ' м<br>' +
-        '<span class="muted">' + (needs.length ? esc(needs.join(', ')) : 'отделка не выбрана') + '</span></div>';
+      var surfaces = (r.surfaces || []).filter(function (s) { return s.materials.length; }).map(function (s) {
+        return '<details class="surf"><summary><span>' + s.title + '</span><b>' + (s.cost > 0 ? money(s.cost) : '—') + '</b></summary>' +
+          '<ul class="surf-items">' + s.materials.map(function (m) {
+            return '<li><span>' + esc(m.title) + '<small>' + esc(t.buy(m)) + '</small></span><b>' + (m.priced ? money(m.cost) : '—') + '</b></li>';
+          }).join('') + '</ul></details>';
+      }).join('');
+      return '<div class="room-break">' +
+        '<div class="room-break-head"><b>' + esc(r.name || 'Без названия') + '</b><span>' + (r.cost > 0 ? money(r.cost) : '') + '</span></div>' +
+        '<div class="muted small">' + fmt(g.length) + ' × ' + fmt(g.width) + ' × ' + fmt(g.height) + ' м · пол ' + fmt(g.floorArea) +
+          ' м² · стены ' + fmt(g.wallNet) + ' м² · потолок ' + fmt(g.ceilingArea) + ' м²</div>' +
+        (surfaces || '<p class="small muted">Отделка не выбрана.</p>') + '</div>';
     }).join('');
 
     box.innerHTML =
       '<div class="card"><h2 class="card-title">Что купить</h2>' +
-        '<p class="small muted">Отмечайте купленное галочкой — сумма «осталось купить» пересчитается.</p>' +
-        (boughtCount ? '<div class="progress"><span>Куплено ' + boughtCount + ' из ' + calc.materials.length + '</span>' +
-          '<span>Осталось: <b>' + money(leftCost) + '</b></span></div>' : '') +
+        '<p class="small muted">Отмечайте купленное галочкой — полоса вверху покажет, сколько осталось.</p>' +
         groups +
         '<div class="grand-total"><span>Итого</span><span>' + money(calc.totalCost) + '</span></div>' +
         (missing.length ? '<p class="error small">Не указаны цены (' + missing.length + '): ' + esc(missing.join(', ')) +
@@ -1082,7 +1098,9 @@
         (skipped.length ? '<p class="small muted">Выключены и не входят в итог: ' + esc(skipped.join(', ')) + '.</p>' : '') +
         '<p class="small muted">Нормы расхода — типовые значения, проверьте по упаковке.</p>' +
       '</div>' +
-      '<div class="card"><h2 class="card-title">По комнатам</h2>' + roomRows + '</div>';
+      '<div class="card"><h2 class="card-title">По помещениям</h2>' +
+        '<p class="small muted">Пол, стены, потолок и инженерия посчитаны раздельно — как если покупать на каждое отдельно, поэтому сумма немного больше общего итога. Щит и свои позиции — только в общем итоге.</p>' +
+        roomCards + '</div>';
   }
 
   function renderHeader() {
@@ -1109,48 +1127,99 @@
   }
 
   /* ================================================================== *
-   * Печать / PDF
+   * Смета для заказчика: печать, PDF, Excel
    * ================================================================== */
 
-  function renderPrint() {
-    var title = state.name ? esc(state.name) : 'Без названия';
-    var roomRows = calc.rooms.map(function (r) {
-      var src = findRoom(r.id) || blankRoom();
-      var g = r.geometry;
-      var finish = [
-        'пол: ' + optionLabel(FLOOR_OPTIONS, src.floor).toLowerCase(),
-        'стены: ' + optionLabel(WALL_OPTIONS, src.walls).toLowerCase(),
-        'потолок: ' + optionLabel(CEILING_OPTIONS, src.ceiling).toLowerCase()
-      ].join('; ');
-      return '<tr><td>' + esc(r.name) + '</td><td class="num">' + fmt(g.length) + ' × ' + fmt(g.width) + ' × ' + fmt(g.height) +
-        '</td><td class="num">' + fmt(g.floorArea) + '</td><td class="num">' + fmt(g.wallNet) + '</td><td class="num">' +
-        fmt(g.openingsArea) + '</td><td class="calc">' + esc(finish) + '</td></tr>';
-    }).join('');
+  function estimateModel() {
+    return E.estimateModel(state, calc, {
+      company: settings.company, customer: state.customer, details: settings.details !== false
+    });
+  }
 
-    var matRows = grouped().map(function (g) {
-      return '<tr class="cat-row"><td colspan="4">' + esc(g.title) + '</td><td class="num">' + money(g.cost) + '</td></tr>' +
-        g.items.map(function (m) {
-          return '<tr><td><b>' + esc(m.title) + '</b></td><td class="calc">' + materialLines(m).map(esc).join('<br>') +
-            (m.errors.length ? '<br>⚠ ' + esc(m.errors.join('; ')) : '') + '</td>' +
-            '<td class="buy"><b>' + esc(buyText(m)) + '</b></td><td class="num">' + esc(m.priced ? priceText(m) : '—') +
-            '</td><td class="num">' + (m.priced ? money(m.cost) : '—') + '</td></tr>';
+  /** Версия для печати — из той же модели, что и PDF. */
+  function renderPrint() {
+    var m = estimateModel();
+    var meta = m.meta.map(function (x) { return '<div><span>' + esc(x[0]) + '</span> ' + esc(x[1]) + '</div>'; }).join('');
+    var rooms = m.rooms.rows.length
+      ? '<h2>Помещения</h2><table class="room-table"><thead><tr>' + m.rooms.columns.map(function (c, i) {
+          return '<th' + (i > 1 ? ' class="num"' : '') + '>' + esc(c) + '</th>';
+        }).join('') + '</tr></thead><tbody>' + m.rooms.rows.map(function (row) {
+          return '<tr>' + row.map(function (c, i) { return '<td' + (i > 1 ? ' class="num"' : '') + '>' + esc(c) + '</td>'; }).join('') + '</tr>';
+        }).join('') + '</tbody></table>'
+      : '';
+    var groups = m.groups.map(function (g) {
+      return '<tr class="cat-row"><td colspan="3">' + esc(g.title) + '</td><td class="num">' + esc(g.total) + '</td></tr>' +
+        g.items.map(function (it) {
+          return '<tr><td><b>' + esc(it.title) + '</b>' + (it.details ? '<div class="calc">' + esc(it.details) + '</div>' : '') + '</td>' +
+            '<td>' + esc(it.qty) + '</td><td class="num">' + esc(it.price) + '</td><td class="num">' + esc(it.cost) + '</td></tr>';
         }).join('');
     }).join('');
-
     document.getElementById('print').innerHTML =
-      '<h1>Расчёт материалов для ремонта</h1>' +
-      '<div class="meta">Объект: <b>' + title + '</b><br>Дата: ' + new Date().toLocaleDateString('ru-RU') + '</div>' +
-      '<h2>Помещения</h2>' +
-      (roomRows ? '<table class="room-table"><thead><tr><th>Помещение</th><th class="num">Д × Ш × В, м</th><th class="num">Пол, м²</th>' +
-        '<th class="num">Стены, м²</th><th class="num">Проёмы, м²</th><th>Отделка</th></tr></thead><tbody>' + roomRows + '</tbody></table>'
-        : '<p>Помещения не заданы.</p>') +
-      '<h2>Материалы</h2>' +
-      (matRows ? '<table class="mat-table"><thead><tr><th>Материал</th><th>Расчёт</th><th>Купить</th><th class="num">Цена</th>' +
-        '<th class="num">Сумма</th></tr></thead><tbody>' + matRows + '</tbody>' +
-        '<tfoot><tr><td colspan="4">Итого</td><td class="num">' + money(calc.totalCost) + '</td></tr></tfoot></table>'
-        : '<p>Материалы не выбраны.</p>') +
-      '<p class="footnote">Нормы расхода — типовые значения, перед покупкой проверьте по упаковке. ' +
-      'Количество округлено вверх до целых упаковок, запас указан в расчёте. Длина кабеля — оценка, точная — по проекту электрики.</p>';
+      (m.company.name ? '<div class="company"><b>' + esc(m.company.name) + '</b>' + (m.company.phone ? ' · ' + esc(m.company.phone) : '') + '</div>' : '') +
+      '<h1>' + esc(m.title) + '</h1><div class="meta">' + meta + '</div>' +
+      '<div class="sum-box"><span>Итого по смете</span><b>' + esc(m.total) + '</b>' + (m.summary.note ? '<em>' + esc(m.summary.note) + '</em>' : '') + '</div>' +
+      rooms +
+      (groups ? '<h2>Материалы</h2><table class="mat-table"><thead><tr><th>Материал</th><th>Количество</th><th class="num">Цена</th><th class="num">Сумма</th></tr></thead>' +
+        '<tbody>' + groups + '</tbody><tfoot><tr><td colspan="3">' + esc(m.totalLabel) + '</td><td class="num">' + esc(m.total) + '</td></tr></tfoot></table>' : '') +
+      '<ul class="footnote">' + m.notes.map(function (n) { return '<li>' + esc(n) + '</li>'; }).join('') + '</ul>' +
+      (m.signatures.length ? '<div class="signs">' + m.signatures.map(function (s) {
+        return '<div>' + esc(s[0]) + ' ____________________ / подпись /</div>';
+      }).join('') + '</div>' : '');
+  }
+
+  /** Сохранить файл: на обычном сайте — скачивание, на странице claude.ai — через разрешение на скачивание. */
+  function saveFile(filename, data, type) {
+    var blob = data instanceof Blob ? data : new Blob([data], { type: type });
+    if (EMBED) {
+      // на странице claude.ai обычная ссылка на скачивание не работает — только через разрешение
+      if (!(window.claude && window.claude.use)) return Promise.reject({ code: 'unavailable' });
+      return window.claude.use('downloads').then(function (d) {
+        if (!d) throw { code: 'unavailable' };
+        return d.save({ filename: filename, data: blob });
+      });
+    }
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    return Promise.resolve({ status: 'saved' });
+  }
+
+  function saveError(err) {
+    var code = err && err.code;
+    if (code === 'declined') toast('Сохранение отменено');
+    else if (code === 'rate_limited') toast('Подождите — окно сохранения уже открыто');
+    else toast('Здесь сохранить файл нельзя. Откройте калькулятор на сайте.');
+  }
+
+  /**
+   * PDF рисуется около секунды. Скачивание запускаем отдельным нажатием «Сохранить PDF»:
+   * браузеры (особенно на iPhone) разрешают сохранять файл только сразу после нажатия.
+   */
+  function exportPdf(btn) {
+    if (!calc.materials.length) { toast('Сначала введите помещения'); return; }
+    var label = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Готовлю PDF…';
+    var name = E.fileName(state, 'pdf');
+    PDF.render(estimateModel(), { accent: getComputedStyle(document.documentElement).getPropertyValue('--accent-print').trim() || '#c2410c' })
+      .then(function (blob) {
+        openSheet('Смета готова', '<p>' + esc(name) + ' · ' + fmt(blob.size / 1024, 0) + ' КБ</p>', [
+          { label: 'Закрыть' },
+          { label: 'Сохранить PDF', primary: true, action: function () {
+            saveFile(name, blob, 'application/pdf').then(function (r) { if (r && r.status === 'saved') toast('PDF сохранён'); }, saveError);
+          } }
+        ]);
+      }, function () { toast('Не получилось подготовить PDF'); })
+      .then(function () { btn.disabled = false; btn.textContent = label; });
+  }
+
+  function exportCsv() {
+    if (!calc.materials.length) { toast('Сначала введите помещения'); return; }
+    saveFile(E.fileName(state, 'csv'), E.toCSV(state, calc, { customer: state.customer }), 'text/csv;charset=utf-8')
+      .then(function (r) { if (r && r.status === 'saved') toast('Файл для Excel сохранён'); }, saveError);
   }
 
   /* ================================================================== *
@@ -1163,12 +1232,14 @@
     updateRoomSummaries();
     updateMaterialUsage();
     renderSummary();
+    if (currentTab() === 'compare') renderCompareResults();
     scheduleAutosave();
   }
 
   function renderAll() {
     calc = F.calculateProject(state);
     document.getElementById('project-name').value = state.name || '';
+    document.getElementById('project-customer').value = state.customer || '';
     renderRooms();
     renderMaterials();
     renderSaved();
@@ -1185,16 +1256,19 @@
   }
 
   function showTab(name) {
-    document.querySelectorAll('.tab').forEach(function (t) { t.classList.toggle('active', t.dataset.tab === name); });
+    document.querySelectorAll('.tab').forEach(function (t) {
+      t.classList.toggle('active', t.dataset.tab === name);
+      t.setAttribute('aria-current', t.dataset.tab === name ? 'page' : 'false');
+    });
     document.querySelectorAll('.panel').forEach(function (p) { p.hidden = p.dataset.panel !== name; });
     if (name === 'materials') renderMaterials();
+    if (name === 'compare') renderCompare();
     if (name === 'summary') renderSaved();
     window.scrollTo(0, 0);
   }
 
   var toastTimer = null;
   var toastAction = null;
-  /** Сообщение внизу экрана; actionLabel + action — кнопка «Отменить». */
   function toast(text, actionLabel, action) {
     var el = document.getElementById('toast');
     el.innerHTML = '<span>' + esc(text) + '</span>' + (actionLabel ? '<button type="button" class="toast-btn" data-action="toast-action">' + esc(actionLabel) + '</button>' : '');
@@ -1202,13 +1276,12 @@
     el.classList.toggle('with-action', !!actionLabel);
     toastAction = action || null;
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(function () { el.classList.remove('show'); toastAction = null; }, actionLabel ? 6000 : 2200);
+    toastTimer = setTimeout(function () { el.classList.remove('show'); toastAction = null; }, actionLabel ? 6000 : 2400);
   }
 
   /* ---------- Окно внутри страницы (вместо системных confirm/prompt) ---------- */
 
   var sheetButtons = [];
-  /** buttons: [{ label, primary, keepOpen, action }] */
   function openSheet(title, bodyHtml, buttons) {
     sheetButtons = buttons;
     var el = document.getElementById('sheet');
@@ -1231,6 +1304,16 @@
     openSheet(title, '<p>' + esc(text) + '</p>', [{ label: 'Отмена' }, { label: okLabel, primary: true, action: onOk }]);
   }
 
+  /** Перед заменой текущего расчёта: если он не сохранён — спросить. */
+  function withLeaveCheck(next) {
+    if (!hasContent() || isSavedVersion()) { next(); return; }
+    openSheet('Текущий расчёт не сохранён', '<p>Сохранить его в списке, прежде чем продолжить?</p>', [
+      { label: 'Отмена' },
+      { label: 'Не сохранять', action: next },
+      { label: 'Сохранить', primary: true, action: function () { saveCurrent(); next(); } }
+    ]);
+  }
+
   function toggleInvalid(t) {
     if (t.type === 'text' && t.inputMode && (t.inputMode === 'decimal' || t.inputMode === 'numeric')) {
       t.classList.toggle('invalid', isInvalidNumber(t.value));
@@ -1242,42 +1325,66 @@
     var d = t.dataset;
     toggleInvalid(t);
 
-    if (d.project === 'name') { state.name = t.value; scheduleAutosave(); return; }
-
+    if (d.project) { state[d.project] = t.value; scheduleAutosave(); return; }
+    if (d.setting) {
+      if (d.setting === 'details') settings.details = t.checked;
+      else settings.company[d.setting] = t.value;
+      writeStorage(SETTINGS_KEY, settings);
+      return;
+    }
     if (d.bought) {
       if (t.checked) state.bought[d.bought] = true; else delete state.bought[d.bought];
       refresh();
       return;
     }
-
     if (d.enable) {
       if (t.checked) delete state.disabled[d.enable]; else state.disabled[d.enable] = true;
       refresh();
       return;
     }
-
     if (d.mat && d.param) {
       state.materials[d.mat][d.param] = t.type === 'checkbox' ? t.checked : t.value;
       refresh();
       return;
     }
+    if (d.cmp === 'field') {
+      state.compare = defaultCompare(t.value);
+      renderCompare();
+      scheduleAutosave();
+      return;
+    }
+    if (d.cmpOpt !== undefined) {
+      compareState().options[Number(d.cmpOpt)] = t.value;
+      renderCompareResults();
+      scheduleAutosave();
+      return;
+    }
+    if (d.cmpRoom) {
+      var c = compareState();
+      var ids = Array.isArray(c.rooms) ? c.rooms.slice() : state.rooms.map(function (r) { return r.id; });
+      if (t.checked) { if (ids.indexOf(d.cmpRoom) < 0) ids.push(d.cmpRoom); } else ids = ids.filter(function (x) { return x !== d.cmpRoom; });
+      c.rooms = ids.length === state.rooms.length ? null : ids;
+      renderCompareResults();
+      scheduleAutosave();
+      return;
+    }
 
     var customEl = t.closest('[data-custom]');
     if (customEl) {
-      var c = state.custom.find(function (x) { return x.id === customEl.dataset.custom; });
-      if (!c) return;
+      var cu = state.custom.find(function (x) { return x.id === customEl.dataset.custom; });
+      if (!cu) return;
       if (d.cfield) {
-        c[d.cfield] = t.value;
-        if (d.cfield === 'basis' && e.type === 'change') { refresh(); renderMaterials(); openCustom(c.id); return; }
+        cu[d.cfield] = t.value;
+        if (d.cfield === 'basis' && e.type === 'change') { refresh(); renderMaterials(); openCustom(cu.id); return; }
         if (d.cfield === 'unit') {
           customEl.querySelectorAll('.unit-input em').forEach(function (em) {
             if (em.textContent !== '%' && em.textContent !== '₽') em.textContent = t.value || 'шт.';
           });
         }
       } else if (d.croom) {
-        var ids = Array.isArray(c.rooms) ? c.rooms.slice() : state.rooms.map(function (r) { return r.id; });
-        if (t.checked) { if (ids.indexOf(d.croom) < 0) ids.push(d.croom); } else ids = ids.filter(function (x) { return x !== d.croom; });
-        c.rooms = ids.length === state.rooms.length ? null : ids;
+        var rids = Array.isArray(cu.rooms) ? cu.rooms.slice() : state.rooms.map(function (r) { return r.id; });
+        if (t.checked) { if (rids.indexOf(d.croom) < 0) rids.push(d.croom); } else rids = rids.filter(function (x) { return x !== d.croom; });
+        cu.rooms = rids.length === state.rooms.length ? null : rids;
       }
       refresh();
       return;
@@ -1293,11 +1400,19 @@
       room.prep[path[0]][path[1]] = t.checked;
     } else if (d.heat) {
       room.heating[d.heat] = t.checked;
-      renderRooms(); // показать или скрыть выбор вида
+      renderRooms();
     } else if (d.hfield) {
       room.heating[d.hfield] = t.value;
-    } else if (d.efield) {
-      room.electric[d.efield] = t.value;
+    } else if (d.count) {
+      room.counts[d.count] = t.value;
+    } else if (d.bath) {
+      room.bath[d.bath] = t.value;
+    } else if (d.bathScreen) {
+      room.bath.screen = t.checked;
+    } else if (d.pipe) {
+      room.pipes[d.pipe] = t.value;
+    } else if (d.pipeSewer) {
+      room.pipes.sewer = t.checked;
     } else if (d.ofield || d.ochip) {
       var oEl = t.closest('[data-opening]');
       var opening = room.openings.find(function (o) { return o.id === oEl.dataset.opening; });
@@ -1312,7 +1427,11 @@
       }
     } else if (d.field) {
       room[d.field] = t.value;
-      if (d.field === 'floor') { applyFloorDefaults(room); renderRooms(); }
+      if (d.field === 'floor') {
+        room.underlay = F.UNDERLAY_DEFAULT[room.floor] || 'none';
+        room.plinth = F.PLINTH_DEFAULT[room.floor] || 'none';
+        renderRooms();
+      }
     }
     refresh();
   }
@@ -1320,16 +1439,6 @@
   function openCustom(id) {
     var el = document.querySelector('[data-custom="' + id + '"]');
     if (el) el.open = true;
-  }
-
-  /** Перед заменой текущего расчёта: если он не сохранён — спросить. */
-  function withLeaveCheck(next) {
-    if (!hasContent() || isSavedVersion()) { next(); return; }
-    openSheet('Текущий расчёт не сохранён', '<p>Сохранить его в списке, прежде чем продолжить?</p>', [
-      { label: 'Отмена' },
-      { label: 'Не сохранять', action: next },
-      { label: 'Сохранить', primary: true, action: function () { saveCurrent(); next(); } }
-    ]);
   }
 
   function saveCurrent() {
@@ -1342,23 +1451,9 @@
     renderSaved();
   }
 
-  function shareText() {
-    var lines = ['Материалы' + (state.name ? ': ' + state.name : '')];
-    grouped().forEach(function (g) {
-      lines.push('');
-      lines.push(g.title.toUpperCase());
-      g.items.forEach(function (m) {
-        lines.push((state.bought[m.key] ? '✓ ' : '• ') + m.title + ' — ' + buyText(m) + (m.priced ? ' — ' + money(m.cost) : ''));
-      });
-    });
-    lines.push('');
-    lines.push('Итого: ' + money(calc.totalCost));
-    return lines.join('\n');
-  }
-
   function share() {
-    if (!calc.materials.length) { toast('Сначала введите комнаты'); return; }
-    var text = shareText();
+    if (!calc.materials.length) { toast('Сначала введите помещения'); return; }
+    var text = E.shareText(state, calc, state.bought);
     if (navigator.share && !EMBED) {
       navigator.share({ title: 'Расчёт материалов', text: text }).catch(function (err) {
         if (!err || err.name !== 'AbortError') showCopySheet(text);
@@ -1368,7 +1463,6 @@
     }
   }
 
-  /** Окно со списком и кнопкой «Скопировать». */
   function showCopySheet(text) {
     openSheet('Список покупок', '<textarea id="share-text" rows="10" readonly aria-label="Список покупок">' + esc(text) + '</textarea>', [
       { label: 'Закрыть' },
@@ -1390,15 +1484,9 @@
   }
 
   function exportFile() {
-    var data = JSON.stringify({ app: 'remont-calc', version: 2, project: state }, null, 2);
-    var blob = new Blob([data], { type: 'application/json' });
-    var a = document.createElement('a');
-    var name = (state.name || 'расчёт').replace(/[\\/:*?"<>|]+/g, ' ').trim().slice(0, 60) || 'расчёт';
-    a.href = URL.createObjectURL(blob);
-    a.download = 'ремонт - ' + name + '.json';
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    var data = JSON.stringify({ app: 'remont-calc', version: 3, project: state }, null, 2);
+    saveFile(E.fileName(state, 'json').replace('смета - ', 'расчёт - '), data, 'application/json')
+      .then(function (r) { if (r && r.status === 'saved') toast('Файл расчёта сохранён'); }, saveError);
   }
 
   function importFile(file) {
@@ -1432,8 +1520,22 @@
     if (name) toast('Добавлено: ' + name + '. Укажите количество и цену.');
   }
 
+  function applyApartment(key, mode) {
+    var rooms = F.buildApartment(key, uid);
+    if (mode === 'add') {
+      rooms.forEach(function (r) { r.name = uniqueName(r.name, state.rooms); state.rooms.push(r); });
+    } else {
+      state.rooms = rooms;
+      state.bought = {};
+    }
+    state.compare = null;
+    renderRooms();
+    refresh();
+    toast('«' + F.APARTMENTS[key].title + '»: размеры примерные — замените своими');
+  }
+
   function onClick(e) {
-    if (e.target.id === 'sheet') { closeSheet(); return; } // нажатие мимо окна
+    if (e.target.id === 'sheet') { closeSheet(); return; }
     var tabBtn = e.target.closest('[data-tab]');
     if (tabBtn) { showTab(tabBtn.dataset.tab); return; }
 
@@ -1446,8 +1548,8 @@
       if (det.dataset.material) openMaterials[det.dataset.material] = !det.open;
       if (det.dataset.custom) openCustoms[det.dataset.custom] = !det.open;
       if (det.dataset.sec) {
-        var r = findRoom(det.closest('[data-room]').dataset.room);
-        if (r) { r.open[det.dataset.sec] = !det.open; scheduleAutosave(); }
+        var sr = findRoom(det.closest('[data-room]').dataset.room);
+        if (sr) { sr.open[det.dataset.sec] = !det.open; scheduleAutosave(); }
       }
       return;
     }
@@ -1488,6 +1590,19 @@
         break;
       }
 
+      case 'apartment': {
+        var key = btn.dataset.key;
+        var apt = F.APARTMENTS[key];
+        if (!hasContent()) { applyApartment(key, 'replace'); break; }
+        openSheet('Квартира «' + apt.title + '»', '<p>' + count(apt.rooms.length, ['помещение', 'помещения', 'помещений']) +
+          ' с примерными размерами. Заменить ими текущие помещения или добавить к ним? Цены и нормы останутся.</p>', [
+          { label: 'Отмена' },
+          { label: 'Добавить', action: function () { applyApartment(key, 'add'); } },
+          { label: 'Заменить', primary: true, action: function () { applyApartment(key, 'replace'); } }
+        ]);
+        break;
+      }
+
       case 'copy-room': {
         var copy = clone(room);
         copy.id = uid('r');
@@ -1498,7 +1613,7 @@
         renderRooms();
         refresh();
         document.querySelector('[data-room="' + copy.id + '"]').scrollIntoView({ behavior: 'smooth', block: 'start' });
-        toast('Комната скопирована');
+        toast('Помещение скопировано');
         break;
       }
 
@@ -1531,7 +1646,7 @@
 
       case 'add-window':
       case 'add-door': {
-        var o = newOpening(action === 'add-door' ? 'door' : 'window');
+        var o = action === 'add-door' ? F.makeOpening('door', '0,9', '2,1', uid) : F.makeOpening('window', '1,4', '1,5', uid);
         room.openings.push(o);
         room.open.openings = true;
         renderRooms();
@@ -1555,13 +1670,38 @@
         break;
       }
 
+      case 'add-item': {
+        var k = btn.dataset.key;
+        room.counts[k] = F.toNumber(room.counts[k]) + 1;
+        renderItems(roomEl, room, btn.closest('[data-adder]').dataset.adder);
+        refresh();
+        break;
+      }
+
+      case 'step': {
+        var row = btn.closest('[data-item]');
+        var ik = row.dataset.item;
+        var v = Math.max(0, F.round(F.toNumber(room.counts[ik]) + Number(btn.dataset.delta), 2));
+        var kind = row.closest('[data-items]').dataset.items;
+        if (v > 0) {
+          room.counts[ik] = v;
+          row.querySelector('[data-count]').value = inputValue(v);
+        } else {
+          delete room.counts[ik];
+          renderItems(roomEl, room, kind);
+        }
+        if (kind === 'plumbing' && BATH_KEYS.indexOf(ik) >= 0) renderItems(roomEl, room, kind);
+        refresh();
+        break;
+      }
+
       case 'reset-norms':
         askConfirm('Вернуть типовые нормы?', 'Нормы расхода и запас у всех материалов станут типовыми. Цены останутся.', 'Вернуть', function () {
-          F.MATERIAL_ORDER.forEach(function (key) {
-            var dflt = clone(F.DEFAULT_MATERIALS[key]);
-            dflt.price = state.materials[key].price;
-            if ('priceUnit' in dflt) dflt.priceUnit = state.materials[key].priceUnit || dflt.priceUnit;
-            state.materials[key] = dflt;
+          F.MATERIAL_ORDER.forEach(function (mk) {
+            var dflt = clone(F.DEFAULT_MATERIALS[mk]);
+            dflt.price = state.materials[mk].price;
+            if ('priceUnit' in dflt) dflt.priceUnit = state.materials[mk].priceUnit || dflt.priceUnit;
+            state.materials[mk] = dflt;
           });
           refresh();
           renderMaterials();
@@ -1591,8 +1731,29 @@
         break;
       }
 
+      case 'cmp-apply': {
+        var cmp = compareState();
+        var opt = btn.dataset.option;
+        state.rooms.forEach(function (r) {
+          if (!Array.isArray(cmp.rooms) || cmp.rooms.indexOf(r.id) >= 0) F.COMPARE_FIELDS[cmp.field].apply(r, opt);
+        });
+        renderRooms();
+        refresh();
+        renderCompare();
+        toast('Вариант применён: ' + optionLabel(compareSpec(cmp.field)[2], opt));
+        break;
+      }
+
       case 'save':
         saveCurrent();
+        break;
+
+      case 'pdf':
+        exportPdf(btn);
+        break;
+
+      case 'csv':
+        exportCsv();
         break;
 
       case 'print':
@@ -1612,8 +1773,7 @@
         withLeaveCheck(function () {
           var materials = clone(state.materials); // цены и нормы переносим в новый расчёт
           var disabled = clone(state.disabled);
-          state = { id: uid('p'), name: '', rooms: [], materials: materials, disabled: disabled, custom: [], bought: {} };
-          state.rooms.push(roomFromPreset('room'));
+          state = { id: uid('p'), name: '', customer: '', rooms: [roomFromPreset('room')], materials: materials, disabled: disabled, custom: [], bought: {}, compare: null };
           renderAll();
           showTab('rooms');
           toast('Новый расчёт. Цены и нормы сохранены.');
@@ -1680,6 +1840,12 @@
 
   function init() {
     state = normalizeProject(readStorage(CURRENT_KEY)) || exampleProject();
+    settings = readStorage(SETTINGS_KEY) || {};
+    settings.company = Object.assign({ name: '', phone: '' }, settings.company);
+    if (settings.details === undefined) settings.details = true;
+    document.querySelector('[data-setting="name"]').value = settings.company.name;
+    document.querySelector('[data-setting="phone"]').value = settings.company.phone;
+    document.querySelector('[data-setting="details"]').checked = settings.details;
 
     document.addEventListener('input', function (e) {
       // select и checkbox обрабатываем по change, чтобы не пересчитывать дважды
@@ -1700,11 +1866,11 @@
     window.addEventListener('beforeprint', renderPrint);
 
     if (EMBED) {
-      document.querySelectorAll('[data-action="print"], [data-action="export"]').forEach(function (b) { b.hidden = true; });
+      document.querySelectorAll('[data-action="print"]').forEach(function (b) { b.hidden = true; });
       var shareBtn = document.querySelector('[data-action="share"]');
       if (shareBtn) shareBtn.textContent = 'Скопировать список';
       var hint = document.getElementById('saved-hint');
-      if (hint) hint.textContent = 'Хранятся в этом браузере на этом устройстве.';
+      if (hint) hint.textContent = 'Хранятся в этом браузере на этом устройстве. Чтобы перенести — скачайте файл расчёта.';
     }
 
     renderPresets();

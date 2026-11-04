@@ -1,4 +1,4 @@
-// Тесты формул. Запуск: из папки remont-calc выполнить `npm test` или `node --test tests/formulas.test.js`.
+// Тесты формул. Запуск: из папки remont-calc выполнить `npm test` или `node --test tests/`.
 // Все ожидаемые значения посчитаны вручную — расчёт приведён в комментариях.
 'use strict';
 
@@ -679,7 +679,10 @@ test('полный объект: все расчёты дают числа, бе
         openings: ['pvc', 'aluWarm', 'alu', 'frameless'].map((r) => ({ type: 'window', width: 1, height: 1, count: 1, replace: r }))
           .concat(['eco', 'veneer', 'enamel', 'solid', 'hidden'].map((r) => ({ type: 'door', width: 0.8, height: 2, count: 1, replace: r })))
       }),
-      sampleRoom({ id: 'm', floor: 'laminate', walls: 'none', ceiling: 'none' })
+      sampleRoom({ id: 'm', floor: 'laminate', walls: 'none', ceiling: 'none' }),
+      sampleRoom({ id: 'n', counts: Object.fromEntries(F.ROOM_ITEM_KEYS.map((k) => [k, 1])), pipes: { water: 'pex', sewer: true } }),
+      sampleRoom({ id: 'o', counts: { toiletFloor: 1 }, pipes: { water: 'mp' } }),
+      sampleRoom({ id: 'q', counts: { sinkWall: 1 } })
     ],
     materials: Object.fromEntries(F.MATERIAL_ORDER.map((k) => [k, { price: 100 }])),
     custom: [{ id: 'x', name: 'Пена', basis: 'count', quantity: 3, price: 500 }]
@@ -772,8 +775,11 @@ test('стены: виды обоев считаются отдельно, жи�
   const grout = mos.materials.find((m) => m.key === 'grout');
   near(grout.rates[0].rate, 1.28);
   near(grout.amount, 33.9 * 1.28 * 1.1);
-  // мозаика листами 30×30: 33,9 × 1,1 = 37,29 / 0,09 = 414,3 → 415 листов
-  assert.equal(mos.materials.find((m) => m.key === 'mosaic').packs, 415);
+  // мозаика листами 30×30 раскладкой: стены 4 м — 14 × 9 = 126, стены 3 м — 10 × 9 = 90;
+  // 2 × 126 + 2 × 90 = 432 − окно (5 × 4 = 20) − дверь (3 × 6 = 18) = 394 × 1,05 = 413,7 → 414 листов
+  const mosaic = mos.materials.find((m) => m.key === 'mosaic');
+  assert.equal(mosaic.layoutPieces, 394);
+  assert.equal(mosaic.packs, 414);
 });
 
 test('потолки: натяжные, реечный, панели', () => {
@@ -814,6 +820,224 @@ test('электрика: силовые приборы', () => {
   assert.equal(a.elPowerSocket, 2);
   assert.equal(a.elBox, 2);
   near(a.cablePower, 33.4);        // 2 × (7 + 4 + 3 + 2,7)
+});
+
+test('сантехника: смесители, сифоны, подводка, краны, трубы', () => {
+  const a = F.roomMaterialAreas(sampleRoom({
+    counts: { toiletFloor: 1, sinkVanity: 1, bathAcrylic: 1, washingMachine: 1, boiler: 1 }
+  }));
+  assert.equal(a.toiletFloor, 1);
+  assert.equal(a.mixerSink, 1);
+  assert.equal(a.mixerBath, 1);
+  assert.equal(a.siphon, 3);       // раковина + ванна + стиральная машина
+  assert.equal(a.flexHose, 5);     // унитаз 1 + раковина 2 + бойлер 2
+  assert.equal(a.ballValve, 8);    // подводки: 1 + 2 + 2 + 1 + 2
+  near(a.pipePP, 32);              // 8 подводок × 4 м (полипропилен по умолчанию)
+  near(a.pipeSewer50, 7.5);        // раковина, ванна, стиральная машина × 2,5 м
+  near(a.pipeSewer110, 1.5);       // унитаз × 1,5 м
+
+  const kitchen = F.roomMaterialAreas(sampleRoom({ counts: { kitchenSink: 1, dishwasher: 1 }, pipes: { water: 'pex', sewer: true } }));
+  assert.equal(kitchen.mixerKitchen, 1);
+  assert.equal(kitchen.siphon, 1);
+  assert.equal(kitchen.ballValve, 3);
+  near(kitchen.pipePEX, 12);
+  assert.equal(kitchen.pipePP, undefined);
+  near(kitchen.pipeSewer50, 5);
+
+  const noPipes = F.roomMaterialAreas(sampleRoom({ counts: { sinkWall: 1 }, pipes: { water: 'none', sewer: false } }));
+  assert.equal(Object.keys(noPipes).filter((k) => k.startsWith('pipe')).length, 0, 'трубы не меняем');
+  assert.equal(noPipes.mixerSink, 1);
+});
+
+test('электрика: виды розеток, выключателей, света, слаботочка', () => {
+  const a = F.roomMaterialAreas(sampleRoom({
+    counts: { elSocket: 2, elSocketDouble: 1, elSocketIP44: 1, elSwitch2: 1, elSwitchPass: 2, elSpot: 6, elLedStrip: 3,
+      elInternet: 1, elTV: 1, elPowerSocket: 1 }
+  }));
+  assert.equal(a.elSocketDouble, 1);
+  assert.equal(a.elSwitchPass, 2);
+  assert.equal(a.elSpot, 6);
+  near(a.elLedStrip, 3);
+  assert.equal(a.elLedDriver, 1);
+  assert.equal(a.elBox, 10);        // розетки 4 + выключатели 3 + силовая 1 + интернет 1 + ТВ 1
+  near(a.cableSocket, 31.8);        // 7 + 14 + 4 × 2,7
+  near(a.cableLight, 41);           // 7 + 4 + 3 + (3 выключателя + 6 спотов + лента) × 2,7
+  near(a.cablePower, 16.7);         // 7 + (4 + 3 + 2,7)
+  near(a.cableUTP, 19.7);           // 10 + 9,7
+  near(a.cableCoax, 19.7);
+});
+
+test('электрощит: автоматы, дифавтоматы, размер щита', () => {
+  const res = F.calculateProject({
+    rooms: [
+      sampleRoom({ id: 'a', counts: { elSocket: 3, elLight: 1, elSwitch: 1, elPowerSocket: 1 } }),
+      sampleRoom({ id: 'b', counts: { elSocket: 2 } })
+    ]
+  });
+  const byKey = Object.fromEntries(res.materials.map((m) => [m.key, m]));
+  assert.equal(byKey.elRCBO.packs, 2);        // 2 розеточные линии
+  assert.equal(byKey.elBreaker.packs, 2);     // линия света + силовая
+  assert.equal(byKey.elMainBreaker.packs, 1);
+  // модулей: 2 (ввод) + 2 × 1 + 2 × 2 = 8; с запасом 20 % = 9,6 → щит на 12
+  assert.equal(byKey.elPanel.modules, 8);
+  assert.equal(byKey.elPanel.size, 12);
+  assert.equal(byKey.elPanel.packs, 1);
+
+  const p = F.materialParams(null, 'elPanel');
+  assert.equal(F.calcPanel(40, p).size, 48, '40 × 1,2 = 48 — ровно щит на 48');
+  const big = F.calcPanel(70, p);       // 84 модуля — больше самого большого
+  assert.equal(big.size, 72);
+  assert.equal(big.packs, 2);
+
+  const none = F.calculateProject({ rooms: [sampleRoom()] });
+  assert.ok(!none.materials.some((m) => m.key === 'elPanel'), 'нет электрики — нет щита');
+});
+
+test('раскладка плитки: сетка, целые плитки в проёмах', () => {
+  assert.deepEqual(F.tileGrid(2, 2.7, 0.6, 0.3), { cols: 4, rows: 9, pieces: 36 });   // 3,33 → 4 в ряду
+  assert.deepEqual(F.tileGrid(1.8, 0.9, 0.6, 0.3), { cols: 3, rows: 3, pieces: 9 }, 'ровно — без лишней плитки');
+  assert.equal(F.tileGrid(0, 2.7, 0.6, 0.3).pieces, 0);
+  assert.equal(F.tilesInside(0.9, 2.1, 0.6, 0.3), 7);     // 1 × 7 целых плиток в двери
+  assert.deepEqual(F.tileSides({ tileLength: 30, tileWidth: 60 }, 'horizontal'), { w: 0.6, h: 0.3 });
+  assert.deepEqual(F.tileSides({ tileLength: 30, tileWidth: 60 }, 'vertical'), { w: 0.3, h: 0.6 });
+  // пол 4 × 3 плиткой 60×60: 7 × 5 = 35 (подрезка по краю), а «по площади» было бы 12 / 0,36 = 33,3
+  assert.equal(F.floorTileLayout({ length: 4, width: 3, floorArea: 12 }, { tileLength: 60, tileWidth: 60 }).pieces, 35);
+  // 30×60 на пол 2 × 1,7: вдоль — 4 × 6 = 24, поперёк — 7 × 3 = 21 → берём 21
+  assert.equal(F.floorTileLayout({ length: 2, width: 1.7, floorArea: 3.4 }, { tileLength: 30, tileWidth: 60 }).pieces, 21);
+});
+
+test('ванная: плитка на стены с вычетом двери и ванны, экран', () => {
+  // санузел 2 × 1,7 × 2,7, дверь 0,7 × 2,1; плитка 30×60 горизонтально (0,6 × 0,3)
+  const g = F.roomGeometry({ length: 2, width: 1.7, height: 2.7, openings: [{ type: 'door', width: 0.7, height: 2.1, count: 1 }] });
+  const p = { tileLength: 30, tileWidth: 60, orientation: 'horizontal' };
+  const openings = [{ type: 'door', width: 0.7, height: 2.1, count: 1 }];
+  const noBath = F.wallTileLayout(g, openings, p, null);
+  // стена 2 м: 4 × 9 = 36; стена 1,7 м: 3 × 9 = 27; всего 2 × 36 + 2 × 27 = 126; в двери целых 1 × 7 = 7 → 119
+  assert.equal(noBath.gross, 126);
+  assert.equal(noBath.openingsMinus, 7);
+  assert.equal(noBath.pieces, 119);
+  near(noBath.area, g.wallNet);
+
+  const bath = { length: 1.7, width: 0.7, height: 0.6, place: 'corner', screen: false };
+  const withBath = F.wallTileLayout(g, openings, p, bath);
+  // за ванной вдоль: ⌊1,7 / 0,6⌋ × ⌊0,6 / 0,3⌋ = 2 × 2 = 4; у торца: ⌊0,7 / 0,6⌋ × 2 = 2 → −6
+  assert.equal(withBath.bathMinus, 6);
+  assert.equal(withBath.pieces, 113);
+  near(withBath.area, g.wallNet - (1.7 * 0.6 + 0.7 * 0.6));   // − 1,44 м²
+
+  const niche = F.wallTileLayout(g, openings, p, Object.assign({}, bath, { place: 'niche' }));
+  assert.equal(niche.bathMinus, 8, 'в нише — оба торца');
+  const screen = F.wallTileLayout(g, openings, p, Object.assign({}, bath, { screen: true }));
+  // экран 1,7 × 0,6: 3 × 2 = 6 плиток
+  assert.equal(screen.screen, 6);
+  assert.equal(screen.pieces, 119);
+  near(screen.area, g.wallNet - 1.44 + 1.02);
+
+  // в расчёте объекта: ванна в комнате → вычет; 113 × 1,05 = 118,65 → 119 плиток / 8 → 15 упаковок
+  const res = F.calculateProject({ rooms: [{
+    id: 'b', name: 'Ванная', length: 2, width: 1.7, height: 2.7, openings,
+    floor: 'none', walls: 'tile', ceiling: 'none', counts: { bathAcrylic: 1 }, pipes: { water: 'none', sewer: false }
+  }] });
+  const tw = res.materials.find((m) => m.key === 'tileWall');
+  assert.equal(tw.layoutPieces, 113);
+  assert.equal(tw.pieces, 119);
+  assert.equal(tw.packs, 15);
+  const glue = res.materials.find((m) => m.key === 'tileAdhesive');
+  near(glue.wallArea, g.wallNet - 1.44, 'клей — без зоны за ванной');
+});
+
+test('раздельный расчёт: пол, стены, потолок и инженерия по каждой комнате', () => {
+  const res = F.calculateProject({
+    rooms: [sampleRoom({
+      id: 'a', floor: 'laminate', walls: 'paint', ceiling: 'paint',
+      prep: { walls: { primer: true }, ceiling: { primer: true }, floor: { primer: true } },
+      openings: [{ type: 'window', width: 1.5, height: 1.4, count: 1, replace: 'pvc' }],
+      counts: { elSocket: 2 }
+    })],
+    materials: { laminate: { price: 900 }, paintWall: { price: 5000 }, paintCeiling: { price: 4000 }, primer: { price: 700 },
+      windowPVC: { price: 10000 }, elSocket: { price: 300 } }
+  });
+  const room = res.rooms[0];
+  const s = Object.fromEntries(room.surfaces.map((x) => [x.key, x]));
+  const keys = (x) => x.materials.map((m) => m.key);
+  assert.deepEqual(keys(s.floor), ['laminate', 'underlayXPS', 'plinthPVC', 'primer']);
+  assert.deepEqual(keys(s.walls), ['paintWall', 'primer']);
+  assert.deepEqual(keys(s.ceiling), ['paintCeiling', 'primer']);
+  assert.ok(keys(s.other).includes('windowPVC') && keys(s.other).includes('elSocket'));
+  assert.ok(!keys(s.other).includes('elPanel'), 'щит — на всю квартиру, не по комнатам');
+  // грунт пола: 12 × 0,15 × 2 × 1,1 = 3,96 л → 1 канистра × 700
+  near(s.floor.materials.find((m) => m.key === 'primer').cost, 700);
+  // окно 2,1 м² × 10 000
+  near(s.other.materials.find((m) => m.key === 'windowPVC').cost, 21000);
+  near(room.cost, s.floor.cost + s.walls.cost + s.ceiling.cost + s.other.cost);
+  // по комнате покупается не меньше, чем в общем итоге без щита
+  const noPanel = res.materials.filter((m) => !F.APARTMENT_KEYS[m.key]).reduce((sum, m) => sum + m.cost, 0);
+  assert.ok(room.cost >= noPanel - 1e-6);
+});
+
+test('шаблоны помещений и типовых квартир', () => {
+  let n = 0;
+  const id = (prefix) => prefix + (++n);
+  const bath = F.makeRoom('bath', { length: 2, width: 1.7 }, id);
+  assert.equal(bath.name, 'Санузел');
+  assert.equal(bath.floor, 'porcelain');
+  assert.equal(bath.walls, 'tile');
+  assert.equal(bath.prep.floor.waterproofing, true);
+  assert.deepEqual(bath.counts, { toiletFloor: 1, sinkVanity: 1, bathAcrylic: 1 });
+  assert.equal(bath.openings[0].type, 'door');
+  assert.equal(new Set([bath.id, bath.openings[0].id]).size, 2, 'id не повторяются');
+
+  const expected = { studio: [3, 25, 30], one: [4, 32, 38], two: [6, 48, 56], three: [7, 66, 75] };
+  Object.keys(F.APARTMENTS).forEach((key) => {
+    const rooms = F.buildApartment(key, id);
+    const area = rooms.reduce((s, r) => s + F.roomGeometry(r).floorArea, 0);
+    assert.equal(rooms.length, expected[key][0], key + ': помещений');
+    assert.ok(area > expected[key][1] && area < expected[key][2], key + ': площадь ' + area.toFixed(1));
+    const res = F.calculateProject({ rooms });
+    assert.ok(res.materials.length > 15, key + ': материалов ' + res.materials.length);
+    res.materials.forEach((m) => assert.deepEqual(m.errors, [], key + '/' + m.key));
+    assert.equal(res.rooms.length, rooms.length);
+  });
+  assert.deepEqual(F.buildApartment('нет такой'), []);
+});
+
+test('сравнение вариантов: пол, окна, радиаторы', () => {
+  const project = {
+    rooms: [sampleRoom({ id: 'a', floor: 'laminate' }), sampleRoom({ id: 'b', floor: 'laminate' })],
+    materials: {
+      laminate: { price: 900 }, underlayXPS: { price: 1000 }, plinthPVC: { price: 300 },
+      porcelainFloor: { price: 1500 }, tileAdhesive: { price: 500 }, grout: { price: 400 },
+      vinyl: { price: 2000 }
+    }
+  };
+  const res = F.compareVariants(project, 'floor', ['laminate', 'porcelain', 'vinyl'], null);
+  const by = Object.fromEntries(res.map((r) => [r.option, r]));
+  const keys = (r) => r.items.map((x) => x.material.key).sort();
+  assert.deepEqual(keys(by.laminate), ['laminate', 'plinthPVC', 'underlayXPS']);
+  assert.deepEqual(keys(by.porcelain), ['grout', 'porcelainFloor', 'tileAdhesive']);
+  assert.deepEqual(keys(by.vinyl), ['plinthPVC', 'vinyl']);
+  // ламинат: 24 × 1,07 = 25,68 / 2,397 → 11 уп × 2,397 × 900 = 23 730,3; XPS 24 × 1,05 / 5 → 6 × 1000;
+  // плинтус 26,2 × 1,1 / 2,5 → 12 × 300
+  near(by.laminate.cost, 11 * 2.397 * 900 + 6000 + 3600);
+  near(by.laminate.cost, by.laminate.items.reduce((s, x) => s + x.delta, 0));
+  assert.equal(by.laminate.missingPrices, 0);
+  // только в одной комнате — дешевле
+  const one = F.compareVariants(project, 'floor', ['laminate'], ['a'])[0];
+  assert.ok(one.cost < by.laminate.cost);
+
+  // окна: ПВХ против дерева — 2,1 м² в каждой комнате
+  const win = F.compareVariants(Object.assign({}, project, { materials: { windowPVC: { price: 10000 }, windowWood: { price: 25000 } } }),
+    'window', ['pvc', 'wood'], null);
+  near(win[0].cost, 4.2 * 10000);
+  near(win[1].cost, 4.2 * 25000);
+
+  // радиаторы: биметалл против чугуна (секций чугуна больше)
+  const rad = F.compareVariants(project, 'radiator', ['bimetal', 'castIron'], ['a']);
+  assert.ok(rad[1].items[0].material.packs > rad[0].items[0].material.packs);
+  assert.equal(rad[0].missingPrices, 1, 'цена радиаторов не указана');
+
+  assert.equal(F.COMPARE_FIELDS.floor.current(project.rooms[0]), 'laminate');
+  assert.deepEqual(F.compareVariants(project, 'нет такого', ['x']), []);
 });
 
 test('пустой объект не ломает расчёт', () => {

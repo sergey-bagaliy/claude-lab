@@ -4,34 +4,43 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Калькулятор материалов для ремонта</title>
-  <meta name="description" content="Расчёт материалов для ремонта квартиры по размерам комнат: отделка, черновые работы, окна и двери, электрика, отопление.">
-  <meta name="theme-color" content="#c2410c">
+  <meta name="description" content="Расчёт материалов для ремонта квартиры по размерам комнат: отделка, черновые работы, окна и двери, электрика, сантехника, отопление. Смета в PDF и Excel.">
+  <meta name="theme-color" content="#1c1f24">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icon-180.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=Unbounded:wght@500;700&display=swap">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header class="topbar">
     <div class="topbar-inner">
-      <h1 class="brand">Калькулятор ремонта</h1>
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 15l9-9 9 9-4 4-9-9M8 10l2 2M11 7l2 2M14 10l2 2"/></svg></span>
+        <span class="brand-text">Калькулятор<br>ремонта</span>
+      </div>
       <button type="button" class="total-btn" data-action="goto-summary" aria-label="Перейти к итогу">
         <span class="total-label">Итого</span>
         <span class="total-value" id="header-total">0 ₽</span>
         <span class="total-note" id="header-note"></span>
       </button>
     </div>
+    <div class="ruler" aria-hidden="true"></div>
   </header>
 
   <main class="container">
-    <!-- Вкладка 1: комнаты -->
+    <!-- Вкладка 1: помещения -->
     <section class="panel" id="tab-rooms" data-panel="rooms">
-      <p class="hint">Размеры — в метрах, дробь через запятую: <b>2,7</b>. Окна и двери, отделка, электрика и отопление — в разделах карточки.</p>
+      <p class="hint">Размеры — в метрах, дробь через запятую: <b>2,7</b>. В карточке помещения — окна и двери, отделка, электрика, сантехника и отопление.</p>
       <div id="rooms"></div>
       <div class="card add-room">
         <h2 class="card-title">Добавить помещение</h2>
         <div class="preset-grid" id="presets"></div>
-        <p class="small muted">Шаблон заполняет отделку — её можно поменять. Высота потолка берётся из предыдущей комнаты.</p>
+        <h2 class="card-title sub">Или вся квартира сразу</h2>
+        <div class="apt-grid" id="apartments"></div>
+        <p class="small muted">Шаблоны заполняют отделку и сантехнику, размеры в типовых квартирах примерные — замените их замерами.</p>
       </div>
     </section>
 
@@ -49,29 +58,54 @@
       <button type="button" class="btn btn-wide" data-action="reset-norms">Вернуть типовые нормы (цены останутся)</button>
     </section>
 
-    <!-- Вкладка 3: итог, сохранение, печать -->
-    <section class="panel" id="tab-summary" data-panel="summary" hidden>
+    <!-- Вкладка 3: сравнение вариантов -->
+    <section class="panel" id="tab-compare" data-panel="compare" hidden>
       <div class="card">
-        <label class="field">
-          <span>Объект (адрес, заказчик)</span>
-          <input type="text" id="project-name" data-project="name" placeholder="Например: ул. Красная, 12, кв. 5" autocomplete="off" enterkeyhint="done">
-        </label>
-        <div class="actions">
-          <button type="button" class="btn btn-primary" data-action="save">Сохранить</button>
-          <button type="button" class="btn" data-action="print">PDF / печать</button>
-          <button type="button" class="btn" data-action="share">Отправить список</button>
+        <h2 class="card-title">Сравнить варианты</h2>
+        <p class="small muted">Выберите, что сравнить, и 2–3 варианта — посчитаем, во сколько обойдётся каждый вместе с сопутствующими материалами (подложка, плинтус, клей, затирка…).</p>
+        <div id="compare-form" class="compare-form"></div>
+      </div>
+      <div id="compare-results" class="cmp-scroll"></div>
+      <p class="small muted cmp-note">Стоимость варианта — разница сметы с ним и без этой работы. Цены берутся с вкладки «Материалы».</p>
+    </section>
+
+    <!-- Вкладка 4: итог, смета, сохранение -->
+    <section class="panel" id="tab-summary" data-panel="summary" hidden>
+      <div class="hero" id="hero"></div>
+      <div class="card">
+        <div class="grid2">
+          <label class="field wide"><span>Объект (адрес)</span>
+            <input type="text" id="project-name" data-project="name" placeholder="Например: ул. Красная, 12, кв. 5" autocomplete="off" enterkeyhint="next"></label>
+          <label class="field wide"><span>Заказчик</span>
+            <input type="text" id="project-customer" data-project="customer" placeholder="ФИО или название" autocomplete="off" enterkeyhint="done"></label>
         </div>
+        <div class="actions">
+          <button type="button" class="btn btn-primary" data-action="pdf">PDF для заказчика</button>
+          <button type="button" class="btn" data-action="csv">Excel (CSV)</button>
+          <button type="button" class="btn" data-action="save">Сохранить</button>
+          <button type="button" class="btn" data-action="share">Отправить список</button>
+          <button type="button" class="btn" data-action="print">Печать</button>
+        </div>
+        <details class="settings">
+          <summary>Реквизиты для сметы</summary>
+          <div class="grid2">
+            <label class="field wide"><span>Компания</span><input type="text" data-setting="name" placeholder="Название вашей компании" autocomplete="organization"></label>
+            <label class="field wide"><span>Телефон</span><input type="text" data-setting="phone" placeholder="+7 …" autocomplete="tel" inputmode="tel"></label>
+            <label class="check-field"><input type="checkbox" data-setting="details">Показывать в смете, как посчитано</label>
+          </div>
+          <p class="small muted">Хранятся на этом устройстве и подставляются во все сметы.</p>
+        </details>
       </div>
 
       <div id="summary"></div>
 
       <div class="card">
         <h2 class="card-title">Сохранённые расчёты</h2>
-        <p class="small muted" id="saved-hint">Хранятся в этом браузере на этом телефоне. Чтобы перенести на другое устройство — скачайте файл.</p>
+        <p class="small muted" id="saved-hint">Хранятся в этом браузере на этом телефоне. Чтобы перенести на другое устройство — скачайте файл расчёта.</p>
         <div id="saved-list"></div>
         <div class="actions">
           <button type="button" class="btn" data-action="new-project">Новый расчёт</button>
-          <button type="button" class="btn" data-action="export">Скачать файл</button>
+          <button type="button" class="btn" data-action="export">Скачать файл расчёта</button>
           <label class="btn file-btn">Загрузить файл<input type="file" id="import-file" accept=".json,application/json"></label>
         </div>
       </div>
@@ -79,13 +113,17 @@
   </main>
 
   <nav class="tabbar" aria-label="Разделы">
-    <button type="button" class="tab active" data-tab="rooms">
+    <button type="button" class="tab active" data-tab="rooms" aria-current="page">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h18v18H3zM3 12h9M12 3v18"/></svg>
-      <span>Комнаты</span>
+      <span>Помещения</span>
     </button>
     <button type="button" class="tab" data-tab="materials">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7l8-4 8 4-8 4zM4 12l8 4 8-4M4 17l8 4 8-4"/></svg>
       <span>Материалы</span>
+    </button>
+    <button type="button" class="tab" data-tab="compare">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+      <span>Сравнить</span>
     </button>
     <button type="button" class="tab" data-tab="summary">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18H6zM9 8h6M9 12h6M9 16h4"/></svg>
@@ -93,7 +131,7 @@
     </button>
   </nav>
 
-  <!-- Версия для печати / PDF. Заполняется перед печатью. -->
+  <!-- Смета для печати. Заполняется перед печатью. -->
   <div id="print" aria-hidden="true"></div>
 
   <!-- Окно подтверждения и списка покупок -->
@@ -108,6 +146,8 @@
   <div id="toast" role="status" aria-live="polite"></div>
 
   <script src="formulas.js"></script>
+  <script src="estimate.js"></script>
+  <script src="pdf.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

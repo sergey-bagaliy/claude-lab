@@ -4,7 +4,7 @@
   "private": true,
   "description": "Калькулятор материалов для ремонта квартиры",
   "scripts": {
-    "test": "node --test tests/formulas.test.js"
+    "test": "node --test tests/formulas.test.js tests/estimate.test.js tests/pdf.test.js"
   },
   "engines": {
     "node": ">=18"

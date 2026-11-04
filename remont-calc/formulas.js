@@ -36,6 +36,7 @@
     { key: 'rough', title: 'Черновые работы' },
     { key: 'openings', title: 'Окна и двери' },
     { key: 'electric', title: 'Электрика' },
+    { key: 'plumbing', title: 'Сантехника' },
     { key: 'heating', title: 'Отопление' },
     { key: 'custom', title: 'Свои позиции' }
   ];
@@ -139,11 +140,62 @@
     cableSocket:     { title: 'Кабель 3×2,5 (розетки)', category: 'electric', kind: 'cable', baseUnit: 'м' },
     cableLight:      { title: 'Кабель 3×1,5 (освещение)', category: 'electric', kind: 'cable', baseUnit: 'м' },
     cablePower:      { title: 'Кабель 3×6 (плита, бойлер)', category: 'electric', kind: 'cable', baseUnit: 'м' },
+    cableUTP:        { title: 'Кабель витая пара UTP (интернет)', category: 'electric', kind: 'cable', baseUnit: 'м' },
+    cableCoax:       { title: 'Кабель телевизионный (коаксиальный)', category: 'electric', kind: 'cable', baseUnit: 'м' },
     elSocket:        { title: 'Розетки', category: 'electric', kind: 'count', baseUnit: 'шт.' },
-    elPowerSocket:   { title: 'Силовые розетки', category: 'electric', kind: 'count', baseUnit: 'шт.' },
-    elSwitch:        { title: 'Выключатели', category: 'electric', kind: 'count', baseUnit: 'шт.' },
+    elSocketDouble:  { title: 'Розетки двойные', category: 'electric', kind: 'count', baseUnit: 'шт.' },
+    elSocketIP44:    { title: 'Розетки влагозащищённые IP44', category: 'electric', kind: 'count', baseUnit: 'шт.' },
+    elSocketUSB:     { title: 'Розетки с USB', category: 'electric', kind: 'count', baseUnit: 'шт.' },
+    elPowerSocket:   { title: 'Силовые розетки (плита, бойлер)', category: 'electric', kind: 'count', baseUnit: 'шт.' },
+    elSwitch:        { title: 'Выключатели одноклавишные', category: 'electric', kind: 'count', baseUnit: 'шт.' },
+    elSwitch2:       { title: 'Выключатели двухклавишные', category: 'electric', kind: 'count', baseUnit: 'шт.' },
+    elSwitchPass:    { title: 'Выключатели проходные', category: 'electric', kind: 'count', baseUnit: 'шт.' },
+    elDimmer:        { title: 'Диммеры', category: 'electric', kind: 'count', baseUnit: 'шт.' },
+    elLight:         { title: 'Люстры и потолочные светильники', category: 'electric', kind: 'count', baseUnit: 'шт.' },
+    elSpot:          { title: 'Точечные светильники', category: 'electric', kind: 'count', baseUnit: 'шт.' },
+    elSconce:        { title: 'Бра и настенные светильники', category: 'electric', kind: 'count', baseUnit: 'шт.' },
+    elLedStrip:      { title: 'Светодиодная лента', category: 'electric', kind: 'measured', baseUnit: 'м' },
+    elLedDriver:     { title: 'Блоки питания для ленты', category: 'electric', kind: 'count', baseUnit: 'шт.' },
+    elInternet:      { title: 'Интернет-розетки RJ45', category: 'electric', kind: 'count', baseUnit: 'шт.' },
+    elTV:            { title: 'ТВ-розетки', category: 'electric', kind: 'count', baseUnit: 'шт.' },
     elBox:           { title: 'Подрозетники', category: 'electric', kind: 'count', baseUnit: 'шт.' },
-    elLight:         { title: 'Светильники', category: 'electric', kind: 'count', baseUnit: 'шт.' },
+    elBreaker:       { title: 'Автоматические выключатели', category: 'electric', kind: 'count', baseUnit: 'шт.' },
+    elRCBO:          { title: 'Дифавтоматы (розеточные линии)', category: 'electric', kind: 'count', baseUnit: 'шт.' },
+    elMainBreaker:   { title: 'Вводной автомат', category: 'electric', kind: 'count', baseUnit: 'шт.' },
+    elPanel:         { title: 'Электрощит', category: 'electric', kind: 'panel', baseUnit: 'модулей' },
+
+    // --- Сантехника ---
+    toiletFloor:     { title: 'Унитаз напольный', category: 'plumbing', kind: 'count', baseUnit: 'шт.' },
+    toiletWall:      { title: 'Унитаз подвесной с инсталляцией', category: 'plumbing', kind: 'count', baseUnit: 'шт.' },
+    hygienicShower:  { title: 'Гигиенический душ', category: 'plumbing', kind: 'count', baseUnit: 'шт.' },
+    sinkVanity:      { title: 'Раковина с тумбой', category: 'plumbing', kind: 'count', baseUnit: 'шт.' },
+    sinkWall:        { title: 'Раковина подвесная', category: 'plumbing', kind: 'count', baseUnit: 'шт.' },
+    kitchenSink:     { title: 'Мойка кухонная', category: 'plumbing', kind: 'count', baseUnit: 'шт.' },
+    bathAcrylic:     { title: 'Ванна акриловая', category: 'plumbing', kind: 'count', baseUnit: 'шт.' },
+    bathSteel:       { title: 'Ванна стальная', category: 'plumbing', kind: 'count', baseUnit: 'шт.' },
+    bathCastIron:    { title: 'Ванна чугунная', category: 'plumbing', kind: 'count', baseUnit: 'шт.' },
+    showerTray:      { title: 'Душевой поддон с ограждением', category: 'plumbing', kind: 'count', baseUnit: 'шт.' },
+    showerCabin:     { title: 'Душевая кабина', category: 'plumbing', kind: 'count', baseUnit: 'шт.' },
+    showerDrain:     { title: 'Душевой трап', category: 'plumbing', kind: 'count', baseUnit: 'шт.' },
+    washingMachine:  { title: 'Подключение стиральной машины', category: 'plumbing', kind: 'count', baseUnit: 'шт.' },
+    dishwasher:      { title: 'Подключение посудомоечной машины', category: 'plumbing', kind: 'count', baseUnit: 'шт.' },
+    boiler:          { title: 'Водонагреватель накопительный', category: 'plumbing', kind: 'count', baseUnit: 'шт.' },
+    towelWater:      { title: 'Полотенцесушитель водяной', category: 'plumbing', kind: 'count', baseUnit: 'шт.' },
+    towelElectric:   { title: 'Полотенцесушитель электрический', category: 'plumbing', kind: 'count', baseUnit: 'шт.' },
+    filterSink:      { title: 'Фильтр для воды под мойку', category: 'plumbing', kind: 'count', baseUnit: 'шт.' },
+    waterMeter:      { title: 'Счётчики воды', category: 'plumbing', kind: 'count', baseUnit: 'шт.' },
+    mixerSink:       { title: 'Смесители для раковины', category: 'plumbing', kind: 'count', baseUnit: 'шт.' },
+    mixerKitchen:    { title: 'Смесители для кухни', category: 'plumbing', kind: 'count', baseUnit: 'шт.' },
+    mixerBath:       { title: 'Смесители для ванны', category: 'plumbing', kind: 'count', baseUnit: 'шт.' },
+    mixerShower:     { title: 'Душевые системы', category: 'plumbing', kind: 'count', baseUnit: 'шт.' },
+    siphon:          { title: 'Сифоны', category: 'plumbing', kind: 'count', baseUnit: 'шт.' },
+    flexHose:        { title: 'Гибкая подводка', category: 'plumbing', kind: 'count', baseUnit: 'шт.' },
+    ballValve:       { title: 'Краны шаровые', category: 'plumbing', kind: 'count', baseUnit: 'шт.' },
+    pipePP:          { title: 'Трубы полипропиленовые (водопровод)', category: 'plumbing', kind: 'measured', baseUnit: 'м' },
+    pipePEX:         { title: 'Трубы из сшитого полиэтилена (водопровод)', category: 'plumbing', kind: 'measured', baseUnit: 'м' },
+    pipeMP:          { title: 'Трубы металлопластиковые (водопровод)', category: 'plumbing', kind: 'measured', baseUnit: 'м' },
+    pipeSewer50:     { title: 'Канализационные трубы 50 мм', category: 'plumbing', kind: 'measured', baseUnit: 'м' },
+    pipeSewer110:    { title: 'Канализационные трубы 110 мм', category: 'plumbing', kind: 'measured', baseUnit: 'м' },
 
     // --- Отопление ---
     radiatorBimetal: { title: 'Радиаторы биметаллические', category: 'heating', kind: 'radiator', baseUnit: 'Вт' },
@@ -184,10 +236,12 @@
     solidWood: { packArea: 1.5, reserve: 10, price: 0, priceUnit: 'm2' },
     // Пробковое покрытие: 2 м² — условно. Запас 7 %.
     corkFloor: { packArea: 2, reserve: 7, price: 0, priceUnit: 'm2' },
-    // Плитка керамическая на пол: 30×30 см, 12 шт. = 1,08 м². Запас 10 %.
-    tileFloor: { tileLength: 30, tileWidth: 30, piecesPerPack: 12, reserve: 10, price: 0, priceUnit: 'm2' },
+    // Плитка и керамогранит считаются раскладкой: неполная плитка у стены = целая (это и есть подрезка),
+    // поэтому запас — только на бой, 5 %.
+    // Плитка керамическая на пол: 30×30 см, 12 шт. = 1,08 м².
+    tileFloor: { tileLength: 30, tileWidth: 30, piecesPerPack: 12, reserve: 5, price: 0, priceUnit: 'm2' },
     // Керамогранит на пол: 60×60 см, 4 шт. = 1,44 м². Запас 10 %.
-    porcelainFloor: { tileLength: 60, tileWidth: 60, piecesPerPack: 4, reserve: 10, price: 0, priceUnit: 'm2' },
+    porcelainFloor: { tileLength: 60, tileWidth: 60, piecesPerPack: 4, reserve: 5, price: 0, priceUnit: 'm2' },
     // Линолеум: ширины рулонов в продаже, припуск 0,1 м на отрез. Ширина подбирается сама.
     linoleum: { rollWidths: '2; 2,5; 3; 3,5; 4', trim: 0.1, reserve: 0, price: 0 },
     // Ковролин: ширины рулонов 3, 4, 5 м, припуск 0,1 м.
@@ -227,11 +281,11 @@
     // Декоративная штукатурка «короед»: 3 кг/м² (Ceresit CT 35, зерно 2,5 мм: 2,5–3,0), мешок 25 кг.
     decorPlaster: { consumption: 3, packWeight: 25, reserve: 10, price: 0 },
     // Плитка керамическая на стены: 30×60 см, 8 шт. = 1,44 м². Запас 10 %.
-    tileWall: { tileLength: 30, tileWidth: 60, piecesPerPack: 8, reserve: 10, price: 0, priceUnit: 'm2' },
+    tileWall: { tileLength: 30, tileWidth: 60, piecesPerPack: 8, orientation: 'horizontal', reserve: 5, price: 0, priceUnit: 'm2' },
     // Керамогранит на стены: 60×120 см, 2 шт. = 1,44 м². Запас 10 %.
-    porcelainWall: { tileLength: 60, tileWidth: 120, piecesPerPack: 2, reserve: 10, price: 0, priceUnit: 'm2' },
+    porcelainWall: { tileLength: 60, tileWidth: 120, piecesPerPack: 2, orientation: 'vertical', reserve: 5, price: 0, priceUnit: 'm2' },
     // Мозаика: лист (матрица) 30×30 см, чип 2 см, толщина 4 мм. Запас 10 %.
-    mosaic: { tileLength: 30, tileWidth: 30, piecesPerPack: 1, chipSize: 2, thickness: 4, reserve: 10, price: 0, priceUnit: 'pack' },
+    mosaic: { tileLength: 30, tileWidth: 30, piecesPerPack: 1, chipSize: 2, thickness: 4, reserve: 5, price: 0, priceUnit: 'pack' },
     // Панели ПВХ: 0,25 × 2,7 м; МДФ: 0,2 × 2,6 м. Запас 10 %.
     panels: { panelWidth: 0.25, panelLength: 2.7, reserve: 10, price: 0 },
     panelsMDF: { panelWidth: 0.2, panelLength: 2.6, reserve: 10, price: 0 },
@@ -295,15 +349,54 @@
     doorEntrance: { price: 0 },
 
     // --- Электрика ---
-    // Кабель: среднее расстояние от щита до комнаты 7 м, бухта 100 м (3×6 — 50 м), запас 15 %.
+    // Кабель: среднее расстояние от щита до комнаты 7 м (слаботочка — 10 м), бухта 100 м
+    // (3×6 — 50 м, витая пара — коробка 305 м), запас 15 %.
     cableSocket: { toPanel: 7, coilLength: 100, reserve: 15, price: 0, priceUnit: 'm' },
     cableLight: { toPanel: 7, coilLength: 100, reserve: 15, price: 0, priceUnit: 'm' },
     cablePower: { toPanel: 7, coilLength: 50, reserve: 15, price: 0, priceUnit: 'm' },
+    cableUTP: { toPanel: 10, coilLength: 305, reserve: 15, price: 0, priceUnit: 'm' },
+    cableCoax: { toPanel: 10, coilLength: 100, reserve: 15, price: 0, priceUnit: 'm' },
     elSocket: { price: 0 },
+    elSocketDouble: { price: 0 },
+    elSocketIP44: { price: 0 },
+    elSocketUSB: { price: 0 },
     elPowerSocket: { price: 0 },
     elSwitch: { price: 0 },
-    elBox: { price: 0 },
+    elSwitch2: { price: 0 },
+    elSwitchPass: { price: 0 },
+    elDimmer: { price: 0 },
     elLight: { price: 0 },
+    elSpot: { price: 0 },
+    elSconce: { price: 0 },
+    // Светодиодная лента — цена за метр, запас 5 % на подрезку по кратности.
+    elLedStrip: { reserve: 5, price: 0 },
+    elLedDriver: { price: 0 },
+    elInternet: { price: 0 },
+    elTV: { price: 0 },
+    elBox: { price: 0 },
+    elBreaker: { price: 0 },
+    elRCBO: { price: 0 },
+    elMainBreaker: { price: 0 },
+    // Щит: автомат — 1 модуль, дифавтомат — 2, вводной 2-полюсный — 2; запас мест 20 %;
+    // размеры щитов в продаже — 12, 18, 24, 36, 48, 54, 72 модуля.
+    elPanel: { breakerModules: 1, rcboModules: 2, mainModules: 2, moduleReserve: 20, sizes: '12; 18; 24; 36; 48; 54; 72', price: 0 },
+
+    // --- Сантехника --- (приборы, смесители, сифоны, подводка, краны — цена за штуку; трубы — за метр)
+    toiletFloor: { price: 0 }, toiletWall: { price: 0 }, hygienicShower: { price: 0 },
+    sinkVanity: { price: 0 }, sinkWall: { price: 0 }, kitchenSink: { price: 0 },
+    bathAcrylic: { price: 0 }, bathSteel: { price: 0 }, bathCastIron: { price: 0 },
+    showerTray: { price: 0 }, showerCabin: { price: 0 }, showerDrain: { price: 0 },
+    washingMachine: { price: 0 }, dishwasher: { price: 0 }, boiler: { price: 0 },
+    towelWater: { price: 0 }, towelElectric: { price: 0 }, filterSink: { price: 0 }, waterMeter: { price: 0 },
+    mixerSink: { price: 0 }, mixerKitchen: { price: 0 }, mixerBath: { price: 0 }, mixerShower: { price: 0 },
+    siphon: { price: 0 }, flexHose: { price: 0 }, ballValve: { price: 0 },
+    // Трубы: длина = подводок × расстояние до стояка (коллектора). 4 м для воды, 2,5 м для канализации 50 мм,
+    // 1,5 м для 110 мм — условно, замерьте на объекте. Запас 15 % на обходы и обрезки.
+    pipePP: { toRiser: 4, reserve: 15, price: 0 },
+    pipePEX: { toRiser: 4, reserve: 15, price: 0 },
+    pipeMP: { toRiser: 4, reserve: 15, price: 0 },
+    pipeSewer50: { toRiser: 2.5, reserve: 15, price: 0 },
+    pipeSewer110: { toRiser: 1.5, reserve: 15, price: 0 },
 
     // --- Отопление ---
     // 100 Вт на 1 м² при потолке до 2,7 м. Мощность секции: биметалл 180 Вт, алюминий 175 Вт,
@@ -519,6 +612,119 @@
       area: area, amount: amount, amountUnit: 'м²', pieces: pieces,
       packs: packs, packArea: packArea, boughtArea: boughtArea,
       cost: cost, errors: errors
+    };
+  }
+
+  /* ---------- Раскладка плитки (учёт подрезки) ---------- */
+
+  // Ванна по умолчанию: 1,7 × 0,7 м, высота борта 0,6 м, у стены в углу, экран не облицован.
+  var DEFAULT_BATH = { length: 1.7, width: 0.7, height: 0.6, place: 'corner', screen: false };
+
+  /** Размер плитки в метрах по горизонтали (w) и вертикали (h): длинной стороной по горизонтали или вертикали. */
+  function tileSides(p, orientation) {
+    var a = toNumber(p.tileLength) / 100;
+    var b = toNumber(p.tileWidth) / 100;
+    var long = Math.max(a, b);
+    var short = Math.min(a, b);
+    return orientation === 'vertical' ? { w: short, h: long } : { w: long, h: short };
+  }
+
+  /**
+   * Сетка плитки на прямоугольнике: рядов = ⌈ высота / h ⌉, плиток в ряду = ⌈ длина / w ⌉.
+   * Неполная плитка у края считается целой — её режут, а обрезок обычно в дело не идёт.
+   */
+  function tileGrid(length, height, w, h) {
+    if (!(w > 0 && h > 0) || !(length > 0 && height > 0)) return { cols: 0, rows: 0, pieces: 0 };
+    var cols = ceilSafe(length / w);
+    var rows = ceilSafe(height / h);
+    return { cols: cols, rows: rows, pieces: cols * rows };
+  }
+
+  /** Сколько целых плиток помещается внутри проёма (их не покупаем): ⌊ ширина / w ⌋ × ⌊ высота / h ⌋. */
+  function tilesInside(width, height, w, h) {
+    if (!(w > 0 && h > 0)) return 0;
+    return floorSafe(width / w) * floorSafe(height / h);
+  }
+
+  /** Параметры ванны комнаты (недостающие — по умолчанию). */
+  function bathSpec(room) {
+    var b = room.bath || {};
+    return {
+      length: b.length !== undefined && b.length !== '' ? toNumber(b.length) : DEFAULT_BATH.length,
+      width: b.width !== undefined && b.width !== '' ? toNumber(b.width) : DEFAULT_BATH.width,
+      height: b.height !== undefined && b.height !== '' ? toNumber(b.height) : DEFAULT_BATH.height,
+      place: b.place || DEFAULT_BATH.place,
+      screen: b.screen !== undefined ? !!b.screen : DEFAULT_BATH.screen
+    };
+  }
+
+  /**
+   * Плитка на стены комнаты раскладкой.
+   *   плиток = 2 × сетка(длина × высота) + 2 × сетка(ширина × высота)
+   *            − целые плитки внутри окон и дверей
+   *            − целые плитки за ванной (вдоль ванны и у её торца; в нише — у обоих торцов)
+   *            + сетка экрана ванны (если экран облицовывают)
+   *   площадь под клей и затирку = «чистые» стены − зона за ванной + экран
+   */
+  function wallTileLayout(g, openings, p, bath) {
+    var t = tileSides(p, p.orientation);
+    var gl = tileGrid(g.length, g.height, t.w, t.h);
+    var gw = tileGrid(g.width, g.height, t.w, t.h);
+    var pieces = 2 * gl.pieces + 2 * gw.pieces;
+    var openingsMinus = (openings || []).reduce(function (sum, o) {
+      return sum + tilesInside(toNumber(o.width), toNumber(o.height), t.w, t.h) * toNumber(o.count);
+    }, 0);
+    var area = g.wallNet;
+    var bathMinus = 0;
+    var screen = 0;
+    var bathArea = 0;
+    if (bath) {
+      var ends = bath.place === 'niche' ? 2 : 1;
+      bathMinus = tilesInside(bath.length, bath.height, t.w, t.h) + tilesInside(bath.width, bath.height, t.w, t.h) * ends;
+      bathArea = bath.length * bath.height + bath.width * bath.height * ends;
+      area -= bathArea;
+      if (bath.screen) {
+        screen = tileGrid(bath.length, bath.height, t.w, t.h).pieces;
+        area += bath.length * bath.height;
+      }
+    }
+    return {
+      pieces: Math.max(0, pieces - openingsMinus - bathMinus + screen),
+      gross: pieces, openingsMinus: openingsMinus, bathMinus: bathMinus, screen: screen, bathArea: bathArea,
+      area: Math.max(0, area), rows: gl.rows, colsLength: gl.cols, colsWidth: gw.cols, tileW: t.w, tileH: t.h
+    };
+  }
+
+  /** Плитка на пол раскладкой: из двух направлений берём то, где плиток меньше. */
+  function floorTileLayout(g, p) {
+    var a = toNumber(p.tileLength) / 100;
+    var b = toNumber(p.tileWidth) / 100;
+    var g1 = tileGrid(g.length, g.width, a, b);
+    var g2 = tileGrid(g.length, g.width, b, a);
+    var best = g2.pieces < g1.pieces ? g2 : g1;
+    return { pieces: best.pieces, gross: best.pieces, rows: best.rows, cols: best.cols, area: g.floorArea };
+  }
+
+  /**
+   * Плитка по раскладке (подрезка уже учтена).
+   *   плиток к покупке = ⌈ плиток по раскладке × (1 + запас на бой %) ⌉
+   *   упаковок = ⌈ плиток / штук в упаковке ⌉
+   */
+  function calcTileLayout(pieces, area, p) {
+    var tileArea = (toNumber(p.tileLength) / 100) * (toNumber(p.tileWidth) / 100);
+    var perPack = toNumber(p.piecesPerPack);
+    var errors = [];
+    if (tileArea <= 0) errors.push('не задан размер плитки');
+    if (perPack <= 0) errors.push('не задано количество штук в упаковке');
+    var total = ceilSafe(withReserve(pieces, p.reserve));
+    var packs = packsNeeded(total, perPack);
+    var packArea = tileArea * perPack;
+    var boughtArea = packs * packArea;
+    var price = toNumber(p.price);
+    return {
+      area: area, amount: total * tileArea, amountUnit: 'м²', pieces: total, layoutPieces: pieces, layout: true,
+      packs: packs, packArea: packArea, boughtArea: boughtArea,
+      cost: p.priceUnit === 'pack' ? packs * price : boughtArea * price, errors: errors
     };
   }
 
@@ -883,6 +1089,32 @@
   }
 
   /**
+   * Электрощит.
+   *   модулей = вводной автомат + автоматы × 1 + дифавтоматы × 2 (ширина — в параметрах)
+   *   нужно мест = модулей × (1 + запас мест %)
+   *   щит = наименьший из размеров в продаже, где хватает мест (если не хватает самого большого — несколько)
+   */
+  function calcPanel(modules, p) {
+    var need = withReserve(modules, p.moduleReserve);
+    var sizes = parseList(p.sizes);
+    var errors = [];
+    if (!sizes.length) errors.push('не заданы размеры щитов');
+    var size = 0;
+    var count = 0;
+    for (var i = 0; i < sizes.length; i++) {
+      if (sizes[i] >= need - EPS) { size = sizes[i]; count = 1; break; }
+    }
+    if (!count && sizes.length) {
+      size = sizes[sizes.length - 1];
+      count = ceilSafe(need / size);
+    }
+    return {
+      area: modules, modules: modules, need: need, size: size, amount: count, amountUnit: 'шт.',
+      packs: count, cost: count * toNumber(p.price), errors: errors
+    };
+  }
+
+  /**
    * Тёплый пол кабелем в стяжку.
    *   мощность = площадь укладки × Вт/м²
    *   метров кабеля = ⌈ мощность / погонная мощность (Вт/м) × (1 + запас%) ⌉
@@ -943,6 +1175,55 @@
   };
   var RADIATOR_KEYS = { bimetal: 'radiatorBimetal', alu: 'radiatorAlu', castIron: 'radiatorCastIron', panel: 'radiatorPanel' };
   var FLOOR_HEAT_KEYS = { mat: 'floorHeating', film: 'floorFilm', cable: 'floorCable' };
+
+  /*
+   * Сантехнические приборы: сколько подводок воды (холодная + горячая), куда слив (50 или 110 мм),
+   * сколько гибких шлангов подводки, какой смеситель и нужен ли сифон.
+   * На каждую подводку ставится шаровой кран.
+   */
+  var FIXTURES = {
+    toiletFloor:    { lines: 1, drain: 110, hoses: 1 },
+    toiletWall:     { lines: 1, drain: 110, hoses: 0 },
+    hygienicShower: { lines: 2, drain: 0, hoses: 0 },
+    sinkVanity:     { lines: 2, drain: 50, hoses: 2, mixer: 'mixerSink', siphon: 1 },
+    sinkWall:       { lines: 2, drain: 50, hoses: 2, mixer: 'mixerSink', siphon: 1 },
+    kitchenSink:    { lines: 2, drain: 50, hoses: 2, mixer: 'mixerKitchen', siphon: 1 },
+    bathAcrylic:    { lines: 2, drain: 50, hoses: 0, mixer: 'mixerBath', siphon: 1, bath: true },
+    bathSteel:      { lines: 2, drain: 50, hoses: 0, mixer: 'mixerBath', siphon: 1, bath: true },
+    bathCastIron:   { lines: 2, drain: 50, hoses: 0, mixer: 'mixerBath', siphon: 1, bath: true },
+    showerTray:     { lines: 2, drain: 50, hoses: 0, mixer: 'mixerShower', siphon: 1 },
+    showerCabin:    { lines: 2, drain: 50, hoses: 2, siphon: 1 },
+    showerDrain:    { lines: 2, drain: 50, hoses: 0, mixer: 'mixerShower' },
+    washingMachine: { lines: 1, drain: 50, hoses: 0, siphon: 1 },
+    dishwasher:     { lines: 1, drain: 50, hoses: 0 },
+    boiler:         { lines: 2, drain: 0, hoses: 2 },
+    towelWater:     { lines: 2, drain: 0, hoses: 0 },
+    towelElectric:  { lines: 0, drain: 0, hoses: 0 },
+    filterSink:     { lines: 0, drain: 0, hoses: 0 },
+    waterMeter:     { lines: 0, drain: 0, hoses: 0 }
+  };
+  var WATER_PIPE_KEYS = { pp: 'pipePP', pex: 'pipePEX', mp: 'pipeMP' };
+
+  // Электрические точки комнаты по группам — для расчёта кабеля, подрозетников и линий.
+  var SOCKET_KEYS = ['elSocket', 'elSocketDouble', 'elSocketIP44', 'elSocketUSB'];
+  var SWITCH_KEYS = ['elSwitch', 'elSwitch2', 'elSwitchPass', 'elDimmer'];
+  var LIGHT_KEYS = ['elLight', 'elSpot', 'elSconce'];
+  // Всё, что вводится в комнате штуками (метрами — лента).
+  var ROOM_ITEM_KEYS = SOCKET_KEYS.concat(['elPowerSocket'], SWITCH_KEYS, LIGHT_KEYS, ['elLedStrip', 'elInternet', 'elTV'], Object.keys(FIXTURES));
+
+  /**
+   * Штучные позиции комнаты: { ключ материала: количество }.
+   * Поддерживает поля первых версий: electric.sockets / switches / lights / power.
+   */
+  function roomCounts(room) {
+    var el = room.electric || {};
+    var legacy = { elSocket: el.sockets, elSwitch: el.switches, elLight: el.lights, elPowerSocket: el.power };
+    var counts = {};
+    Object.keys(legacy).forEach(function (k) { if (toNumber(legacy[k]) > 0) counts[k] = toNumber(legacy[k]); });
+    var c = room.counts || {};
+    Object.keys(c).forEach(function (k) { counts[k] = toNumber(c[k]); });
+    return counts;
+  }
 
   // Подложка и плинтус по умолчанию для покрытия (в комнате можно выбрать другие).
   var UNDERLAY_DEFAULT = {
@@ -1019,16 +1300,32 @@
     var el = room.electric || {};
     var heat = room.heating || {};
     var n = {};
-    var out = { needs: n, wallpaper: null, roll: null, radiator: null };
+    // Потребность ещё и по поверхностям — для раздельного расчёта пола, стен и потолка.
+    var surf = { floor: {}, walls: {}, ceiling: {}, other: {} };
+    var cur = 'floor';
+    var out = { needs: n, surfaces: surf, wallpaper: null, roll: null, radiator: null, lines: null, tiles: {} };
+    var counts = roomCounts(room);
 
     function add(key, value) {
-      if (key && value > 0) n[key] = (n[key] || 0) + value;
+      if (key && value > 0) {
+        n[key] = (n[key] || 0) + value;
+        surf[cur][key] = (surf[cur][key] || 0) + value;
+      }
     }
 
     var floorRest = Math.max(0, g.perimeter - g.doorsWidth);
 
     // Пол: покрытие, подложка, клей и лак для паркета, плинтус
-    add(FLOOR_KEYS[room.floor], g.floorArea);
+    var floorKey = FLOOR_KEYS[room.floor];
+    if (floorKey && MATERIALS[floorKey].kind === 'tile') {
+      var fl = floorTileLayout(g, P(floorKey));
+      add(floorKey, g.floorArea);
+      add('tileAdhesive', g.floorArea);
+      add('grout', g.floorArea);
+      if (fl.pieces > 0) out.tiles[floorKey] = { pieces: fl.pieces, area: g.floorArea, surface: 'floor', name: room.name, layout: fl };
+    } else {
+      add(floorKey, g.floorArea);
+    }
     if (FLOOR_KEYS[room.floor]) {
       add(UNDERLAY_KEYS[roomUnderlay(room)], g.floorArea);
       add(PLINTH_KEYS[roomPlinth(room)], floorRest);
@@ -1045,8 +1342,18 @@
     if (pf.waterproofing) add('waterproofing', g.floorArea + floorRest * toNumber(P('waterproofing').upturn));
 
     // Стены
+    cur = 'walls';
     var wallKey = WALL_KEYS[room.walls];
-    add(wallKey, g.wallNet);
+    var hasBath = Object.keys(FIXTURES).some(function (k) { return FIXTURES[k].bath && counts[k] > 0; });
+    if (wallKey && MATERIALS[wallKey].kind === 'tile') {
+      var wl = wallTileLayout(g, room.openings, P(wallKey), hasBath ? bathSpec(room) : null);
+      add(wallKey, wl.area);
+      add('tileAdhesive', wl.area);
+      add('grout', wl.area);
+      if (wl.pieces > 0) out.tiles[wallKey] = { pieces: wl.pieces, area: wl.area, surface: 'walls', name: room.name, layout: wl };
+    } else {
+      add(wallKey, g.wallNet);
+    }
     if (wallKey && MATERIALS[wallKey].kind === 'wallpaper') {
       add('wallpaperGlue', g.wallNet);
       if (g.perimeter > 0 && g.height > 0) {
@@ -1060,6 +1367,7 @@
     if (pw.primer) add('primer', g.wallNet);
 
     // Потолок
+    cur = 'ceiling';
     add(CEILING_KEYS[room.ceiling], g.ceilingArea);
     if (pc.plaster) add('plaster', g.ceilingArea);
     if (pc.puttyStart) add('puttyStart', g.ceilingArea);
@@ -1067,18 +1375,15 @@
     if (pc.primer) add('primer', g.ceilingArea);
     if (pc.plinth) add('ceilingPlinth', g.perimeter);
 
-    // Плиточные работы: клей и затирка — на всю плитку комнаты
-    var tileArea = (n.tileFloor || 0) + (n.porcelainFloor || 0) + (n.tileWall || 0) + (n.porcelainWall || 0) + (n.mosaic || 0);
-    add('tileAdhesive', tileArea);
-    add('grout', tileArea);
-
     // Гипсокартон и каркас
     var step = toNumber(P('profileCD').step);
+    cur = 'walls';
     if (pw.drywall) {
       add('drywall', g.wallNet);
       if (step > 0) add('profileCD', ceilSafe(g.perimeter / step) * g.height);
       add('profileUD', 2 * g.perimeter);
     }
+    cur = 'ceiling';
     if (pc.drywall) {
       add('drywall', g.ceilingArea);
       var shortSide = Math.min(g.length, g.width);
@@ -1087,7 +1392,8 @@
       add('profileUD', g.perimeter);
     }
 
-    // Окна и двери
+    // Окна, двери, электрика, сантехника, отопление
+    cur = 'other';
     var sillOverhang = toNumber(P('windowSill').overhang);
     (room.openings || []).forEach(function (o) {
       var w = toNumber(o.width);
@@ -1102,22 +1408,50 @@
       }
     });
 
-    // Электрика
-    var sockets = toNumber(el.sockets);
-    var switches = toNumber(el.switches);
-    var lights = toNumber(el.lights);
-    var power = toNumber(el.power);
-    add('elSocket', sockets);
-    add('elSwitch', switches);
-    add('elBox', sockets + switches + power);
-    add('elLight', lights);
-    add('elPowerSocket', power);
+    // Электрика: точки по видам, кабель, подрозетники, линии для щита
+    function sumCounts(keys) { return keys.reduce(function (s, k) { return s + (counts[k] || 0); }, 0); }
+    ROOM_ITEM_KEYS.forEach(function (k) { add(k, counts[k] || 0); });
+    var sockets = sumCounts(SOCKET_KEYS);
+    var switches = sumCounts(SWITCH_KEYS);
+    var strip = counts.elLedStrip || 0;
+    var lights = sumCounts(LIGHT_KEYS) + (strip > 0 ? 1 : 0);
+    var power = counts.elPowerSocket || 0;
+    var net = counts.elInternet || 0;
+    var tv = counts.elTV || 0;
+    if (strip > 0) add('elLedDriver', 1);
+    add('elBox', sockets + switches + power + net + tv);
     if (sockets > 0) add('cableSocket', toNumber(P('cableSocket').toPanel) + g.perimeter + sockets * g.height);
     if (switches + lights > 0) {
       add('cableLight', toNumber(P('cableLight').toPanel) + g.length + g.width + (switches + lights) * g.height);
     }
-    // у каждого мощного прибора своя линия от щита
-    if (power > 0) add('cablePower', power * (toNumber(P('cablePower').toPanel) + g.length + g.width + g.height));
+    // у каждого мощного прибора, интернет- и ТВ-розетки — своя линия от щита
+    var run = g.length + g.width + g.height;
+    if (power > 0) add('cablePower', power * (toNumber(P('cablePower').toPanel) + run));
+    if (net > 0) add('cableUTP', net * (toNumber(P('cableUTP').toPanel) + run));
+    if (tv > 0) add('cableCoax', tv * (toNumber(P('cableCoax').toPanel) + run));
+    out.lines = { socket: sockets > 0 ? 1 : 0, light: switches + lights > 0 ? 1 : 0, power: power };
+
+    // Сантехника: смесители, сифоны, подводка, краны, трубы
+    var water = 0, drain50 = 0, drain110 = 0;
+    Object.keys(FIXTURES).forEach(function (k) {
+      var c = counts[k] || 0;
+      if (!(c > 0)) return;
+      var fx = FIXTURES[k];
+      if (fx.mixer) add(fx.mixer, c);
+      if (fx.siphon) add('siphon', c * fx.siphon);
+      add('flexHose', c * fx.hoses);
+      add('ballValve', c * fx.lines);
+      water += c * fx.lines;
+      if (fx.drain === 50) drain50 += c;
+      if (fx.drain === 110) drain110 += c;
+    });
+    var pipes = room.pipes || {};
+    var waterKey = WATER_PIPE_KEYS[pipes.water === undefined ? 'pp' : pipes.water];
+    if (waterKey) add(waterKey, water * toNumber(P(waterKey).toRiser));
+    if (pipes.sewer !== false) {
+      add('pipeSewer50', drain50 * toNumber(P('pipeSewer50').toRiser));
+      add('pipeSewer110', drain110 * toNumber(P('pipeSewer110').toRiser));
+    }
 
     // Отопление
     if (heat.radiators) {
@@ -1160,38 +1494,79 @@
     }, 0);
   }
 
-  /**
-   * Полный расчёт: project = { rooms, materials, disabled, custom }.
-   * Потребности всех комнат по каждому материалу складываются, и только потом считаются
-   * упаковки — так покупается меньше лишнего, чем при округлении по каждой комнате.
-   * Исключения — то, что режется или ставится в каждой комнате отдельно:
-   * обои (по высоте), линолеум и ковролин (отрезы), радиаторы (секции).
-   */
-  function calculateProject(project) {
-    project = project || {};
-    var rooms = project.rooms || [];
-    var disabled = project.disabled || {};
+  // Поверхности для раздельного расчёта по комнатам.
+  var SURFACES = [
+    { key: 'floor', title: 'Пол' },
+    { key: 'walls', title: 'Стены' },
+    { key: 'ceiling', title: 'Потолок' },
+    { key: 'other', title: 'Окна, двери, инженерия' }
+  ];
+  // Позиции всей квартиры (щит), которые не делятся по комнатам.
+  var APARTMENT_KEYS = { elBreaker: true, elRCBO: true, elMainBreaker: true, elPanel: true };
+
+  /** Параметры с кэшем: P(ключ) → нормы с учётом введённых пользователем. */
+  function paramsGetter(materials) {
     var cache = {};
-    function P(key) {
-      if (!cache[key]) cache[key] = materialParams(project.materials, key);
+    return function (key) {
+      if (!cache[key]) cache[key] = materialParams(materials, key);
       return cache[key];
-    }
+    };
+  }
 
-    var totals = {};
-    var wallpaperWalls = {};
-    var rollRooms = { linoleum: [], carpet: [] };
-    var radiatorRooms = {};
-
-    var roomResults = rooms.map(function (room) {
+  /**
+   * Собирает потребности комнат. surface — если задано, берётся только эта поверхность
+   * (для раздельного расчёта пола, стен, потолка).
+   */
+  function collect(rooms, P, surface) {
+    var acc = {
+      totals: {}, wallpaperWalls: {}, rollRooms: { linoleum: [], carpet: [] }, radiatorRooms: {}, tiles: {},
+      lines: { socket: 0, light: 0, power: 0 }, roomResults: []
+    };
+    rooms.forEach(function (room) {
       var g = roomGeometry(room);
       var r = roomNeeds(room, g, P);
-      Object.keys(r.needs).forEach(function (k) { totals[k] = (totals[k] || 0) + r.needs[k]; });
-      if (r.wallpaper) (wallpaperWalls[r.wallpaper.key] = wallpaperWalls[r.wallpaper.key] || []).push(r.wallpaper);
-      if (r.roll) rollRooms[r.roll.key].push(r.roll);
-      if (r.radiator) (radiatorRooms[r.radiator.key] = radiatorRooms[r.radiator.key] || []).push(r.radiator);
-      return { id: room.id, name: room.name, geometry: g, areas: r.needs };
+      var needs = surface ? r.surfaces[surface] : r.needs;
+      Object.keys(needs).forEach(function (k) { acc.totals[k] = (acc.totals[k] || 0) + needs[k]; });
+      if (r.wallpaper && (!surface || surface === 'walls')) {
+        (acc.wallpaperWalls[r.wallpaper.key] = acc.wallpaperWalls[r.wallpaper.key] || []).push(r.wallpaper);
+      }
+      if (r.roll && (!surface || surface === 'floor')) acc.rollRooms[r.roll.key].push(r.roll);
+      if (r.radiator && (!surface || surface === 'other')) {
+        (acc.radiatorRooms[r.radiator.key] = acc.radiatorRooms[r.radiator.key] || []).push(r.radiator);
+      }
+      Object.keys(r.tiles).forEach(function (k) {
+        var t = r.tiles[k];
+        if (surface && t.surface !== surface) return;
+        (acc.tiles[k] = acc.tiles[k] || []).push(t);
+      });
+      if (r.lines && (!surface || surface === 'other')) {
+        acc.lines.socket += r.lines.socket; acc.lines.light += r.lines.light; acc.lines.power += r.lines.power;
+      }
+      acc.roomResults.push({ id: room.id, name: room.name, geometry: g, areas: r.needs, surfaceNeeds: r.surfaces });
     });
+    return acc;
+  }
 
+  /**
+   * Щит: автомат на каждую линию света и силовую линию, дифавтомат — на каждую розеточную линию
+   * (ПУЭ п. 7.1.79: розеточные группы — через УЗО до 30 мА), вводной автомат и щит по числу модулей.
+   */
+  function addPanel(acc, P) {
+    var t = acc.totals;
+    var lines = acc.lines;
+    if (lines.light + lines.power > 0) t.elBreaker = lines.light + lines.power;
+    if (lines.socket > 0) t.elRCBO = lines.socket;
+    if (lines.socket + lines.light + lines.power > 0) {
+      t.elMainBreaker = 1;
+      var pp = P('elPanel');
+      t.elPanel = toNumber(pp.mainModules) + (t.elBreaker || 0) * toNumber(pp.breakerModules) +
+        (t.elRCBO || 0) * toNumber(pp.rcboModules);
+    }
+  }
+
+  /** Считает материалы по собранным потребностям. */
+  function computeMaterials(acc, P, disabled) {
+    var totals = acc.totals;
     function sumOf(keys) {
       return keys.reduce(function (sum, k) { return sum + (totals[k] || 0); }, 0);
     }
@@ -1215,11 +1590,19 @@
       var r;
       switch (meta.kind) {
         case 'area': r = key === 'laminate' ? calcLaminate(base, p) : calcByArea(base, p, unitAreaOf(key, p)); break;
-        case 'tile': r = calcTile(base, p); break;
-        case 'roll': r = calcRollCovering(rollRooms[key], p); break;
+        case 'tile':
+          if (acc.tiles[key]) {
+            var pieces = acc.tiles[key].reduce(function (s, t) { return s + t.pieces; }, 0);
+            r = calcTileLayout(pieces, base, p);
+            r.layouts = acc.tiles[key];
+          } else {
+            r = calcTile(base, p);
+          }
+          break;
+        case 'roll': r = calcRollCovering(acc.rollRooms[key], p); break;
         case 'pieces': r = calcPieces(base, p); break;
         case 'paint': r = calcPaint(base, p); break;
-        case 'wallpaper': r = calcWallpaper(wallpaperWalls[key] || [], p); break;
+        case 'wallpaper': r = calcWallpaper(acc.wallpaperWalls[key] || [], p); break;
         case 'glue': r = calcCoverage(base, p); break;
         case 'perArea': r = calcLayered(base, p.consumption, 1, p.packWeight, p.reserve, p.price, 'кг'); break;
         case 'adhesive': r = calcTileAdhesive(sumOf(FLOOR_TILE_KEYS), sumOf(WALL_TILE_KEYS), p); break;
@@ -1233,9 +1616,10 @@
         case 'measured': r = calcMeasured(base, p); break;
         case 'count': r = calcCount(base, p); break;
         case 'cable': r = calcCable(base, p); break;
-        case 'radiator': r = calcRadiators(radiatorRooms[key] || [], p); break;
+        case 'radiator': r = calcRadiators(acc.radiatorRooms[key] || [], p); break;
         case 'heatingMat': r = calcHeatingMat(base, p); break;
         case 'heatingCable': r = calcHeatingCable(base, p); break;
+        case 'panel': r = calcPanel(base, p); break;
       }
       r.key = key;
       r.title = meta.title;
@@ -1245,9 +1629,51 @@
       r.priced = toNumber(p.price) > 0;
       materials.push(r);
     });
+    return { materials: materials, skipped: skipped };
+  }
+
+  /**
+   * Раздельный расчёт: для каждой комнаты — пол, стены, потолок и «окна, двери, инженерия»
+   * считаются отдельно, как если бы материал покупали только для этой поверхности.
+   * Поэтому сумма по комнатам обычно чуть больше общего итога: при покупке на всю квартиру
+   * упаковки округляются один раз. Щит и свои позиции в раздельный расчёт не входят.
+   */
+  function roomBreakdown(project, P) {
+    var disabled = project.disabled || {};
+    return (project.rooms || []).map(function (room) {
+      var surfaces = SURFACES.map(function (s) {
+        var acc = collect([room], P, s.key);
+        var res = computeMaterials(acc, P, disabled);
+        var cost = res.materials.reduce(function (sum, m) { return sum + m.cost; }, 0);
+        return {
+          key: s.key, title: s.title, materials: res.materials, cost: cost,
+          missingPrices: res.materials.filter(function (m) { return !m.priced; }).length
+        };
+      });
+      return {
+        id: room.id, name: room.name, surfaces: surfaces,
+        cost: surfaces.reduce(function (sum, s) { return sum + s.cost; }, 0)
+      };
+    });
+  }
+
+  /**
+   * Полный расчёт: project = { rooms, materials, disabled, custom }.
+   * Потребности всех комнат по каждому материалу складываются, и только потом считаются
+   * упаковки — так покупается меньше лишнего, чем при округлении по каждой комнате.
+   * Исключения — то, что режется или ставится в каждой комнате отдельно: обои (по высоте),
+   * линолеум и ковролин (отрезы), радиаторы (секции), плитка (раскладка по стенам и полу).
+   */
+  function calculateProject(project, options) {
+    project = project || {};
+    var P = paramsGetter(project.materials);
+    var acc = collect(project.rooms || [], P);
+    addPanel(acc, P);
+    var res = computeMaterials(acc, P, project.disabled || {});
+    var materials = res.materials;
 
     (project.custom || []).forEach(function (item) {
-      var base = customBase(item, roomResults);
+      var base = customBase(item, acc.roomResults);
       if (!(base > 0)) return;
       var r = calcCustom(base, item);
       r.key = 'custom:' + item.id;
@@ -1261,15 +1687,222 @@
 
     var totalCost = materials.reduce(function (s, m) { return s + m.cost; }, 0);
     var missingPrices = materials.filter(function (m) { return !m.priced; }).length;
+    var breakdown = options && options.breakdown === false ? null : roomBreakdown(project, P);
+    if (breakdown) acc.roomResults.forEach(function (r, i) { r.surfaces = breakdown[i].surfaces; r.cost = breakdown[i].cost; });
 
     return {
-      rooms: roomResults,
+      rooms: acc.roomResults,
       materials: materials,
-      skipped: skipped,
-      totals: totals,
+      skipped: res.skipped,
+      totals: acc.totals,
       totalCost: totalCost,
       missingPrices: missingPrices
     };
+  }
+
+  /* ================================================================== *
+   * 8. Шаблоны помещений и типовых квартир
+   *    Размеры — примерные (для начала расчёта), их нужно заменить замерами.
+   * ================================================================== */
+
+  var ROOM_PRESETS = {
+    room: { label: 'Комната', floor: 'laminate', walls: 'wallpaper', ceiling: 'paint',
+      prep: { walls: { putty: true, primer: true }, ceiling: { putty: true, primer: true } },
+      openings: [['window', 1.4, 1.5], ['door', 0.9, 2.1]] },
+    kitchen: { label: 'Кухня', floor: 'porcelain', walls: 'paint', ceiling: 'paint',
+      prep: { walls: { putty: true, primer: true }, ceiling: { putty: true, primer: true }, floor: { primer: true } },
+      openings: [['window', 1.4, 1.5], ['door', 0.9, 2.1]], counts: { kitchenSink: 1 } },
+    bath: { label: 'Санузел', floor: 'porcelain', walls: 'tile', ceiling: 'stretch',
+      prep: { walls: { plaster: true, primer: true }, floor: { waterproofing: true, primer: true } },
+      openings: [['door', 0.7, 2.1]], counts: { toiletFloor: 1, sinkVanity: 1, bathAcrylic: 1 } },
+    toilet: { label: 'Туалет', floor: 'porcelain', walls: 'tile', ceiling: 'stretch',
+      prep: { walls: { primer: true }, floor: { waterproofing: true, primer: true } },
+      openings: [['door', 0.6, 2.0]], counts: { toiletFloor: 1 } },
+    hall: { label: 'Коридор', floor: 'laminate', walls: 'wallpaper', ceiling: 'paint',
+      prep: { walls: { putty: true, primer: true }, ceiling: { putty: true, primer: true } }, openings: [] },
+    balcony: { label: 'Балкон', floor: 'none', walls: 'panels', ceiling: 'panels', prep: {}, openings: [['window', 2.8, 1.4]] },
+    empty: { label: 'Пустое', floor: 'none', walls: 'none', ceiling: 'none', prep: {}, openings: [] }
+  };
+
+  // Типовые квартиры: помещения с примерными размерами (длина × ширина, м), потолок 2,7 м.
+  var APARTMENTS = {
+    studio: { title: 'Студия', note: 'около 27 м²', rooms: [
+      { preset: 'room', name: 'Комната-кухня', length: 5.4, width: 3.8, counts: { kitchenSink: 1 } },
+      { preset: 'bath', name: 'Санузел', length: 2, width: 1.7 },
+      { preset: 'hall', name: 'Прихожая', length: 2.2, width: 1.4, openings: [['door', 0.9, 2.05]] }
+    ] },
+    one: { title: '1-комнатная', note: 'около 35 м²', rooms: [
+      { preset: 'room', name: 'Комната', length: 4.6, width: 3.6 },
+      { preset: 'kitchen', name: 'Кухня', length: 3.4, width: 2.9 },
+      { preset: 'bath', name: 'Санузел', length: 2.1, width: 1.7 },
+      { preset: 'hall', name: 'Коридор', length: 3.6, width: 1.4, openings: [['door', 0.9, 2.05]] }
+    ] },
+    two: { title: '2-комнатная', note: 'около 52 м²', rooms: [
+      { preset: 'room', name: 'Гостиная', length: 5, width: 3.6 },
+      { preset: 'room', name: 'Спальня', length: 3.9, width: 3.2 },
+      { preset: 'kitchen', name: 'Кухня', length: 3.4, width: 2.9 },
+      { preset: 'bath', name: 'Ванная', length: 2, width: 1.7, counts: { sinkVanity: 1, bathAcrylic: 1, washingMachine: 1 } },
+      { preset: 'toilet', name: 'Туалет', length: 1.4, width: 0.9 },
+      { preset: 'hall', name: 'Коридор', length: 5, width: 1.4, openings: [['door', 0.9, 2.05]] }
+    ] },
+    three: { title: '3-комнатная', note: 'около 70 м²', rooms: [
+      { preset: 'room', name: 'Гостиная', length: 5.4, width: 3.8 },
+      { preset: 'room', name: 'Спальня', length: 4, width: 3.3 },
+      { preset: 'room', name: 'Детская', length: 3.6, width: 3.2 },
+      { preset: 'kitchen', name: 'Кухня', length: 3.6, width: 3 },
+      { preset: 'bath', name: 'Ванная', length: 2.1, width: 1.7, counts: { sinkVanity: 1, bathAcrylic: 1, washingMachine: 1 } },
+      { preset: 'toilet', name: 'Туалет', length: 1.4, width: 0.9 },
+      { preset: 'hall', name: 'Коридор', length: 6, width: 1.5, openings: [['door', 0.9, 2.05]] }
+    ] }
+  };
+
+  function defaultId(prefix) {
+    return prefix + Math.random().toString(36).slice(2, 10);
+  }
+
+  /** Пустое помещение со всеми полями. makeId(prefix) — генератор id (по умолчанию случайный). */
+  function blankRoom(makeId) {
+    var id = makeId || defaultId;
+    return {
+      id: id('r'), name: '', length: '', width: '', height: 2.7, openings: [],
+      floor: 'none', underlay: 'none', plinth: 'none', walls: 'none', ceiling: 'none',
+      prep: {
+        floor: { screed: false, leveler: false, waterproofing: false, primer: false },
+        walls: { drywall: false, plaster: false, puttyStart: false, putty: false, fiberglass: false, primer: false },
+        ceiling: { drywall: false, plaster: false, puttyStart: false, putty: false, primer: false, plinth: false }
+      },
+      counts: {},
+      pipes: { water: 'pp', sewer: true },
+      bath: { length: DEFAULT_BATH.length, width: DEFAULT_BATH.width, height: DEFAULT_BATH.height, place: DEFAULT_BATH.place, screen: DEFAULT_BATH.screen },
+      electric: {},
+      heating: { radiators: false, radiatorType: 'bimetal', floor: false, floorType: 'mat' },
+      open: { openings: true, finish: true, electric: false, plumbing: false, heating: false },
+      collapsed: false
+    };
+  }
+
+  /** Проём: тип, ширина, высота (м). */
+  function makeOpening(type, width, height, makeId) {
+    var id = makeId || defaultId;
+    return { id: id('o'), type: type, width: width, height: height, count: 1, replace: 'none', sill: false, slopes: false };
+  }
+
+  /** Помещение по шаблону: отделка, подготовка, проёмы, сантехника; overrides — размеры, имя и т. п. */
+  function makeRoom(presetKey, overrides, makeId) {
+    var preset = ROOM_PRESETS[presetKey] || ROOM_PRESETS.empty;
+    var o = overrides || {};
+    var room = blankRoom(makeId);
+    room.name = o.name || preset.label;
+    room.floor = preset.floor;
+    room.underlay = UNDERLAY_DEFAULT[preset.floor] || 'none';
+    room.plinth = PLINTH_DEFAULT[preset.floor] || 'none';
+    room.walls = preset.walls;
+    room.ceiling = preset.ceiling;
+    ['floor', 'walls', 'ceiling'].forEach(function (k) { Object.assign(room.prep[k], (preset.prep || {})[k]); });
+    room.openings = (o.openings || preset.openings).map(function (x) { return makeOpening(x[0], x[1], x[2], makeId); });
+    room.counts = Object.assign({}, preset.counts, o.counts);
+    if (o.length !== undefined) room.length = o.length;
+    if (o.width !== undefined) room.width = o.width;
+    if (o.height !== undefined) room.height = o.height;
+    return room;
+  }
+
+  /** Все помещения типовой квартиры. */
+  function buildApartment(key, makeId) {
+    var apt = APARTMENTS[key];
+    if (!apt) return [];
+    return apt.rooms.map(function (r) { return makeRoom(r.preset, r, makeId); });
+  }
+
+  /* ================================================================== *
+   * 9. Сравнение вариантов
+   *    Для выбранных комнат подставляем каждый вариант и считаем, сколько он добавляет
+   *    к смете по сравнению с «ничего не делать» (вместе с сопутствующими материалами:
+   *    подложкой, плинтусом, клеем, затиркой и т. п.).
+   * ================================================================== */
+
+  function eachOpening(room, type, fn) {
+    (room.openings || []).forEach(function (o) { if ((o.type || 'window') === type) fn(o); });
+  }
+
+  var COMPARE_FIELDS = {
+    floor: {
+      options: Object.keys(FLOOR_KEYS),
+      current: function (room) { return room.floor; },
+      apply: function (room, v) {
+        room.floor = v;
+        room.underlay = UNDERLAY_DEFAULT[v] || 'none';
+        room.plinth = PLINTH_DEFAULT[v] || 'none';
+        if (v === 'none') { room.underlay = 'none'; room.plinth = 'none'; }
+      }
+    },
+    walls: { options: Object.keys(WALL_KEYS), current: function (room) { return room.walls; }, apply: function (room, v) { room.walls = v; } },
+    ceiling: { options: Object.keys(CEILING_KEYS), current: function (room) { return room.ceiling; }, apply: function (room, v) { room.ceiling = v; } },
+    window: {
+      options: Object.keys(WINDOW_KEYS),
+      current: function (room) { var v = 'none'; eachOpening(room, 'window', function (o) { if (o.replace && o.replace !== 'none') v = o.replace; }); return v; },
+      apply: function (room, v) { eachOpening(room, 'window', function (o) { o.replace = v; }); }
+    },
+    door: {
+      options: ['eco', 'veneer', 'enamel', 'solid', 'hidden'],
+      current: function (room) { var v = 'none'; eachOpening(room, 'door', function (o) { if (o.replace && o.replace !== 'none' && o.replace !== 'entrance') v = o.replace; }); return v; },
+      apply: function (room, v) { eachOpening(room, 'door', function (o) { if (o.replace !== 'entrance') o.replace = v; }); }
+    },
+    radiator: {
+      options: Object.keys(RADIATOR_KEYS),
+      current: function (room) { return room.heating && room.heating.radiators ? room.heating.radiatorType || 'bimetal' : 'none'; },
+      apply: function (room, v) {
+        room.heating = Object.assign({}, room.heating);
+        room.heating.radiators = v !== 'none';
+        if (v !== 'none') room.heating.radiatorType = v;
+      }
+    },
+    floorHeat: {
+      options: Object.keys(FLOOR_HEAT_KEYS),
+      current: function (room) { return room.heating && room.heating.floor ? room.heating.floorType || 'mat' : 'none'; },
+      apply: function (room, v) {
+        room.heating = Object.assign({}, room.heating);
+        room.heating.floor = v !== 'none';
+        if (v !== 'none') room.heating.floorType = v;
+      }
+    }
+  };
+
+  /**
+   * Сравнение: field — что сравниваем (floor, walls, ceiling, window, door, radiator, floorHeat),
+   * options — 2–3 варианта, roomIds — в каких комнатах (null — во всех).
+   * Для каждого варианта: стоимость = итог сметы с вариантом − итог сметы без этой работы;
+   * items — материалы, которые добавились или изменились, с разницей в стоимости.
+   */
+  function compareVariants(project, field, options, roomIds) {
+    var spec = COMPARE_FIELDS[field];
+    if (!spec) return [];
+    function variantProject(v) {
+      var pr = JSON.parse(JSON.stringify(project || {}));
+      (pr.rooms || []).forEach(function (room) {
+        if (!roomIds || roomIds.indexOf(room.id) >= 0) spec.apply(room, v);
+      });
+      pr.custom = [];
+      return pr;
+    }
+    var base = calculateProject(variantProject('none'), { breakdown: false });
+    var baseByKey = {};
+    base.materials.forEach(function (m) { baseByKey[m.key] = m; });
+    return (options || []).map(function (v) {
+      var calc = calculateProject(variantProject(v), { breakdown: false });
+      var items = [];
+      calc.materials.forEach(function (m) {
+        var b = baseByKey[m.key];
+        var changed = !b || Math.abs(b.cost - m.cost) > 1e-6 || Math.abs(b.amount - m.amount) > 1e-9 || b.packs !== m.packs;
+        if (changed) items.push({ material: m, before: b || null, delta: m.cost - (b ? b.cost : 0) });
+      });
+      return {
+        option: v,
+        cost: calc.totalCost - base.totalCost,
+        items: items,
+        missingPrices: items.filter(function (x) { return !x.material.priced; }).length
+      };
+    });
   }
 
   return {
@@ -1317,6 +1950,28 @@
     matArea: matArea,
     calcHeatingMat: calcHeatingMat,
     calcHeatingCable: calcHeatingCable,
+    calcPanel: calcPanel,
+    ROOM_PRESETS: ROOM_PRESETS,
+    APARTMENTS: APARTMENTS,
+    blankRoom: blankRoom,
+    makeOpening: makeOpening,
+    makeRoom: makeRoom,
+    buildApartment: buildApartment,
+    COMPARE_FIELDS: COMPARE_FIELDS,
+    compareVariants: compareVariants,
+    DEFAULT_BATH: DEFAULT_BATH,
+    SURFACES: SURFACES,
+    APARTMENT_KEYS: APARTMENT_KEYS,
+    tileSides: tileSides,
+    tileGrid: tileGrid,
+    tilesInside: tilesInside,
+    bathSpec: bathSpec,
+    wallTileLayout: wallTileLayout,
+    floorTileLayout: floorTileLayout,
+    calcTileLayout: calcTileLayout,
+    roomCounts: roomCounts,
+    FIXTURES: FIXTURES,
+    ROOM_ITEM_KEYS: ROOM_ITEM_KEYS,
     roomUnderlay: roomUnderlay,
     roomPlinth: roomPlinth,
     UNDERLAY_DEFAULT: UNDERLAY_DEFAULT,
