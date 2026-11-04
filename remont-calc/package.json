@@ -1,0 +1,12 @@
+{
+  "name": "remont-calc",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Калькулятор материалов для ремонта квартиры",
+  "scripts": {
+    "test": "node --test tests/formulas.test.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

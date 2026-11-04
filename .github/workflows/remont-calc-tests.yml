@@ -1,0 +1,24 @@
+# Тесты формул калькулятора материалов (remont-calc).
+name: remont-calc tests
+
+on:
+  push:
+    paths:
+      - 'remont-calc/**'
+      - '.github/workflows/remont-calc-tests.yml'
+  pull_request:
+    paths:
+      - 'remont-calc/**'
+      - '.github/workflows/remont-calc-tests.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Тесты формул
+        working-directory: remont-calc
+        run: npm test

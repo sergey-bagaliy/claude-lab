@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Калькулятор материалов для ремонта</title>
+  <meta name="description" content="Расчёт плитки, ламината, краски, обоев, штукатурки, грунта и шпаклёвки по размерам комнат.">
+  <meta name="theme-color" content="#c2410c">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon-180.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <h1 class="brand">Калькулятор ремонта</h1>
+      <button type="button" class="total-btn" data-action="goto-summary" aria-label="Перейти к итогу">
+        <span class="total-label">Итого</span>
+        <span class="total-value" id="header-total">0 ₽</span>
+        <span class="total-note" id="header-note"></span>
+      </button>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Вкладка 1: комнаты -->
+    <section class="panel" id="tab-rooms" data-panel="rooms">
+      <p class="hint">Размеры — в метрах, дробь можно через запятую: <b>2,7</b>. Для каждой комнаты выберите отделку пола, стен и потолка.</p>
+      <div id="rooms"></div>
+      <button type="button" class="btn btn-primary btn-wide" data-action="add-room">+ Добавить комнату</button>
+    </section>
+
+    <!-- Вкладка 2: материалы, нормы и цены -->
+    <section class="panel" id="tab-materials" data-panel="materials" hidden>
+      <div class="notice">
+        <b>Нормы расхода — типовые значения.</b> Сверьте с упаковкой своего материала и исправьте.
+        Цены вводите свои — по ним считается стоимость.
+      </div>
+      <div id="materials"></div>
+      <button type="button" class="btn btn-wide" data-action="reset-norms">Вернуть типовые нормы (цены останутся)</button>
+    </section>
+
+    <!-- Вкладка 3: итог, сохранение, печать -->
+    <section class="panel" id="tab-summary" data-panel="summary" hidden>
+      <div class="card">
+        <label class="field">
+          <span>Объект (адрес, заказчик)</span>
+          <input type="text" id="project-name" data-project="name" placeholder="Например: ул. Красная, 12, кв. 5" autocomplete="off" enterkeyhint="done">
+        </label>
+        <div class="actions">
+          <button type="button" class="btn btn-primary" data-action="save">Сохранить</button>
+          <button type="button" class="btn" data-action="print">PDF / печать</button>
+          <button type="button" class="btn" data-action="share">Отправить список</button>
+        </div>
+      </div>
+
+      <div id="summary"></div>
+
+      <div class="card">
+        <h2 class="card-title">Сохранённые расчёты</h2>
+        <p class="small muted">Хранятся в этом браузере на этом телефоне. Чтобы перенести на другое устройство — скачайте файл.</p>
+        <div id="saved-list"></div>
+        <div class="actions">
+          <button type="button" class="btn" data-action="new-project">Новый расчёт</button>
+          <button type="button" class="btn" data-action="export">Скачать файл</button>
+          <label class="btn file-btn">Загрузить файл<input type="file" id="import-file" accept=".json,application/json"></label>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="tabbar" aria-label="Разделы">
+    <button type="button" class="tab active" data-tab="rooms">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h18v18H3zM3 12h9M12 3v18"/></svg>
+      <span>Комнаты</span>
+    </button>
+    <button type="button" class="tab" data-tab="materials">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7l8-4 8 4-8 4zM4 12l8 4 8-4M4 17l8 4 8-4"/></svg>
+      <span>Материалы</span>
+    </button>
+    <button type="button" class="tab" data-tab="summary">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18H6zM9 8h6M9 12h6M9 16h4"/></svg>
+      <span>Итог</span>
+    </button>
+  </nav>
+
+  <!-- Версия для печати / PDF. Заполняется перед печатью. -->
+  <div id="print" aria-hidden="true"></div>
+
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <script src="formulas.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
