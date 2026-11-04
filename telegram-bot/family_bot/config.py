@@ -24,6 +24,11 @@ DEFAULT_DAILY_BUDGET_USD = 1.0
 # Файл базы данных (покупки, напоминания, история, расходы).
 DEFAULT_DB_PATH = "family_bot.db"
 
+# Голос: модель распознавания речи (small — хорошо понимает русский, ~1 ГБ памяти;
+# base — проще и легче) и голос Piper для ответов.
+DEFAULT_WHISPER_MODEL = "small"
+DEFAULT_PIPER_VOICE = "ru_RU-irina-medium"
+
 
 class ConfigError(Exception):
     """Ошибка настройки: не задана или неверно задана переменная окружения."""
@@ -39,6 +44,15 @@ class Settings:
     daily_budget_usd: float = DEFAULT_DAILY_BUDGET_USD
     db_path: str = DEFAULT_DB_PATH
     web_search: bool = True
+    admin_user_id: int | None = None  # кому слать уведомления о лимите и копии базы
+    log_file: str = "bot.log"  # пусто — журнал только в консоль
+    backup_dir: str = "backups"
+    backup_keep_days: int = 14
+    backup_to_telegram: bool = False
+    voice: bool = True
+    whisper_model: str = DEFAULT_WHISPER_MODEL
+    piper_voice: str = DEFAULT_PIPER_VOICE
+    models_dir: str = "models"
 
 
 def _parse_positive_int(name: str, raw: str) -> int:
@@ -68,6 +82,16 @@ def _parse_bool(name: str, raw: str) -> bool:
     if value in ("0", "false", "no", "off", "нет"):
         return False
     raise ConfigError(f"{name} должно быть 1 (включено) или 0 (выключено), а сейчас: {raw!r}")
+
+
+def _parse_int(name: str, raw: str, minimum: int) -> int:
+    try:
+        value = int(raw)
+    except ValueError:
+        raise ConfigError(f"{name} должно быть целым числом, а сейчас: {raw!r}") from None
+    if value < minimum:
+        raise ConfigError(f"{name} должно быть не меньше {minimum}, а сейчас: {value}")
+    return value
 
 
 def _parse_user_ids(raw: str) -> frozenset[int]:
@@ -106,12 +130,16 @@ def load_settings(env: Mapping[str, str] | None = None) -> Settings:
         raise ConfigError(
             "Не заданы переменные окружения: "
             + ", ".join(missing)
-            + ".\nКак их задать — см. README.md, раздел «Запуск на Windows»."
+            + ".\nКак их задать — см. README.md: на Windows — раздел 3, на сервере — файл .env (раздел 4)."
         )
 
     raw_memory = env.get("MEMORY_SIZE", "").strip()
     raw_budget = env.get("DAILY_BUDGET_USD", "").strip()
     raw_search = env.get("WEB_SEARCH", "").strip()
+    raw_admin = env.get("ADMIN_USER_ID", "").strip()
+    raw_keep = env.get("BACKUP_KEEP_DAYS", "").strip()
+    raw_backup_tg = env.get("BACKUP_TO_TELEGRAM", "").strip()
+    raw_voice = env.get("VOICE", "").strip()
 
     return Settings(
         telegram_token=telegram_token,
@@ -122,4 +150,13 @@ def load_settings(env: Mapping[str, str] | None = None) -> Settings:
         daily_budget_usd=_parse_budget(raw_budget) if raw_budget else DEFAULT_DAILY_BUDGET_USD,
         db_path=env.get("DB_PATH", "").strip() or DEFAULT_DB_PATH,
         web_search=_parse_bool("WEB_SEARCH", raw_search) if raw_search else True,
+        admin_user_id=_parse_int("ADMIN_USER_ID", raw_admin, 1) if raw_admin else None,
+        log_file=env.get("LOG_FILE", "bot.log").strip(),
+        backup_dir=env.get("BACKUP_DIR", "").strip() or "backups",
+        backup_keep_days=_parse_int("BACKUP_KEEP_DAYS", raw_keep, 1) if raw_keep else 14,
+        backup_to_telegram=_parse_bool("BACKUP_TO_TELEGRAM", raw_backup_tg) if raw_backup_tg else False,
+        voice=_parse_bool("VOICE", raw_voice) if raw_voice else True,
+        whisper_model=env.get("WHISPER_MODEL", "").strip() or DEFAULT_WHISPER_MODEL,
+        piper_voice=env.get("PIPER_VOICE", "").strip() or DEFAULT_PIPER_VOICE,
+        models_dir=env.get("MODELS_DIR", "").strip() or "models",
     )

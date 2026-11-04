@@ -13,13 +13,14 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
 import anthropic
 
+from .budget import BudgetEvent, BudgetGuard
 from .family import build_context, build_system_prompt
 from .media import (
     MediaCard,
@@ -115,7 +116,9 @@ class FamilyAssistant:
         # Модель по умолчанию (из CLAUDE_MODEL). Выбор в «⚙️ Настройках» бота важнее.
         self.default_model = model
         self.memory_size = memory_size
-        self.daily_budget_usd = daily_budget_usd
+        self.budget = BudgetGuard(storage, daily_budget_usd, clock)
+        # Кому сообщать о расходах (бот подставляет отправку сообщения хозяину).
+        self.on_budget_event: Callable[[BudgetEvent], Awaitable[None]] | None = None
         self.web_search = web_search
         self.clock = clock
         self.tools = ToolExecutor(storage, clock)
@@ -155,15 +158,30 @@ class FamilyAssistant:
 
     # ---------- внутреннее ----------
 
+    @property
+    def daily_budget_usd(self) -> float:
+        return self.budget.daily_budget_usd
+
+    @daily_budget_usd.setter
+    def daily_budget_usd(self, value: float) -> None:
+        self.budget.daily_budget_usd = value
+
     def _check_budget(self) -> None:
-        if self.daily_budget_usd <= 0:
-            return
-        spent = self.storage.spent(self.clock().strftime("%Y-%m-%d")).cost_usd
-        if spent >= self.daily_budget_usd:
+        if self.budget.is_exhausted():
             raise AssistantError(
-                f"Дневной лимит расходов на Claude исчерпан (${self.daily_budget_usd:.2f}). "
-                "Завтра снова заработает. Список покупок, напоминания и примеры работают и сейчас."
+                f"Дневной лимит расходов на Claude исчерпан (${self.budget.limit_today():.2f}). "
+                "Хозяину бота уже пришло уведомление — он может поднять лимит на сегодня. "
+                "Иначе завтра всё снова заработает. Покупки, напоминания и примеры работают и сейчас."
             )
+
+    async def _notify_budget(self) -> None:
+        for event in self.budget.new_events():
+            log.warning("Лимит расходов: %s ($%.2f из $%.2f)", event.level, event.spent, event.limit)
+            if self.on_budget_event is not None:
+                try:
+                    await self.on_budget_event(event)
+                except Exception:
+                    log.exception("Не удалось отправить уведомление о лимите")
 
     async def _run_turn(
         self,
@@ -309,10 +327,11 @@ class FamilyAssistant:
             raise AssistantError(
                 "Claude не принял API-ключ. Проверьте переменную ANTHROPIC_API_KEY."
             ) from None
-        except anthropic.PermissionDeniedError:
-            log.error("Нет доступа к Claude API (403)")
+        except anthropic.PermissionDeniedError as error:
+            log.error("Нет доступа к Claude API (403): %s", error.message)
             raise AssistantError(
-                "У API-ключа нет доступа к Claude. Проверьте ключ в Claude Console."
+                "Claude отказал в доступе (403). Частые причины: у ключа нет прав или запрос идёт "
+                "из страны, которую Anthropic не поддерживает. Подробности — в README, раздел про сервер."
             ) from None
         except anthropic.NotFoundError:
             log.error("Модель %s не найдена (404)", model)
@@ -351,6 +370,7 @@ class FamilyAssistant:
             ) from None
 
         self._record_usage(response, kind, model)
+        await self._notify_budget()
         return response
 
     def _record_usage(self, response: Any, kind: str, model: str) -> None:

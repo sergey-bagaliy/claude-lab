@@ -16,14 +16,16 @@ import httpx2
 import pytest
 from aiogram import Bot
 from aiogram.client.session.base import BaseSession
-from aiogram.methods import GetMe, SendMessage
-from aiogram.types import CallbackQuery, Chat, Message, Update, User
+from aiogram.methods import GetFile, GetMe, SendMessage
+from aiogram.types import CallbackQuery, Chat, File, Message, Update, User
 from anthropic.types.beta import BetaMessage
 
 from family_bot.assistant import FamilyAssistant, Person
 from family_bot.media import Photo
 from family_bot.storage import Storage
 from family_bot.timeutil import TZ
+
+FAKE_VOICE_BYTES = b"OggS-fake-voice"
 
 SERGEY = Person(user_id=100, name="Сергей")
 VIKA = Person(user_id=200, name="Вика")
@@ -201,6 +203,31 @@ class FakePhotos:
         return [make_photo(n) for n in range(1, min(self.count, limit) + 1)]
 
 
+class FakeVoice:
+    """Подмена голоса: «распознаёт» заранее заданный текст и «озвучивает» в фиктивный OGG."""
+
+    def __init__(self, heard: str = "добавь в покупки молоко") -> None:
+        self.heard = heard
+        self.received: list[bytes] = []
+        self.spoken: list[str] = []
+        self.fail_speak = False
+
+    async def transcribe(self, audio: bytes) -> str:
+        self.received.append(audio)
+        return self.heard
+
+    async def speak(self, text: str) -> bytes | None:
+        if self.fail_speak:
+            raise RuntimeError("модель не загрузилась")
+        self.spoken.append(text)
+        return b"OggS-answer"
+
+
+@pytest.fixture
+def fake_voice() -> FakeVoice:
+    return FakeVoice()
+
+
 @pytest.fixture
 def fake_photos() -> FakePhotos:
     return FakePhotos()
@@ -250,6 +277,8 @@ class FakeTelegramSession(BaseSession):
         if isinstance(method, GetMe):
             return BOT_USER
         self.requests.append(method)
+        if isinstance(method, GetFile):
+            return File(file_id=method.file_id, file_unique_id="u", file_path=f"voice/{method.file_id}.oga")
         if isinstance(method, SendMessage):
             return Message(
                 message_id=len(self.requests),
@@ -259,8 +288,8 @@ class FakeTelegramSession(BaseSession):
             )
         return True
 
-    async def stream_content(self, *args: Any, **kwargs: Any):  # pragma: no cover
-        yield b""
+    async def stream_content(self, *args: Any, **kwargs: Any):
+        yield FAKE_VOICE_BYTES  # «скачанное» голосовое
 
     async def close(self) -> None:
         pass

@@ -91,3 +91,40 @@ def test_bad_web_search_flag():
 def test_bad_user_ids():
     with pytest.raises(ConfigError, match="ALLOWED_USER_IDS"):
         load_settings({**KEYS, "ALLOWED_USER_IDS": "111,Вика"})
+
+
+def test_server_and_voice_settings():
+    settings = load_settings(
+        {
+            **KEYS,
+            "ADMIN_USER_ID": "100",
+            "LOG_FILE": "",
+            "BACKUP_DIR": "/data/backups",
+            "BACKUP_KEEP_DAYS": "30",
+            "BACKUP_TO_TELEGRAM": "1",
+            "VOICE": "0",
+            "WHISPER_MODEL": "base",
+            "PIPER_VOICE": "ru_RU-denis-medium",
+            "MODELS_DIR": "/models",
+        }
+    )
+    assert settings.admin_user_id == 100 and settings.log_file == ""
+    assert settings.backup_dir == "/data/backups" and settings.backup_keep_days == 30
+    assert settings.backup_to_telegram is True and settings.voice is False
+    assert settings.whisper_model == "base" and settings.piper_voice == "ru_RU-denis-medium"
+    assert settings.models_dir == "/models"
+
+
+def test_server_defaults():
+    settings = load_settings(KEYS)
+    assert settings.admin_user_id is None and settings.backup_keep_days == 14
+    assert settings.backup_to_telegram is False and settings.voice is True
+    assert settings.whisper_model == "small" and settings.piper_voice == "ru_RU-irina-medium"
+
+
+@pytest.mark.parametrize(
+    "name, value", [("ADMIN_USER_ID", "Сергей"), ("BACKUP_KEEP_DAYS", "0"), ("VOICE", "да-нет")]
+)
+def test_bad_server_settings(name, value):
+    with pytest.raises(ConfigError, match=name):
+        load_settings({**KEYS, name: value})

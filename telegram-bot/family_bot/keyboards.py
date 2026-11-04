@@ -36,7 +36,7 @@ def main_menu() -> ReplyKeyboardMarkup:
 # ---------- настройки ----------
 
 
-def settings(current_model: str) -> InlineKeyboardMarkup:
+def settings(current_model: str, voice_replies: bool | None = None) -> InlineKeyboardMarkup:
     rows = [
         [
             _button(
@@ -46,7 +46,18 @@ def settings(current_model: str) -> InlineKeyboardMarkup:
         ]
         for choice in MODEL_CHOICES.values()
     ]
+    if voice_replies is not None:
+        label = "🔊 Голосом на голосовые: вкл" if voice_replies else "🔇 Голосом на голосовые: выкл"
+        rows.append([_button(label, "set:voice")])
     rows.append([_button("💰 Подробно о расходах", "set:costs")])
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
+def with_read_aloud(markup: InlineKeyboardMarkup | None, text_id: int) -> InlineKeyboardMarkup:
+    """Добавляет кнопку «🔊 Прочитать вслух» первой строкой."""
+    rows = [[_button("🔊 Прочитать вслух", f"tts:{text_id}")]]
+    if markup is not None:
+        rows += markup.inline_keyboard
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 

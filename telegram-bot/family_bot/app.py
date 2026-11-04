@@ -6,6 +6,8 @@ import asyncio
 import contextlib
 import logging
 import sys
+import time
+from datetime import datetime
 from logging.handlers import RotatingFileHandler
 
 import anthropic
@@ -15,12 +17,15 @@ from aiogram.types import BotCommand
 from aiogram.utils.token import TokenValidationError
 
 from .assistant import FamilyAssistant
+from .backup import BackupService
+from .budget import BudgetNotifier
 from .config import ConfigError, Settings, load_settings
 from .handlers import Deps, create_router
 from .media import WikimediaPhotos
 from .reminders import ReminderService
 from .storage import Storage
-from .timeutil import now_local
+from .timeutil import TZ, now_local
+from .voice import create_voice_service
 
 log = logging.getLogger(__name__)
 
@@ -45,6 +50,7 @@ BOT_DESCRIPTION = (
     "• напоминания обычной фразой — себе и близким\n"
     "• тренажёр умножения для Никиты, сказки, аудиосказки и мультфильмы для Кати\n"
     "• фото курортов и интересных мест\n"
+    "• понимает голосовые и отвечает голосом\n"
     "• идеи на выходные с учётом погоды в Краснодаре"
 )
 BOT_SHORT_DESCRIPTION = "Рецепты, покупки, напоминания и помощь с детьми для нашей семьи"
@@ -92,11 +98,23 @@ async def run(settings: Settings) -> None:
         clock=now_local,
         photos=photos,
     )
+    assistant.on_budget_event = BudgetNotifier(bot, settings.admin_user_id)
+    voice = create_voice_service(
+        settings.voice, settings.whisper_model, settings.piper_voice, settings.models_dir
+    )
+    backups = BackupService(
+        storage,
+        settings.backup_dir,
+        keep_days=settings.backup_keep_days,
+        bot=bot,
+        admin_id=settings.admin_user_id,
+        send_to_admin=settings.backup_to_telegram,
+    )
     deps = Deps(
-        assistant=assistant, storage=storage, clock=now_local, daily_budget_usd=settings.daily_budget_usd
+        assistant=assistant, storage=storage, clock=now_local, voice=voice, admin_id=settings.admin_user_id
     )
     dispatcher = build_dispatcher(deps, settings)
-    reminders_task: asyncio.Task[None] | None = None
+    background: list[asyncio.Task[None]] = []
 
     try:
         try:
@@ -112,7 +130,10 @@ async def run(settings: Settings) -> None:
             ) from None
 
         await setup_profile(bot)
-        reminders_task = asyncio.create_task(ReminderService(bot, storage).run_forever())
+        background.append(asyncio.create_task(ReminderService(bot, storage).run_forever()))
+        background.append(asyncio.create_task(backups.run_forever()))
+        if voice is not None:
+            background.append(asyncio.create_task(voice.warm_up()))
 
         log.info("Бот @%s запущен. Модель: %s. Остановить: Ctrl+C", me.username, settings.model)
         if not settings.allowed_user_ids:
@@ -120,26 +141,37 @@ async def run(settings: Settings) -> None:
                 "ALLOWED_USER_IDS не задан: бот отвечает ВСЕМ, кто его найдёт. "
                 "Чтобы пускать только семью, задайте эту переменную (см. README)."
             )
+        if settings.admin_user_id is None:
+            log.warning("ADMIN_USER_ID не задан: уведомления о расходах никому не придут (см. README).")
         await dispatcher.start_polling(bot)
     finally:
-        if reminders_task is not None:
-            reminders_task.cancel()
+        for task in background:
+            task.cancel()
             with contextlib.suppress(asyncio.CancelledError):
-                await reminders_task
+                await task
         await bot.session.close()
         await client.close()
         await photos.close()
         storage.close()
 
 
-def setup_logging() -> None:
+def _moscow_time(seconds: float | None) -> time.struct_time:
+    """Время в журнале — по Москве, где бы ни работал бот (сервер часто живёт по UTC)."""
+    return datetime.fromtimestamp(seconds if seconds is not None else time.time(), TZ).timetuple()
+
+
+def setup_logging(log_file: str = "bot.log") -> None:
     formatter = logging.Formatter("%(asctime)s %(levelname)s %(name)s: %(message)s")
+    formatter.converter = _moscow_time
     console = logging.StreamHandler()
     console.setFormatter(formatter)
-    # Журнал в файл bot.log (до 3 файлов по 1 МБ) — пригодится, если что-то пошло не так.
-    file = RotatingFileHandler("bot.log", maxBytes=1_000_000, backupCount=3, encoding="utf-8")
-    file.setFormatter(formatter)
-    logging.basicConfig(level=logging.INFO, handlers=[console, file])
+    handlers: list[logging.Handler] = [console]
+    if log_file:
+        # Журнал в файл (до 3 файлов по 1 МБ) — пригодится, если что-то пошло не так.
+        file = RotatingFileHandler(log_file, maxBytes=1_000_000, backupCount=3, encoding="utf-8")
+        file.setFormatter(formatter)
+        handlers.append(file)
+    logging.basicConfig(level=logging.INFO, handlers=handlers)
     # Библиотека httpx2 пишет в лог каждый запрос — для новичка это лишний шум.
     logging.getLogger("httpx2").setLevel(logging.WARNING)
 
@@ -151,7 +183,7 @@ def main() -> None:
         print(f"Ошибка настройки: {error}", file=sys.stderr)
         sys.exit(1)
 
-    setup_logging()
+    setup_logging(settings.log_file)
     try:
         asyncio.run(run(settings))
     except StartupError as error:

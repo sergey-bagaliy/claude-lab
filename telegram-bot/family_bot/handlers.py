@@ -15,6 +15,7 @@ from aiogram.filters import Command, CommandObject, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import (
+    BufferedInputFile,
     CallbackQuery,
     InlineKeyboardMarkup,
     InputMediaPhoto,
@@ -42,6 +43,7 @@ from .multiplication import QuizGame, format_examples, make_examples, new_game, 
 from .recipes import render_recipe_html
 from .storage import Storage
 from .timeutil import format_when, from_ts
+from .voice import MAX_VOICE_SECONDS, VOICE_SETTING, VoiceService
 
 log = logging.getLogger(__name__)
 
@@ -65,7 +67,8 @@ class Deps:
     assistant: FamilyAssistant
     storage: Storage
     clock: Callable[[], datetime]
-    daily_budget_usd: float = 0.0
+    voice: VoiceService | None = None  # None — голосовые выключены
+    admin_id: int | None = None  # хозяин бота: уведомления о лимите и кнопки «+$ на сегодня»
     quiz_games: dict[int, QuizGame] = field(default_factory=dict)
 
 
@@ -161,6 +164,8 @@ def create_router(deps: Deps, allowed_user_ids: frozenset[int]) -> Router:
         status: str | None = None,
         recipe_query: str = "",
         markup: InlineKeyboardMarkup | None = None,
+        voice_reply: bool = False,
+        read_aloud: bool = False,
     ) -> None:
         if status:
             await message.answer(status)
@@ -176,7 +181,28 @@ def create_router(deps: Deps, allowed_user_ids: frozenset[int]) -> Router:
             log.exception("Неожиданная ошибка при ответе")
             await message.answer("⚠️ Что-то пошло не так. Попробуйте ещё раз чуть позже.")
             return
+        if read_aloud and deps.voice is not None and reply.text:
+            markup = kb.with_read_aloud(markup, storage.save_text(message.chat.id, reply.text))
         await send_reply(message, reply, markup)
+        if voice_reply and reply.text and voice_replies_on():
+            await send_voice(message, reply.text)
+
+    def voice_replies_on() -> bool:
+        return deps.voice is not None and storage.get_setting(VOICE_SETTING) != "0"
+
+    async def send_voice(message: Message, text: str) -> None:
+        """Озвучивает текст и присылает голосовым. Если не вышло — текст уже отправлен, просто пишем в лог."""
+        if deps.voice is None:
+            return
+        try:
+            async with ChatActionSender.record_voice(chat_id=message.chat.id, bot=message.bot):
+                audio = await deps.voice.speak(text)
+        except Exception:
+            log.exception("Не удалось озвучить ответ")
+            await message.answer(texts.VOICE_TTS_FAILED)
+            return
+        if audio:
+            await message.answer_voice(BufferedInputFile(audio, filename="otvet.ogg"))
 
     async def send_album(message: Message, album: PhotoAlbum) -> None:
         """Фото места альбомом. Если Telegram не смог скачать какое-то фото — шлём по одному."""
@@ -320,6 +346,7 @@ def create_router(deps: Deps, allowed_user_ids: frozenset[int]) -> Router:
             "story",
             status=texts.STORY_WRITING,
             markup=kb.story(),
+            read_aloud=True,
         )
 
     async def show_quiz_menu(message: Message, state: FSMContext) -> None:
@@ -340,15 +367,21 @@ def create_router(deps: Deps, allowed_user_ids: frozenset[int]) -> Router:
         for choice in MODEL_CHOICES.values():
             lines.append(f"{choice.label} — {choice.about} {choice.per_month}.")
         spent = f"💰 Потрачено сегодня: ${today.cost_usd:.2f}"
-        if deps.daily_budget_usd > 0:
-            spent += f" из ${deps.daily_budget_usd:.2f} (дневной лимит)"
+        if assistant.budget.enabled:
+            spent += f" из ${assistant.budget.limit_today():.2f} (дневной лимит)"
         lines += [
             "",
             spent + f", за месяц: ${month.cost_usd:.2f}",
             "Суммы в месяц — примерная оценка для обычного дня (20 вопросов и 2 рецепта).",
             "Переключить можно в любой момент — история разговора сохранится.",
         ]
-        return "\n".join(lines), kb.settings(current)
+        if deps.voice is None:
+            lines += ["", "🎤 Голосовые выключены — как включить, написано в README (раздел «Голос»)."]
+        else:
+            state = "включено" if voice_replies_on() else "выключено"
+            lines += ["", f"🎤 Голосовые распознаю. Отвечать голосом на голосовые: {state}."]
+        voice_flag = None if deps.voice is None else voice_replies_on()
+        return "\n".join(lines), kb.settings(current, voice_flag)
 
     async def show_settings(message: Message, state: FSMContext) -> None:
         await state.clear()
@@ -367,9 +400,12 @@ def create_router(deps: Deps, allowed_user_ids: frozenset[int]) -> Router:
             f"Сегодня: ${today.cost_usd:.2f} — запросов: {today.requests}",
             f"За этот месяц: ${month.cost_usd:.2f} — запросов: {month.requests}",
         ]
-        if deps.daily_budget_usd > 0:
-            left = max(0.0, deps.daily_budget_usd - today.cost_usd)
-            lines.append(f"Дневной лимит: ${deps.daily_budget_usd:.2f}, осталось ${left:.2f}")
+        if assistant.budget.enabled:
+            limit = assistant.budget.limit_today()
+            left = max(0.0, limit - today.cost_usd)
+            extra = assistant.budget.extra_today()
+            note = f" (из них +${extra:.2f} добавлено на сегодня)" if extra else ""
+            lines.append(f"Дневной лимит: ${limit:.2f}{note}, осталось ${left:.2f}")
         by_kind = storage.spent_by_kind(now.strftime("%Y-%m-%d"))
         if by_kind:
             lines += ["", "Сегодня по разделам:"]
@@ -523,6 +559,38 @@ def create_router(deps: Deps, allowed_user_ids: frozenset[int]) -> Router:
     async def dialog(message: Message, person: Person) -> None:
         await ask_claude(message, person, message.text)
 
+    @router.message(F.voice)
+    async def voice_message(message: Message, person: Person, bot: Bot, state: FSMContext) -> None:
+        if deps.voice is None:
+            await message.answer(texts.VOICE_DISABLED)
+            return
+        if message.voice.duration > MAX_VOICE_SECONDS:
+            await message.answer(texts.VOICE_TOO_LONG)
+            return
+        waiting_for = await state.get_state()  # например, бот ждал «что приготовить?»
+        await state.clear()
+        try:
+            async with ChatActionSender.typing(chat_id=message.chat.id, bot=bot):
+                audio = await bot.download(message.voice)
+                text = await deps.voice.transcribe(audio.getvalue())
+        except Exception:
+            log.exception("Не удалось распознать голосовое")
+            await message.answer(texts.VOICE_STT_FAILED)
+            return
+        if not text:
+            await message.answer(texts.VOICE_EMPTY)
+            return
+        await message.answer(f"🎤 «{text}»")
+        if waiting_for == Forms.recipe_query.state:
+            await recipe_search(message, person, text)
+        elif waiting_for == Forms.shopping_items.state:
+            added = storage.add_shopping(_parse_items(text), added_by=person.name)
+            view_text, markup = shopping_view()
+            note = "Добавил: " + ", ".join(added) if added else "Это уже есть в списке."
+            await message.answer(f"{note}\n\n{view_text}", reply_markup=markup)
+        else:
+            await ask_claude(message, person, text, voice_reply=True)
+
     @router.message()
     async def not_text(message: Message) -> None:
         await message.answer(texts.ONLY_TEXT)
@@ -675,6 +743,16 @@ def create_router(deps: Deps, allowed_user_ids: frozenset[int]) -> Router:
             await callback.answer()
             await show_costs(message, state)
             return
+        if parts[1] == "voice":
+            if deps.voice is None:
+                await callback.answer(texts.VOICE_DISABLED, show_alert=True)
+                return
+            turn_on = not voice_replies_on()
+            storage.set_setting(VOICE_SETTING, "1" if turn_on else "0")
+            await callback.answer("Буду отвечать голосом 🔊" if turn_on else "Отвечаю только текстом")
+            text, markup = settings_view()
+            await _safe_edit(message, text, markup)
+            return
         choice = MODEL_CHOICES.get(parts[2]) if len(parts) > 2 else None
         if choice is None:
             await callback.answer("Такой модели нет.", show_alert=True)
@@ -687,6 +765,36 @@ def create_router(deps: Deps, allowed_user_ids: frozenset[int]) -> Router:
         await callback.answer(f"Готово! Теперь отвечает {choice.label}")
         text, markup = settings_view()
         await _safe_edit(message, text, markup)
+
+    @router.callback_query(F.data.startswith("tts:"))
+    async def cb_read_aloud(callback: CallbackQuery) -> None:
+        message = _message_of(callback)
+        saved = storage.text(int(callback.data.split(":", 1)[1]))
+        if message is None or saved is None or saved[0] != message.chat.id:
+            await callback.answer("Текст не найден.", show_alert=True)
+            return
+        if deps.voice is None:
+            await callback.answer(texts.VOICE_DISABLED, show_alert=True)
+            return
+        await callback.answer("Читаю вслух… 🔊")
+        await send_voice(message, saved[1])
+
+    @router.callback_query(F.data.startswith("budget:"))
+    async def cb_budget(callback: CallbackQuery, person: Person) -> None:
+        if deps.admin_id is None or person.user_id != deps.admin_id:
+            await callback.answer("Поднять лимит может только хозяин бота.", show_alert=True)
+            return
+        cents = int(callback.data.split(":")[2])
+        limit = assistant.budget.extend_today(cents / 100)
+        log.info("%s поднял(а) лимит на сегодня до $%.2f", person.name, limit)
+        await callback.answer(f"Готово! Лимит на сегодня: ${limit:.2f}")
+        message = _message_of(callback)
+        if message is not None:
+            await _safe_edit(
+                message,
+                f"✅ Лимит на сегодня поднят до ${limit:.2f}. Claude снова отвечает.",
+                None,
+            )
 
     @router.callback_query(F.data.startswith("media:"))
     async def cb_media(callback: CallbackQuery, person: Person, state: FSMContext) -> None:

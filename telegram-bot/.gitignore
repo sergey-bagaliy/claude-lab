@@ -8,6 +8,7 @@ __pycache__/
 # Файлы, где могут оказаться ключи. Ключи в репозиторий не кладём!
 .env
 .env.*
+!.env.example
 *.key
 secrets*
 
@@ -16,3 +17,8 @@ secrets*
 *.log.*
 *.db
 *.db-journal
+
+# Данные бота и модели для голоса (на сервере — папки data и models)
+data/
+models/
+backups/

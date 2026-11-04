@@ -14,8 +14,9 @@ from aiogram.methods import (
     SendChatAction,
     SendMediaGroup,
     SendPhoto,
+    SendVoice,
 )
-from aiogram.types import PhotoSize, ReplyKeyboardMarkup
+from aiogram.types import PhotoSize, ReplyKeyboardMarkup, Voice
 
 from family_bot import texts
 from family_bot.app import build_dispatcher
@@ -23,6 +24,7 @@ from family_bot.config import Settings
 from family_bot.handlers import Deps
 
 from .conftest import (
+    FAKE_VOICE_BYTES,
     FakeTelegramSession,
     api_connection_error,
     claude_message,
@@ -38,10 +40,11 @@ from .conftest import (
 
 
 class BotEnv:
-    def __init__(self, assistant, storage, clock, allowed=frozenset(), budget=0.0):
+    def __init__(self, assistant, storage, clock, allowed=frozenset(), budget=0.0, voice=None, admin_id=None):
         self.session = FakeTelegramSession()
         self.bot = Bot(token="123456:TEST-TOKEN", session=self.session)
-        self.deps = Deps(assistant=assistant, storage=storage, clock=clock, daily_budget_usd=budget)
+        assistant.daily_budget_usd = budget
+        self.deps = Deps(assistant=assistant, storage=storage, clock=clock, voice=voice, admin_id=admin_id)
         settings = Settings(telegram_token="x", anthropic_api_key="y", allowed_user_ids=frozenset(allowed))
         self.dp = build_dispatcher(self.deps, settings)
 
@@ -524,3 +527,124 @@ async def test_story_pictures_come_before_text(env, fake_claude):
     ]
     assert order == ["SendMessage", "SendMediaGroup", "SendMessage"]  # «сочиняю…», картинки, сказка
     assert env.last().text == "Жил-был ёжик…"
+
+
+# ---------- голосовые ----------
+
+
+def voice_note(duration: int = 5) -> Voice:
+    return Voice(file_id="v1", file_unique_id="u1", duration=duration)
+
+
+async def test_voice_message_answered_with_text_and_voice(assistant, storage, clock, fake_claude, fake_voice):
+    env = BotEnv(assistant, storage, clock, voice=fake_voice)
+    fake_voice.heard = "какая завтра погода?"
+    fake_claude.messages.queue.append(claude_text("Завтра +12 и солнечно ☀️"))
+    await env.send(None, voice=voice_note())
+
+    assert fake_voice.received == [FAKE_VOICE_BYTES]  # голосовое скачано и передано распознаванию
+    assert env.texts() == ["🎤 «какая завтра погода?»", "Завтра +12 и солнечно ☀️"]
+    assert fake_claude.messages.calls[0]["messages"][-1]["content"].endswith("какая завтра погода?")
+    [answer] = env.session.of_type(SendVoice)
+    assert answer.voice.data == b"OggS-answer"
+    assert fake_voice.spoken == ["Завтра +12 и солнечно ☀️"]
+
+
+async def test_voice_replies_can_be_turned_off(assistant, storage, clock, fake_claude, fake_voice):
+    env = BotEnv(assistant, storage, clock, voice=fake_voice)
+    await env.send(texts.BTN_SETTINGS)
+    assert "🔊 Голосом на голосовые: вкл" in buttons(env.last().reply_markup)
+    await env.press("set:voice")
+    assert "🔇 Голосом на голосовые: выкл" in buttons(env.edits()[-1].reply_markup)
+
+    await env.send(None, voice=voice_note())
+    assert env.session.of_type(SendVoice) == []  # ответ только текстом
+    assert env.last().text == "Ответ Claude"
+
+
+async def test_voice_while_waiting_for_recipe(assistant, storage, clock, fake_claude, fake_voice):
+    env = BotEnv(assistant, storage, clock, voice=fake_voice)
+    fake_voice.heard = "курица и картошка"
+    fake_claude.messages.queue.append(recipe_turn())
+    await env.send(texts.BTN_RECIPE)
+    await env.send(None, voice=voice_note())
+    assert "Нужен рецепт: курица и картошка" in fake_claude.messages.calls[0]["messages"][-1]["content"]
+
+
+async def test_voice_while_adding_to_shopping(assistant, storage, clock, fake_claude, fake_voice):
+    env = BotEnv(assistant, storage, clock, voice=fake_voice)
+    fake_voice.heard = "молоко, хлеб и яйца"
+    await env.press("shop:add")
+    await env.send(None, voice=voice_note())
+    assert [i.text for i in storage.shopping()] == ["молоко", "хлеб и яйца"]
+    assert fake_claude.messages.calls == []  # бесплатно, без Claude
+
+
+async def test_voice_problems(assistant, storage, clock, fake_claude, fake_voice):
+    env = BotEnv(assistant, storage, clock)  # голос выключен
+    await env.send(None, voice=voice_note())
+    assert env.last().text == texts.VOICE_DISABLED
+
+    env = BotEnv(assistant, storage, clock, voice=fake_voice)
+    await env.send(None, voice=voice_note(duration=600))
+    assert env.last().text == texts.VOICE_TOO_LONG
+    fake_voice.heard = ""
+    await env.send(None, voice=voice_note())
+    assert env.last().text == texts.VOICE_EMPTY
+    assert fake_claude.messages.calls == []
+
+
+async def test_tts_failure_keeps_text_answer(assistant, storage, clock, fake_claude, fake_voice):
+    env = BotEnv(assistant, storage, clock, voice=fake_voice)
+    fake_voice.fail_speak = True
+    await env.send(None, voice=voice_note())
+    assert env.texts()[-2:] == ["Ответ Claude", texts.VOICE_TTS_FAILED]
+
+
+async def test_story_read_aloud(assistant, storage, clock, fake_claude, fake_voice):
+    env = BotEnv(assistant, storage, clock, voice=fake_voice)
+    fake_claude.messages.queue.append(claude_text("Жила-была Катя…"))
+    await env.send(texts.BTN_STORY)
+    story = env.last()
+    assert buttons(story.reply_markup)[0] == "🔊 Прочитать вслух"
+
+    await env.press(story.reply_markup.inline_keyboard[0][0].callback_data)
+    assert fake_voice.spoken == ["Жила-была Катя…"]
+    assert len(env.session.of_type(SendVoice)) == 1
+
+    await env.press(story.reply_markup.inline_keyboard[0][0].callback_data, user_id=200)  # чужой чат
+    assert "Текст не найден." in env.alerts()
+
+
+async def test_no_read_aloud_button_without_voice(env, fake_claude):
+    fake_claude.messages.queue.append(claude_text("Жила-была Катя…"))
+    await env.send(texts.BTN_STORY)
+    assert "🔊 Прочитать вслух" not in buttons(env.last().reply_markup)
+    await env.send(texts.BTN_SETTINGS)
+    assert "Голосовые выключены" in env.last().text
+
+
+# ---------- лимит: кнопки для хозяина ----------
+
+
+async def test_admin_extends_limit(assistant, storage, clock, fake_claude):
+    env = BotEnv(assistant, storage, clock, budget=0.001, admin_id=100)
+    await env.send("Привет")  # потратили больше лимита
+    await env.send("Ещё")
+    assert "лимит" in env.last().text and len(fake_claude.messages.calls) == 1
+
+    await env.press("budget:add:100")
+    assert "Готово! Лимит на сегодня: $1.00" in env.alerts()
+    assert "поднят до $1.00" in env.edits()[-1].text
+    await env.send("Ещё раз")
+    assert env.last().text == "Ответ Claude"
+
+    await env.send("/rashod")
+    assert "+$1.00 добавлено на сегодня" in env.last().text
+
+
+async def test_only_admin_can_extend_limit(assistant, storage, clock):
+    env = BotEnv(assistant, storage, clock, budget=1.0, admin_id=100)
+    await env.press("budget:add:200", user_id=200)
+    assert "Поднять лимит может только хозяин бота." in env.alerts()
+    assert assistant.budget.extra_today() == 0

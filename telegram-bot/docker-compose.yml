@@ -1,0 +1,19 @@
+# Запуск: docker compose up -d --build
+services:
+  bot:
+    build: .
+    image: family-bot
+    container_name: family-bot
+    # Бот сам поднимется после сбоя и после перезагрузки сервера
+    # (если служба Docker включена: sudo systemctl enable docker).
+    restart: unless-stopped
+    # Ключи и настройки — в файле .env рядом с этим файлом. В git он не попадает.
+    env_file: .env
+    volumes:
+      - ./data:/data      # база, резервные копии (data/backups), журнал bot.log
+      - ./models:/models  # модели для голоса — скачиваются один раз
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

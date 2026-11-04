@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import sqlite3
 from dataclasses import dataclass
+from pathlib import Path
 
 from .pricing import UsageCounts
 
@@ -54,6 +55,11 @@ CREATE TABLE IF NOT EXISTS usage (
     cache_write_tokens INTEGER NOT NULL,
     web_searches INTEGER NOT NULL,
     cost_usd REAL NOT NULL
+);
+CREATE TABLE IF NOT EXISTS texts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    chat_id INTEGER NOT NULL,
+    text TEXT NOT NULL
 );
 CREATE TABLE IF NOT EXISTS settings (
     key TEXT PRIMARY KEY,
@@ -119,6 +125,25 @@ class Storage:
 
     def close(self) -> None:
         self.db.close()
+
+    def backup_to(self, path: str | Path) -> None:
+        """Целостная копия базы (можно делать, пока бот работает)."""
+        target = sqlite3.connect(str(path))
+        try:
+            self.db.backup(target)
+        finally:
+            target.close()
+
+    # ---------- сохранённые тексты (для кнопки «🔊 Прочитать вслух») ----------
+
+    def save_text(self, chat_id: int, text: str) -> int:
+        cursor = self.db.execute("INSERT INTO texts(chat_id, text) VALUES (?, ?)", (chat_id, text))
+        self.db.commit()
+        return int(cursor.lastrowid)
+
+    def text(self, text_id: int) -> tuple[int, str] | None:
+        row = self.db.execute("SELECT chat_id, text FROM texts WHERE id=?", (text_id,)).fetchone()
+        return (row["chat_id"], row["text"]) if row else None
 
     # ---------- члены семьи ----------
 

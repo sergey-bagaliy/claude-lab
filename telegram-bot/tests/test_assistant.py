@@ -278,7 +278,7 @@ async def test_empty_answer(assistant, fake_claude):
     "error, expected",
     [
         (api_status_error(anthropic.AuthenticationError, 401), "ANTHROPIC_API_KEY"),
-        (api_status_error(anthropic.PermissionDeniedError, 403), "доступа"),
+        (api_status_error(anthropic.PermissionDeniedError, 403), "не поддерживает"),
         (api_status_error(anthropic.NotFoundError, 404), "CLAUDE_MODEL"),
         (api_status_error(anthropic.RateLimitError, 429), "Подождите"),
         (
