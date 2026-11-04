@@ -1,0 +1,5 @@
+node_modules/
+render/build/
+render/still-*.png
+render/sheet.png
+render/crop.png

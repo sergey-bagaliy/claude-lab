@@ -1,0 +1,13 @@
+{
+  "name": "multik-semya-edet-v-gory",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Мультфильм «Семья едет в горы», нарисованный кодом (HTML Canvas) и собранный в MP4",
+  "scripts": {
+    "render": "node render/render.js",
+    "still": "node render/render.js --still"
+  },
+  "devDependencies": {
+    "playwright": "^1.47.0"
+  }
+}

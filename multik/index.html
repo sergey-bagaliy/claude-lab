@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Семья едет в горы</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<style>
+  :root { --bg: #10131c; --panel: #1c2130; --text: #f3f5fa; --muted: #9aa3b5; --accent: #ffd23f; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
+    font-family: Rubik, "Segoe UI", Arial, sans-serif; }
+  .wrap { min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px; gap: 14px; }
+  .stage { position: relative; width: min(100%, calc((100vh - 120px) * 16 / 9)); aspect-ratio: 16 / 9; border-radius: 14px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,.5); background: #000; }
+  canvas { display: block; width: 100%; height: 100%; }
+  .start { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(10,12,20,.35); border: 0; cursor: pointer; }
+  .start span { font: 800 clamp(18px, 3vw, 34px) Rubik, sans-serif; color: #2b2735; background: var(--accent); padding: .6em 1.2em; border-radius: 999px; box-shadow: 0 6px 0 #c99a10; }
+  .start:hover span { transform: translateY(-2px); }
+  .bar { width: min(100%, calc((100vh - 120px) * 16 / 9)); display: flex; align-items: center; gap: 12px; background: var(--panel); padding: 10px 14px; border-radius: 12px; flex-wrap: wrap; }
+  .bar button { font: 800 16px Rubik, sans-serif; background: #2c3346; color: var(--text); border: 0; border-radius: 8px; padding: 8px 14px; cursor: pointer; min-width: 44px; }
+  .bar button:hover { background: #39425a; }
+  .bar input[type=range] { flex: 1; min-width: 140px; accent-color: var(--accent); }
+  .time { font-variant-numeric: tabular-nums; color: var(--muted); min-width: 92px; text-align: right; }
+  .scenes { display: flex; gap: 6px; flex-wrap: wrap; width: min(100%, calc((100vh - 120px) * 16 / 9)); }
+  .scenes button { font: 500 14px Rubik, sans-serif; background: transparent; color: var(--muted); border: 1px solid #343b50; border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+  .scenes button.on { color: #2b2735; background: var(--accent); border-color: var(--accent); }
+  body.render .bar, body.render .scenes, body.render .start { display: none; }
+  body.render .wrap { padding: 0; display: block; }
+  body.render .stage { width: 1920px; height: 1080px; border-radius: 0; box-shadow: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="stage">
+    <canvas id="c" width="1920" height="1080"></canvas>
+    <button class="start" id="start" aria-label="Смотреть мультфильм"><span>▶ Смотреть мультфильм</span></button>
+  </div>
+  <div class="bar">
+    <button id="play" title="Пауза / продолжить">▶</button>
+    <input id="seek" type="range" min="0" max="42" step="0.01" value="0" aria-label="Перемотка">
+    <span class="time" id="time">0:00 / 0:42</span>
+    <button id="mute" title="Звук вкл/выкл">🔊</button>
+  </div>
+  <div class="scenes" id="scenes"></div>
+</div>
+<script src="js/draw.js"></script>
+<script src="js/scenes.js"></script>
+<script src="js/music.js"></script>
+<script src="js/player.js"></script>
+</body>
+</html>
