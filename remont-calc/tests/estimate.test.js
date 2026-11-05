@@ -60,6 +60,28 @@ test('«сколько купить» и цена по видам материа
   assert.equal(t.price(m.plinthPVC), 'цена не указана');
 });
 
+test('подготовка — первым разделом; у грунта и шпаклёвки видно, где они используются', () => {
+  const project = {
+    rooms: [room({ floor: 'laminate', walls: 'wallpaper', ceiling: 'paint',
+      prep: { floor: { leveler: true, primer: true }, walls: { putty: true, primer: true }, ceiling: { primer: true } } })]
+  };
+  const calc = F.calculateProject(project);
+  const groups = E.grouped(calc);
+  assert.equal(groups[0].title, 'Подготовка и черновые работы');
+  assert.ok(groups[0].items.some((m) => m.key === 'leveler'), 'наливной пол в подготовке');
+  const t = E.texts(project, calc);
+  const primer = calc.materials.find((m) => m.key === 'primer');
+  assert.equal(sp(t.lines(primer)[0]), 'Где: пол 12 м² · стены 33,9 м² · потолок 12 м²');
+  const putty = calc.materials.find((m) => m.key === 'putty');
+  assert.equal(sp(t.lines(putty)[0]), 'Где: стены 33,9 м²');
+  const lam = calc.materials.find((m) => m.key === 'laminate');
+  assert.ok(!t.lines(lam)[0].startsWith('Где'), 'у ламината строка «где» не нужна');
+  // за что указывается цена — для подсказки у поля цены
+  assert.equal(t.per(calc.materials.find((m) => m.key === 'leveler')), 'мешок');
+  assert.equal(t.per(primer), 'канистру');
+  assert.equal(t.per(lam), 'м²');
+});
+
 test('у каждого материала есть текст покупки, пояснение и цена', () => {
   const all = Object.fromEntries(F.MATERIAL_ORDER.map((k) => [k, { price: 100 }]));
   const rooms = [

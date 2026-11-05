@@ -28,12 +28,13 @@
    * 1. Каталог материалов
    * ================================================================== */
 
+  // Порядок разделов — как идут работы на объекте: сначала подготовка, потом отделка.
   var CATEGORIES = [
+    { key: 'rough', title: 'Подготовка и черновые работы' },
     { key: 'floor', title: 'Напольные покрытия' },
     { key: 'walls', title: 'Стены' },
     { key: 'ceiling', title: 'Потолок' },
     { key: 'tile', title: 'Плиточные работы' },
-    { key: 'rough', title: 'Черновые работы' },
     { key: 'openings', title: 'Окна и двери' },
     { key: 'electric', title: 'Электрика' },
     { key: 'plumbing', title: 'Сантехника' },
@@ -1702,25 +1703,29 @@
 
   /* ================================================================== *
    * 8. Шаблоны помещений и типовых квартир
-   *    Размеры — примерные (для начала расчёта), их нужно заменить замерами.
+   *    Размеры и точки электрики — примерные (для начала расчёта): их нужно заменить замерами и проектом.
    * ================================================================== */
 
   var ROOM_PRESETS = {
     room: { label: 'Комната', floor: 'laminate', walls: 'wallpaper', ceiling: 'paint',
       prep: { walls: { putty: true, primer: true }, ceiling: { putty: true, primer: true } },
-      openings: [['window', 1.4, 1.5], ['door', 0.9, 2.1]] },
+      openings: [['window', 1.4, 1.5], ['door', 0.9, 2.1]], counts: { elSocket: 4, elSwitch: 1, elLight: 1 } },
     kitchen: { label: 'Кухня', floor: 'porcelain', walls: 'paint', ceiling: 'paint',
       prep: { walls: { putty: true, primer: true }, ceiling: { putty: true, primer: true }, floor: { primer: true } },
-      openings: [['window', 1.4, 1.5], ['door', 0.9, 2.1]], counts: { kitchenSink: 1 } },
+      openings: [['window', 1.4, 1.5], ['door', 0.9, 2.1]],
+      counts: { kitchenSink: 1, elSocket: 5, elPowerSocket: 1, elSwitch: 1, elLight: 1 } },
     bath: { label: 'Санузел', floor: 'porcelain', walls: 'tile', ceiling: 'stretch',
       prep: { walls: { plaster: true, primer: true }, floor: { waterproofing: true, primer: true } },
-      openings: [['door', 0.7, 2.1]], counts: { toiletFloor: 1, sinkVanity: 1, bathAcrylic: 1 } },
+      openings: [['door', 0.7, 2.1]],
+      counts: { toiletFloor: 1, sinkVanity: 1, bathAcrylic: 1, elSocketIP44: 1, elSwitch: 1, elSpot: 4 } },
     toilet: { label: 'Туалет', floor: 'porcelain', walls: 'tile', ceiling: 'stretch',
       prep: { walls: { primer: true }, floor: { waterproofing: true, primer: true } },
-      openings: [['door', 0.6, 2.0]], counts: { toiletFloor: 1 } },
+      openings: [['door', 0.6, 2.0]], counts: { toiletFloor: 1, elSwitch: 1, elLight: 1 } },
     hall: { label: 'Коридор', floor: 'laminate', walls: 'wallpaper', ceiling: 'paint',
-      prep: { walls: { putty: true, primer: true }, ceiling: { putty: true, primer: true } }, openings: [] },
-    balcony: { label: 'Балкон', floor: 'none', walls: 'panels', ceiling: 'panels', prep: {}, openings: [['window', 2.8, 1.4]] },
+      prep: { walls: { putty: true, primer: true }, ceiling: { putty: true, primer: true } }, openings: [],
+      counts: { elSocket: 2, elSwitch: 1, elLight: 2 } },
+    balcony: { label: 'Балкон', floor: 'none', walls: 'panels', ceiling: 'panels', prep: {}, openings: [['window', 2.8, 1.4]],
+      counts: { elSocketIP44: 1, elSwitch: 1, elLight: 1 } },
     empty: { label: 'Пустое', floor: 'none', walls: 'none', ceiling: 'none', prep: {}, openings: [] }
   };
 
@@ -1741,7 +1746,7 @@
       { preset: 'room', name: 'Гостиная', length: 5, width: 3.6 },
       { preset: 'room', name: 'Спальня', length: 3.9, width: 3.2 },
       { preset: 'kitchen', name: 'Кухня', length: 3.4, width: 2.9 },
-      { preset: 'bath', name: 'Ванная', length: 2, width: 1.7, counts: { sinkVanity: 1, bathAcrylic: 1, washingMachine: 1 } },
+      { preset: 'bath', name: 'Ванная', length: 2, width: 1.7, counts: { toiletFloor: 0, washingMachine: 1 } },
       { preset: 'toilet', name: 'Туалет', length: 1.4, width: 0.9 },
       { preset: 'hall', name: 'Коридор', length: 5, width: 1.4, openings: [['door', 0.9, 2.05]] }
     ] },
@@ -1750,7 +1755,7 @@
       { preset: 'room', name: 'Спальня', length: 4, width: 3.3 },
       { preset: 'room', name: 'Детская', length: 3.6, width: 3.2 },
       { preset: 'kitchen', name: 'Кухня', length: 3.6, width: 3 },
-      { preset: 'bath', name: 'Ванная', length: 2.1, width: 1.7, counts: { sinkVanity: 1, bathAcrylic: 1, washingMachine: 1 } },
+      { preset: 'bath', name: 'Ванная', length: 2.1, width: 1.7, counts: { toiletFloor: 0, washingMachine: 1 } },
       { preset: 'toilet', name: 'Туалет', length: 1.4, width: 0.9 },
       { preset: 'hall', name: 'Коридор', length: 6, width: 1.5, openings: [['door', 0.9, 2.05]] }
     ] }
@@ -1801,6 +1806,8 @@
     ['floor', 'walls', 'ceiling'].forEach(function (k) { Object.assign(room.prep[k], (preset.prep || {})[k]); });
     room.openings = (o.openings || preset.openings).map(function (x) { return makeOpening(x[0], x[1], x[2], makeId); });
     room.counts = Object.assign({}, preset.counts, o.counts);
+    // «0» в шаблоне квартиры убирает позицию из шаблона помещения (унитаз в ванной при отдельном туалете)
+    Object.keys(room.counts).forEach(function (k) { if (!(toNumber(room.counts[k]) > 0)) delete room.counts[k]; });
     if (o.length !== undefined) room.length = o.length;
     if (o.width !== undefined) room.width = o.width;
     if (o.height !== undefined) room.height = o.height;

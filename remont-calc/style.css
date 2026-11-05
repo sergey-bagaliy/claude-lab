@@ -607,6 +607,49 @@ input.invalid { border-color: var(--danger); background: var(--danger-soft); }
 .hero-bought { font-size: 13px; color: var(--head-muted); }
 .hero-warn { margin-top: 8px; font-size: 13px; color: #fdba74; }
 
+.hero-warn { display: block; border: 0; background: none; padding: 0; text-align: left; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+
+/* «Укажите цены» */
+.need-card { border-color: var(--accent); }
+.need-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+}
+.need-info { display: grid; min-width: 0; flex: 1 1 160px; }
+.need-info span { font-size: 13px; color: var(--muted); }
+.need-price { display: flex; align-items: center; gap: 8px; flex: none; font-size: 13px; color: var(--muted); }
+.need-price input {
+  width: 110px;
+  min-height: 44px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--input-bg);
+  font-size: 17px;
+  font-variant-numeric: tabular-nums;
+}
+.need-row.done .need-info b::after { content: " ✓"; color: var(--ok); }
+.need-row.done input { border-color: var(--ok); }
+.no-price {
+  display: inline;
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  color: var(--danger);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.cat-unp { font: 500 11px/1 var(--font-body); color: var(--danger); text-transform: none; letter-spacing: 0; }
+
 .settings { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 10px; }
 .settings summary { cursor: pointer; font-weight: 600; min-height: 36px; display: flex; align-items: center; }
 .settings .grid2 { margin-top: 8px; }

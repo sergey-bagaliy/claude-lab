@@ -983,7 +983,10 @@ test('шаблоны помещений и типовых квартир', () =>
   assert.equal(bath.floor, 'porcelain');
   assert.equal(bath.walls, 'tile');
   assert.equal(bath.prep.floor.waterproofing, true);
-  assert.deepEqual(bath.counts, { toiletFloor: 1, sinkVanity: 1, bathAcrylic: 1 });
+  assert.deepEqual(bath.counts, { toiletFloor: 1, sinkVanity: 1, bathAcrylic: 1, elSocketIP44: 1, elSwitch: 1, elSpot: 4 });
+  // в шаблонах — типовые точки электрики, чтобы кабель и щит считались сразу
+  assert.deepEqual(F.makeRoom('room', {}, id).counts, { elSocket: 4, elSwitch: 1, elLight: 1 });
+  assert.equal(F.makeRoom('kitchen', {}, id).counts.elPowerSocket, 1, 'на кухне — линия для плиты');
   assert.equal(bath.openings[0].type, 'door');
   assert.equal(new Set([bath.id, bath.openings[0].id]).size, 2, 'id не повторяются');
 
@@ -999,6 +1002,15 @@ test('шаблоны помещений и типовых квартир', () =>
     assert.equal(res.rooms.length, rooms.length);
   });
   assert.deepEqual(F.buildApartment('нет такой'), []);
+  // при отдельном туалете унитаз в ванной не дублируется
+  ['two', 'three'].forEach((key) => {
+    const res = F.calculateProject({ rooms: F.buildApartment(key, id) });
+    assert.equal(res.materials.find((m) => m.key === 'toiletFloor').packs, 1, key + ': один унитаз');
+    const bathRoom = F.buildApartment(key, id).find((r) => r.name === 'Ванная');
+    assert.equal(bathRoom.counts.toiletFloor, undefined);
+    assert.equal(bathRoom.counts.washingMachine, 1);
+    assert.ok(res.materials.some((m) => m.key === 'cableSocket') && res.materials.some((m) => m.key === 'elPanel'), key + ': электрика посчитана');
+  });
 });
 
 test('сравнение вариантов: пол, окна, радиаторы', () => {

@@ -663,7 +663,7 @@
   function electricBodyHTML(room) {
     return '<div class="items" data-items="electric">' + itemsHTML(room, ELECTRIC_GROUPS) + '</div>' +
       adderHTML(ELECTRIC_GROUPS, 'electric') +
-      '<p class="small muted">Кабель, подрозетники, автоматы и щит посчитаются сами.</p>';
+      '<p class="small muted">В шаблонах точки подставлены примерно — поправьте по проекту. Кабель, подрозетники, автоматы и щит посчитаются сами.</p>';
   }
 
   function roomHTML(room) {
@@ -776,6 +776,14 @@
     if (g.perimeter > 0) parts.push('Периметр ' + fmt(g.perimeter) + ' м');
     if (r.cost > 0) parts.push('≈ <b>' + money(r.cost) + '</b>');
     var html = parts.join(' · ');
+    var unpriced = [];
+    (r.surfaces || []).forEach(function (s) {
+      s.materials.forEach(function (m) { if (!m.priced && unpriced.indexOf(m.title) < 0) unpriced.push(m.title); });
+    });
+    if (unpriced.length) {
+      html += (html ? '<br>' : '') + '<button type="button" class="no-price" data-action="goto-prices">Без цены, не в сумме: ' +
+        esc(unpriced.slice(0, 4).join(', ').toLowerCase()) + (unpriced.length > 4 ? ' и ещё ' + (unpriced.length - 4) : '') + ' → указать цены</button>';
+    }
     if (g.warnings.length) html += (html ? '<br>' : '') + '<span class="warn">⚠ ' + esc(g.warnings.join('; ')) + '</span>';
     return html || '<span class="muted">Введите размеры</span>';
   }
@@ -1040,7 +1048,8 @@
         (area > 0 ? ' · ' + fmt(area) + ' м²' : '') + (area > 0 && calc.totalCost > 0 ? ' · ' + money(calc.totalCost / area) + ' за м²' : '') + '</div>' +
       '<div class="hero-bar" role="img" aria-label="Куплено на ' + share + ' %"><span style="width:' + share + '%"></span></div>' +
       '<div class="hero-bought">Куплено на ' + money(boughtCost) + ' · осталось ' + money(calc.totalCost - boughtCost) + '</div>' +
-      (calc.missingPrices ? '<div class="hero-warn">Не указаны цены: ' + count(calc.missingPrices, FORMS.item) + ' — итог неполный</div>' : '');
+      (calc.missingPrices ? '<button type="button" class="hero-warn" data-action="goto-prices">Не указаны цены: ' + count(calc.missingPrices, FORMS.item) +
+        ' — итог неполный. Указать цены ↓</button>' : '');
   }
 
   function renderSummary() {
@@ -1053,7 +1062,9 @@
     var t = E.texts(state, calc);
     var bought = state.bought;
     var groups = E.grouped(calc).map(function (g) {
-      return '<div class="cat-head"><span>' + g.title + '</span><span>' + money(g.cost) + '</span></div>' +
+      var unp = g.items.filter(function (m) { return !m.priced; }).length;
+      return '<div class="cat-head"><span>' + g.title + '</span><span>' + money(g.cost) +
+        (unp ? ' <small class="cat-unp">+ ' + unp + ' без цены</small>' : '') + '</span></div>' +
         g.items.map(function (m) {
           var lines = t.lines(m);
           lines.push(t.price(m));
@@ -1101,6 +1112,60 @@
       '<div class="card"><h2 class="card-title">По помещениям</h2>' +
         '<p class="small muted">Пол, стены, потолок и инженерия посчитаны раздельно — как если покупать на каждое отдельно, поэтому сумма немного больше общего итога. Щит и свои позиции — только в общем итоге.</p>' +
         roomCards + '</div>';
+  }
+
+  /**
+   * «Укажите цены»: всё, что посчитано в количестве, но без цены не попало в сумму.
+   * Цена вводится прямо здесь (сохраняется по уходу из поля).
+   */
+  var needSig = null;
+  var needHold = false; // пока вводят цены в блоке, не перерисовываем его — иначе пропадёт курсор
+  function renderNeedPrices(force) {
+    if (needHold && !force) return;
+    var box = document.getElementById('need-prices');
+    var missing = calc.materials.filter(function (m) { return !m.priced; });
+    var sig = missing.map(function (m) { return m.key; }).join('|');
+    if (!force && (sig === needSig || box.contains(document.activeElement))) return;
+    needSig = sig;
+    if (!missing.length) { box.innerHTML = ''; return; }
+    var t = E.texts(state, calc);
+    box.innerHTML = '<div class="card need-card"><h2 class="card-title" data-need-title>' + needTitle(missing.length) + '</h2>' +
+      '<p class="small muted">Количество уже посчитано — без цены позиция не входит в итог. Цены запомнятся и для следующих расчётов.</p>' +
+      missing.map(function (m) {
+        return '<div class="need-row" data-need="' + esc(m.key) + '">' +
+          '<div class="need-info"><b>' + esc(m.title) + '</b><span>' + esc(t.buy(m)) + '</span></div>' +
+          '<label class="need-price"><input type="text" inputmode="decimal" autocomplete="off" enterkeyhint="next" data-inline-price="' + esc(m.key) +
+          '" placeholder="цена" aria-label="Цена: ' + esc(m.title) + '"><span>₽ за ' + esc(t.per(m)) + '</span></label></div>';
+      }).join('') + '</div>';
+  }
+
+  function needTitle(n) {
+    return n ? 'Укажите цены: ' + count(n, FORMS.item) + ' пока не в сумме' : 'Все цены указаны ✓';
+  }
+
+  function setInlinePrice(input) {
+    var key = input.dataset.inlinePrice;
+    if (key.indexOf('custom:') === 0) {
+      var c = state.custom.find(function (x) { return 'custom:' + x.id === key; });
+      if (c) c.price = input.value;
+    } else if (state.materials[key]) {
+      state.materials[key].price = input.value;
+    }
+    var row = input.closest('[data-need]');
+    if (row) row.classList.toggle('done', F.toNumber(input.value) > 0);
+    needHold = true;
+    refresh();
+    needHold = false;
+    var title = document.querySelector('[data-need-title]');
+    if (title) title.textContent = needTitle(calc.missingPrices);
+  }
+
+  function scrollToPrices() {
+    var el = document.getElementById('need-prices');
+    if (!el || !el.firstChild) return;
+    window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 96, behavior: 'smooth' });
+    var first = el.querySelector('[data-inline-price]');
+    if (first) first.focus({ preventScroll: true });
   }
 
   function renderHeader() {
@@ -1232,6 +1297,7 @@
     updateRoomSummaries();
     updateMaterialUsage();
     renderSummary();
+    renderNeedPrices(false);
     if (currentTab() === 'compare') renderCompareResults();
     scheduleAutosave();
   }
@@ -1263,7 +1329,7 @@
     document.querySelectorAll('.panel').forEach(function (p) { p.hidden = p.dataset.panel !== name; });
     if (name === 'materials') renderMaterials();
     if (name === 'compare') renderCompare();
-    if (name === 'summary') renderSaved();
+    if (name === 'summary') { renderSaved(); renderNeedPrices(true); }
     window.scrollTo(0, 0);
   }
 
@@ -1563,6 +1629,12 @@
     switch (action) {
       case 'goto-summary':
         showTab('summary');
+        if (calc.missingPrices) scrollToPrices();
+        break;
+
+      case 'goto-prices':
+        if (currentTab() !== 'summary') showTab('summary');
+        scrollToPrices();
         break;
 
       case 'sheet-btn': {
@@ -1850,9 +1922,11 @@
     document.addEventListener('input', function (e) {
       // select и checkbox обрабатываем по change, чтобы не пересчитывать дважды
       if (e.target.tagName === 'SELECT' || e.target.type === 'checkbox' || e.target.type === 'file') return;
+      if (e.target.dataset.inlinePrice) { toggleInvalid(e.target); return; }
       onInput(e);
     });
     document.addEventListener('change', function (e) {
+      if (e.target.dataset.inlinePrice) { setInlinePrice(e.target); return; }
       if (e.target.id === 'import-file') {
         if (e.target.files[0]) importFile(e.target.files[0]);
         e.target.value = '';

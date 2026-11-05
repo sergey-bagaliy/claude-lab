@@ -120,6 +120,25 @@
     }
     var n = F.toNumber;
 
+    /**
+     * Где используется материал: «пол 12 м² · стены 33,81 м² · потолок 12 м²».
+     * Нужно для грунта, шпаклёвки, клея и т. п., которые идут сразу на несколько поверхностей.
+     */
+    var SURF_NAMES = { floor: 'пол', walls: 'стены', ceiling: 'потолок', other: 'проёмы и инженерия' };
+    function where(m) {
+      if (!calc || !calc.rooms || m.kind === 'custom') return '';
+      var meta = F.MATERIALS[m.key];
+      var sums = { floor: 0, walls: 0, ceiling: 0, other: 0 };
+      calc.rooms.forEach(function (r) {
+        var sn = r.surfaceNeeds || {};
+        Object.keys(sums).forEach(function (s) { sums[s] += (sn[s] && sn[s][m.key]) || 0; });
+      });
+      var parts = Object.keys(sums).filter(function (s) { return sums[s] > 0; });
+      var multi = parts.length > 1 || meta.category === 'rough' || meta.category === 'tile';
+      if (!multi || !parts.length || meta.baseUnit === 'шт.' || meta.baseUnit === 'Вт') return '';
+      return 'Где: ' + parts.map(function (s) { return SURF_NAMES[s] + ' ' + fmt(sums[s]) + ' ' + meta.baseUnit; }).join(' · ');
+    }
+
     function buy(m) {
       if (m.kind === 'custom') {
         if (m.packSize !== 1) return count(m.packs, FORMS.pack) + ' по ' + fmt(m.packSize) + ' ' + m.amountUnit;
@@ -156,6 +175,12 @@
 
     function lines(m) {
       if (m.kind === 'custom') return customLines(m);
+      var w = where(m);
+      var L0 = linesOf(m);
+      return w ? [w].concat(L0) : L0;
+    }
+
+    function linesOf(m) {
       var p = P(m.key);
       var r = n(p.reserve);
       var res = r > 0 ? ' (+' + fmt(r, 1) + ' %)' : '';
@@ -288,25 +313,30 @@
       return [name + ' ' + fmt(m.area) + ' ' + unit + ' × ' + fmt(n(c.rate), 3) + ' ' + m.amountUnit + '/' + unit + res];
     }
 
+    /** За что указывается цена: «мешок», «м²», «метр»… */
+    function per(m) {
+      if (m.kind === 'custom') return m.packSize !== 1 ? 'упаковку' : m.amountUnit;
+      var p = P(m.key);
+      if (p.priceUnit === 'm2') return 'м²';
+      if (p.priceUnit === 'm') return 'метр';
+      if (p.priceUnit === 'pack') return m.kind === 'cable' ? 'бухту' : PER[packName(m.key)] || 'упаковку';
+      if (m.kind === 'roll' || m.kind === 'heatingMat') return 'м²';
+      if (m.kind === 'heatingCable') return 'метр';
+      if (m.kind === 'measured') return m.baseUnit === 'м²' ? 'м²' : 'м';
+      return PER[packName(m.key)] || 'шт.';
+    }
+
     function price(m) {
       if (!m.priced) return 'цена не указана';
       if (m.kind === 'custom') {
         var c = customItem(m);
-        return fmt(n(c.price)) + ' ₽ за ' + (m.packSize !== 1 ? 'упаковку' : m.amountUnit);
+        return fmt(n(c.price)) + ' ₽ за ' + per(m);
       }
       var p = P(m.key);
-      var per;
-      if (p.priceUnit === 'm2') per = 'м²';
-      else if (p.priceUnit === 'm') per = 'метр';
-      else if (p.priceUnit === 'pack') per = m.kind === 'cable' ? 'бухту' : PER[packName(m.key)] || 'упаковку';
-      else if (m.kind === 'roll' || m.kind === 'heatingMat') per = 'м²';
-      else if (m.kind === 'heatingCable') per = 'метр';
-      else if (m.kind === 'measured') per = m.baseUnit === 'м²' ? 'м²' : 'м';
-      else per = PER[packName(m.key)] || 'шт.';
-      return fmt(n(p.price)) + ' ₽ за ' + per;
+      return fmt(n(p.price)) + ' ₽ за ' + per(m);
     }
 
-    return { buy: buy, lines: lines, price: price };
+    return { buy: buy, lines: lines, price: price, per: per, where: where };
   }
 
   /* ================================================================== *
