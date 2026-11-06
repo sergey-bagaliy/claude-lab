@@ -53,6 +53,7 @@ async def test_request_parameters(assistant, fake_claude):
         "get_shopping_list",
         "create_reminder",
         "list_reminders",
+        "delete_reminder",
         "show_recipe",
         "show_media",
         "show_photos",

@@ -144,6 +144,48 @@ class FamilyAssistant:
     def reset(self, chat_id: int) -> None:
         self.storage.clear_history(chat_id)
 
+    async def scheduled_message(
+        self, chat_id: int, recipient: str, instruction: str, schedule: str, previous: tuple[str, ...] = ()
+    ) -> str:
+        """Очередной выпуск рассылки по расписанию («каждое утро — интересный факт»).
+
+        Claude получает только задание и прошлые выпуски (чтобы не повторяться), без инструментов бота —
+        лишь поиск в интернете для свежих данных. Выпуск попадает в историю чата, чтобы на него можно
+        было ответить: «расскажи подробнее».
+        """
+        lock = self._locks.setdefault(chat_id, asyncio.Lock())
+        async with lock:
+            self._check_budget()
+            now = self.clock()
+            members = [m.first_name for m in self.storage.members()]
+            request = (
+                f"{build_context(now, recipient, members)}\n"
+                f"По расписанию ({schedule}) пора отправить выпуск рассылки, которую заказали: «{instruction}».\n"
+                "Подготовь сегодняшний выпуск: только сам текст, коротко (до 5–6 предложений), тепло и по делу, "
+                "без вопросов в конце. Если нужны свежие данные (погода, курсы, новости) — найди их через web_search."
+            )
+            if previous:
+                request += "\nПрошлые выпуски — не повторяйся:\n" + "\n".join(
+                    f"• {t[:200]}" for t in previous
+                )
+            messages: list[dict[str, Any]] = [{"role": "user", "content": request}]
+            model = self.model
+            for _ in range(MAX_STEPS):
+                response = await self._create(messages, "low", "daily", model, client_tools=False)
+                if response.stop_reason == "refusal":
+                    raise AssistantError("Claude не стал готовить этот выпуск.")
+                if response.stop_reason == "pause_turn":
+                    messages = messages + [{"role": "assistant", "content": response.content}]
+                    continue
+                reply = Reply(text=_text_of(response), sources=_sources_of(response))
+                if not reply.text:
+                    raise AssistantError("Claude прислал пустой выпуск.")
+                self.storage.add_exchange(
+                    chat_id, f"(Бот сам прислал по расписанию: «{instruction}»)", reply.text, self.memory_size
+                )
+                return reply.display_text()
+            raise AssistantError("Не получилось подготовить выпуск.")
+
     @property
     def model(self) -> str:
         """Модель, которая сейчас отвечает: выбранная в настройках бота или по умолчанию."""
@@ -303,8 +345,10 @@ class FamilyAssistant:
         turn.albums.append(PhotoAlbum(title=place, photos=photos))
         return f"Пользователю отправлено фото: {len(photos)} шт. ({place}).", False
 
-    async def _create(self, messages: list[dict[str, Any]], effort: str, kind: str, model: str) -> Any:
-        tools = ([WEB_SEARCH_TOOL] if self.web_search else []) + CLIENT_TOOLS
+    async def _create(
+        self, messages: list[dict[str, Any]], effort: str, kind: str, model: str, client_tools: bool = True
+    ) -> Any:
+        tools = ([WEB_SEARCH_TOOL] if self.web_search else []) + (CLIENT_TOOLS if client_tools else [])
         params: dict[str, Any] = {
             "model": model,
             "max_tokens": MAX_TOKENS,
@@ -349,7 +393,7 @@ class FamilyAssistant:
                 # Поиск отключён администратором в Claude Console — работаем без него.
                 log.warning("Поиск в интернете недоступен, продолжаю без него: %s", error.message)
                 self.web_search = False
-                return await self._create(messages, effort, kind, model)
+                return await self._create(messages, effort, kind, model, client_tools)
             log.error("Claude отклонил запрос (400): %s", error.message)
             if "credit balance" in message:
                 raise AssistantError(

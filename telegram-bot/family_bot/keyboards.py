@@ -120,6 +120,18 @@ def reminder_alert(reminder_id: int) -> InlineKeyboardMarkup:
     )
 
 
+def recurring_alert(reminder_id: int) -> InlineKeyboardMarkup:
+    """Под повторяющимся напоминанием: отложить такое нельзя, можно только отключить."""
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                _button("👍 Ок", f"rem:ok:{reminder_id}"),
+                _button("🔕 Больше не присылать", f"rem:stop:{reminder_id}"),
+            ]
+        ]
+    )
+
+
 # ---------- тренажёр умножения ----------
 
 

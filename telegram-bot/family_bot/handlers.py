@@ -42,7 +42,8 @@ from .models import MODEL_CHOICES, model_label
 from .multiplication import QuizGame, format_examples, make_examples, new_game, question_text, result_text
 from .recipes import render_recipe_html
 from .storage import Storage
-from .timeutil import format_when, from_ts
+from .timeutil import format_when
+from .tools import describe_reminder
 from .voice import MAX_VOICE_SECONDS, VOICE_SETTING, VoiceService
 
 log = logging.getLogger(__name__)
@@ -311,7 +312,7 @@ def create_router(deps: Deps, allowed_user_ids: frozenset[int]) -> Router:
         names = {m.chat_id: m.first_name for m in storage.members()}
         labels = []
         for r in items[:20]:
-            label = f"{format_when(from_ts(r.due_at), now)} — {r.text}"
+            label = describe_reminder(r, now)
             if r.chat_id != chat_id:
                 label += f" → {names.get(r.chat_id, '?')}"
             elif r.created_by_chat != chat_id and r.created_by:
@@ -662,6 +663,21 @@ def create_router(deps: Deps, allowed_user_ids: frozenset[int]) -> Router:
             await callback.answer("Напоминание не найдено.", show_alert=True)
             return
         action = parts[1]
+        if reminder.is_recurring and action in ("ok", "done"):
+            await callback.answer("👍")
+            await message.edit_reply_markup(reply_markup=None)
+            return
+        if reminder.is_recurring and action == "snz":
+            await callback.answer(
+                "Повторяющееся напоминание отложить нельзя — только отключить 🔕", show_alert=True
+            )
+            return
+        if action == "stop":
+            storage.set_reminder_status(reminder.id, "cancelled")
+            await callback.answer("Больше не пришлю")
+            await message.edit_reply_markup(reply_markup=None)
+            await message.answer(f"🔕 Отключил: «{reminder.text}». Включить снова — просто попросите.")
+            return
         if action == "del":
             storage.set_reminder_status(reminder.id, "cancelled")
             await callback.answer("Удалено")

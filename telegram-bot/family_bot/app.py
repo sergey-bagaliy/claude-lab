@@ -130,7 +130,9 @@ async def run(settings: Settings) -> None:
             ) from None
 
         await setup_profile(bot)
-        background.append(asyncio.create_task(ReminderService(bot, storage).run_forever()))
+        background.append(
+            asyncio.create_task(ReminderService(bot, storage, assistant=assistant).run_forever())
+        )
         background.append(asyncio.create_task(backups.run_forever()))
         if voice is not None:
             background.append(asyncio.create_task(voice.warm_up()))

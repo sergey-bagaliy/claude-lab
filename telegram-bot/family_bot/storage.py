@@ -41,7 +41,10 @@ CREATE TABLE IF NOT EXISTS reminders (
     due_at INTEGER NOT NULL,
     created_by TEXT NOT NULL DEFAULT '',
     created_by_chat INTEGER NOT NULL DEFAULT 0,
-    status TEXT NOT NULL DEFAULT 'pending'
+    status TEXT NOT NULL DEFAULT 'pending',
+    repeat_days TEXT NOT NULL DEFAULT '',
+    generate INTEGER NOT NULL DEFAULT 0,
+    last_texts TEXT NOT NULL DEFAULT '[]'
 );
 CREATE INDEX IF NOT EXISTS reminders_by_due ON reminders(status, due_at);
 CREATE TABLE IF NOT EXISTS usage (
@@ -99,6 +102,16 @@ class Reminder:
     created_by: str
     created_by_chat: int
     status: str  # pending — ждёт, sent — отправлено, done — сделано, cancelled — удалено
+    # Дни недели для повтора: "0123456" — каждый день, "01234" — по будням (0 — понедельник).
+    # Пусто — напоминание одноразовое.
+    repeat_days: str = ""
+    # True — каждый раз Claude готовит новый текст по просьбе из `text` («интересный факт»).
+    generate: bool = False
+    last_texts: tuple[str, ...] = ()  # последние выпуски — чтобы Claude не повторялся
+
+    @property
+    def is_recurring(self) -> bool:
+        return bool(self.repeat_days)
 
 
 @dataclass(frozen=True)
@@ -121,7 +134,25 @@ class Storage:
         self.db = sqlite3.connect(path)
         self.db.row_factory = sqlite3.Row
         self.db.executescript(SCHEMA)
+        self._migrate()
         self.db.commit()
+
+    # Колонки, добавленные в новых версиях бота. Старая база дополняется автоматически,
+    # данные в ней сохраняются.
+    _NEW_COLUMNS = {
+        "reminders": {
+            "repeat_days": "TEXT NOT NULL DEFAULT ''",
+            "generate": "INTEGER NOT NULL DEFAULT 0",
+            "last_texts": "TEXT NOT NULL DEFAULT '[]'",
+        },
+    }
+
+    def _migrate(self) -> None:
+        for table, columns in self._NEW_COLUMNS.items():
+            existing = {row["name"] for row in self.db.execute(f"PRAGMA table_info({table})")}
+            for name, definition in columns.items():
+                if name not in existing:
+                    self.db.execute(f"ALTER TABLE {table} ADD COLUMN {name} {definition}")
 
     def close(self) -> None:
         self.db.close()
@@ -241,11 +272,19 @@ class Storage:
     # ---------- напоминания ----------
 
     def add_reminder(
-        self, chat_id: int, text: str, due_at: int, created_by: str, created_by_chat: int
+        self,
+        chat_id: int,
+        text: str,
+        due_at: int,
+        created_by: str,
+        created_by_chat: int,
+        repeat_days: str = "",
+        generate: bool = False,
     ) -> int:
         cursor = self.db.execute(
-            "INSERT INTO reminders(chat_id, text, due_at, created_by, created_by_chat) VALUES (?, ?, ?, ?, ?)",
-            (chat_id, text, due_at, created_by, created_by_chat),
+            "INSERT INTO reminders(chat_id, text, due_at, created_by, created_by_chat, repeat_days, generate) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (chat_id, text, due_at, created_by, created_by_chat, repeat_days, int(generate)),
         )
         self.db.commit()
         return int(cursor.lastrowid)
@@ -269,6 +308,26 @@ class Storage:
         ).fetchall()
         return [self._reminder(r) for r in rows]
 
+    def count_recurring_for(self, chat_id: int) -> int:
+        row = self.db.execute(
+            "SELECT COUNT(*) AS n FROM reminders WHERE status='pending' AND repeat_days!='' "
+            "AND (chat_id=? OR created_by_chat=?)",
+            (chat_id, chat_id),
+        ).fetchone()
+        return int(row["n"])
+
+    def remember_text(self, reminder_id: int, text: str, keep: int = 5) -> None:
+        """Запоминает очередной выпуск рассылки (храним последние `keep`)."""
+        reminder = self.reminder(reminder_id)
+        if reminder is None:
+            return
+        texts = [*reminder.last_texts, text][-keep:]
+        self.db.execute(
+            "UPDATE reminders SET last_texts=? WHERE id=?",
+            (json.dumps(texts, ensure_ascii=False), reminder_id),
+        )
+        self.db.commit()
+
     def set_reminder_status(self, reminder_id: int, status: str) -> None:
         self.db.execute("UPDATE reminders SET status=? WHERE id=?", (status, reminder_id))
         self.db.commit()
@@ -287,6 +346,9 @@ class Storage:
             row["created_by"],
             row["created_by_chat"],
             row["status"],
+            row["repeat_days"],
+            bool(row["generate"]),
+            tuple(json.loads(row["last_texts"] or "[]")),
         )
 
     # ---------- расходы ----------

@@ -13,8 +13,11 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any
 
-from .storage import Storage
+from .schedule import describe_schedule, next_occurrence, repeat_days_for
+from .storage import Reminder, Storage
 from .timeutil import TZ, format_when, parse_local
+
+MAX_RECURRING = 10  # не больше 10 повторяющихся напоминаний на человека — бережём деньги и нервы
 
 # Поиск в интернете выполняют серверы Anthropic (это «серверный» инструмент).
 WEB_SEARCH_TOOL: dict[str, Any] = {
@@ -59,7 +62,10 @@ CLIENT_TOOLS: list[dict[str, Any]] = [
         "name": "create_reminder",
         "description": (
             "Создать напоминание: в нужное время бот пришлёт сообщение. Вызывай, когда просят напомнить. "
-            "Если время не указано или неясно — сначала уточни у пользователя."
+            "Может быть разовым или повторяться (каждый день, по будням, по выходным, раз в неделю). "
+            "Для рассылок вроде «каждое утро присылай интересный факт / мотивацию / погоду» ставь generate=true — "
+            "тогда каждый раз будет новый текст. Если время разового напоминания не указано или неясно — "
+            "уточни у пользователя; для повторяющихся «утро» — 08:00, «вечер» — 20:00, и скажи об этом."
         ),
         "input_schema": {
             "type": "object",
@@ -76,14 +82,38 @@ CLIENT_TOOLS: list[dict[str, Any]] = [
                     "type": "string",
                     "description": "Имя члена семьи в именительном падеже, если напоминание для другого человека (например «Вика»). Пустая строка — для того, кто пишет.",
                 },
+                "repeat": {
+                    "type": "string",
+                    "enum": ["none", "daily", "weekdays", "weekends", "weekly"],
+                    "description": "Повтор: none — один раз (по умолчанию), daily — каждый день, weekdays — пн–пт, "
+                    "weekends — сб–вс, weekly — раз в неделю в день недели из when. Для повторяющихся when — "
+                    "время первого раза (если оно сегодня уже прошло, бот сам начнёт со следующего подходящего дня).",
+                },
+                "generate": {
+                    "type": "boolean",
+                    "description": "true — каждый раз Claude готовит новый текст по просьбе из text "
+                    "(text — это задание: «интересный факт», «мотивирующая мысль на день», «погода в Краснодаре»). "
+                    "false — бот присылает text как есть.",
+                },
             },
             "required": ["text", "when", "for_whom"],
         },
     },
     {
         "name": "list_reminders",
-        "description": "Посмотреть запланированные напоминания этого пользователя. Вызывай, когда спрашивают о напоминаниях.",
+        "description": "Посмотреть запланированные напоминания этого пользователя (с номерами). Вызывай, когда спрашивают о напоминаниях или перед удалением.",
         "input_schema": {"type": "object", "properties": {}},
+    },
+    {
+        "name": "delete_reminder",
+        "description": "Отменить напоминание или рассылку по номеру из list_reminders. Вызывай, когда просят перестать напоминать или присылать что-то.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "reminder_id": {"type": "integer", "description": "Номер напоминания из list_reminders."}
+            },
+            "required": ["reminder_id"],
+        },
     },
     {
         "name": "show_recipe",
@@ -217,6 +247,7 @@ class ToolExecutor:
             "get_shopping_list": self._get_shopping_list,
             "create_reminder": self._create_reminder,
             "list_reminders": self._list_reminders,
+            "delete_reminder": self._delete_reminder,
         }.get(name)
         if handler is None:
             return ToolResult(f"Неизвестный инструмент: {name}", is_error=True)
@@ -249,6 +280,29 @@ class ToolExecutor:
             )
 
         now = self.clock()
+        repeat = str(data.get("repeat") or "none")
+        generate = data.get("generate") is True
+        repeat_days = ""
+        if repeat != "none":
+            try:
+                repeat_days = repeat_days_for(repeat, due)
+            except ValueError:
+                return ToolResult(
+                    "repeat должен быть одним из: none, daily, weekdays, weekends, weekly.", is_error=True
+                )
+            if self.storage.count_recurring_for(ctx.chat_id) >= MAX_RECURRING:
+                return ToolResult(
+                    f"Уже {MAX_RECURRING} повторяющихся напоминаний — это предел. "
+                    "Предложи пользователю сначала удалить ненужные.",
+                    is_error=True,
+                )
+            at_time = due.timetz().replace(tzinfo=None)
+            if due <= now:
+                # «каждое утро в 8», а сейчас уже день — начинаем со следующего подходящего дня.
+                due = next_occurrence(now, at_time, repeat_days)
+            elif str(due.weekday()) not in repeat_days:
+                # первая дата не подходит (например, суббота для «по будням») — ближайший подходящий день после неё
+                due = next_occurrence(due, at_time, repeat_days)
         if due <= now:
             return ToolResult(
                 f"Это время уже прошло (сейчас {now:%Y-%m-%d %H:%M}). Уточни у пользователя.", is_error=True
@@ -269,22 +323,53 @@ class ToolExecutor:
                 )
             target_chat, target_name = member.chat_id, member.first_name
 
-        self.storage.add_reminder(
+        reminder_id = self.storage.add_reminder(
             chat_id=target_chat,
             text=text,
             due_at=int(due.timestamp()),
             created_by=ctx.person_name,
             created_by_chat=ctx.chat_id,
+            repeat_days=repeat_days,
+            generate=generate,
         )
         whom = f". Получит: {target_name}" if target_name else ""
-        return ToolResult(f"Напоминание создано: {format_when(due, now)} — {text}{whom}")
+        if not repeat_days:
+            return ToolResult(f"Напоминание №{reminder_id} создано: {format_when(due, now)} — {text}{whom}")
+        kind = "каждый раз новый текст готовит Claude" if generate else "текст каждый раз один и тот же"
+        return ToolResult(
+            f"Повторяющееся напоминание №{reminder_id} создано: {describe_schedule(repeat_days, due)} — {text} "
+            f"({kind}). Первое — {format_when(due, now)}{whom}. Отключить можно кнопкой «🔕» в самом напоминании "
+            "или в разделе «⏰ Напоминания»."
+        )
 
     def _list_reminders(self, data: dict[str, Any], ctx: ToolContext) -> ToolResult:
         now = self.clock()
         reminders = self.storage.pending_reminders_for(ctx.chat_id)
         if not reminders:
             return ToolResult("Запланированных напоминаний нет.")
-        lines = [
-            f"{format_when(datetime.fromtimestamp(r.due_at, TZ), now)} — {r.text}" for r in reminders[:20]
-        ]
-        return ToolResult("\n".join(lines))
+        return ToolResult("\n".join(f"№{r.id}: {describe_reminder(r, now)}" for r in reminders[:20]))
+
+    def _delete_reminder(self, data: dict[str, Any], ctx: ToolContext) -> ToolResult:
+        try:
+            reminder = self.storage.reminder(int(data.get("reminder_id")))
+        except (TypeError, ValueError):
+            reminder = None
+        if (
+            reminder is None
+            or reminder.status != "pending"
+            or ctx.chat_id not in (reminder.chat_id, reminder.created_by_chat)
+        ):
+            return ToolResult(
+                "Нет такого активного напоминания. Посмотри номера через list_reminders.", is_error=True
+            )
+        self.storage.set_reminder_status(reminder.id, "cancelled")
+        return ToolResult(f"Напоминание №{reminder.id} отменено: {reminder.text}")
+
+
+def describe_reminder(reminder: Reminder, now: datetime) -> str:
+    """«каждый день в 08:00 — 🤖 интересный факт» или «завтра в 09:00 — позвонить маме»."""
+    moment = datetime.fromtimestamp(reminder.due_at, TZ)
+    when = (
+        describe_schedule(reminder.repeat_days, moment) if reminder.is_recurring else format_when(moment, now)
+    )
+    return f"{when} — {'🤖 ' if reminder.generate else ''}{reminder.text}"
